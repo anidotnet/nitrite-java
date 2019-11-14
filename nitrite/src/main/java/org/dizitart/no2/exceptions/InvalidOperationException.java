@@ -16,25 +16,22 @@
  *
  */
 
-apply plugin: 'jacoco'
+package org.dizitart.no2.exceptions;
 
-jacoco {
-    toolVersion = "0.8.5"
-    reportsDir = file("$buildDir/reports/jacoco/test")
-}
-
-jacocoTestReport {
-    group = "Reporting"
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
-    reports {
-        reports {
-            xml.enabled true
-            xml.destination file("${buildDir}/reports/jacoco/report.xml")
-            csv.enabled false
-            html.destination file("${buildDir}/reports/coverage")
-        }
+/**
+ * Exception thrown when a requested operation is not
+ * allowed to be executed.
+ *
+ * @author Anindya Chatterjee
+ * @since 1.0
+ */
+public class InvalidOperationException extends NitriteException {
+    /**
+     * Instantiates a new Invalid operation exception.
+     *
+     * @param message the message
+     */
+    public InvalidOperationException(ErrorMessage message) {
+        super(message);
     }
 }
-
-check.dependsOn jacocoTestReport

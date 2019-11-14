@@ -16,25 +16,22 @@
  *
  */
 
-apply plugin: 'jacoco'
+package org.dizitart.no2.exceptions;
 
-jacoco {
-    toolVersion = "0.8.5"
-    reportsDir = file("$buildDir/reports/jacoco/test")
-}
-
-jacocoTestReport {
-    group = "Reporting"
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
-    reports {
-        reports {
-            xml.enabled true
-            xml.destination file("${buildDir}/reports/jacoco/report.xml")
-            csv.enabled false
-            html.destination file("${buildDir}/reports/coverage")
-        }
+/**
+ * Exception thrown when any modification in a collection
+ * violates unique constraint.
+ *
+ * @since 1.0
+ * @author Anindya Chatterjee
+ */
+public class UniqueConstraintException extends NitriteException {
+    /**
+     * Instantiates a new Unique constraint exception.
+     *
+     * @param message the message
+     */
+    public UniqueConstraintException(ErrorMessage message) {
+        super(message);
     }
 }
-
-check.dependsOn jacocoTestReport

@@ -16,25 +16,21 @@
  *
  */
 
-apply plugin: 'jacoco'
+package org.dizitart.no2.exceptions;
 
-jacoco {
-    toolVersion = "0.8.5"
-    reportsDir = file("$buildDir/reports/jacoco/test")
-}
-
-jacocoTestReport {
-    group = "Reporting"
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
-    reports {
-        reports {
-            xml.enabled true
-            xml.destination file("${buildDir}/reports/jacoco/report.xml")
-            csv.enabled false
-            html.destination file("${buildDir}/reports/coverage")
-        }
+/**
+ * Exception thrown when a database security error occurs.
+ *
+ * @since 1.0
+ * @author Anindya Chatterjee.
+ */
+public class SecurityException extends NitriteException {
+    /**
+     * Instantiates a new {@link SecurityException}.
+     *
+     * @param errorMessage the error message
+     */
+    public SecurityException(ErrorMessage errorMessage) {
+        super(errorMessage);
     }
 }
-
-check.dependsOn jacocoTestReport

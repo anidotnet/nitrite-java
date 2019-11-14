@@ -34,15 +34,15 @@ asciidoctorj {
 
 asciidoctor {
     backends = ['html5']
-    attributes  \
-            'endpoint-url': 'http://nitrite.dizitart.org',
+    attributes =
+            ['endpoint-url': 'http://nitrite.dizitart.org',
             'source-highlighter': 'coderay',
             'toc': 'left',
             'icons': 'font',
             'setanchors': '',
             'idprefix': '',
             'idseparator': '-',
-            'docinfo1': ''
+            'docinfo1': '']
 }
 
 javadoc {
