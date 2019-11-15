@@ -17,8 +17,14 @@ public abstract class NitriteConfig {
     @Getter
     private String fieldSeparator;
 
+    @Getter
+    private boolean readOnly;
+
     @Getter(AccessLevel.PACKAGE)
     private final PluginManager pluginManager;
+
+    @Getter
+    private Integer poolShutdownTimeout;
 
     private NitriteConfig() {
         pluginManager = new PluginManager();
@@ -27,13 +33,25 @@ public abstract class NitriteConfig {
     public static NitriteConfig create() {
         NitriteConfig config = new NitriteConfig(){};
         config.fieldSeparator(".");
-        // TODO: load plugins here config.load();
+        config.readOnly(false);
+        config.poolShutdownTimeout(5);
+        config.loadDefault();
         return config;
     }
 
 
     public NitriteConfig fieldSeparator(String separator) {
         this.fieldSeparator = separator;
+        return this;
+    }
+
+    public NitriteConfig readOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+        return this;
+    }
+
+    public NitriteConfig poolShutdownTimeout(int timeout) {
+        this.poolShutdownTimeout = timeout;
         return this;
     }
 
@@ -52,5 +70,9 @@ public abstract class NitriteConfig {
 
     public NitriteStore getNitriteStore() {
         return pluginManager.getNitriteStore();
+    }
+
+    private void loadDefault() {
+
     }
 }

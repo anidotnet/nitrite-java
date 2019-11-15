@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-rootProject.name = 'nitrite-java'
-include 'nitrite'
-include 'nitrite-android-example'
+package org.dizitart.no2.collection.events;
 
+/**
+ * @author Anindya Chatterjee
+ */
+public class ChangeEvent {
+}

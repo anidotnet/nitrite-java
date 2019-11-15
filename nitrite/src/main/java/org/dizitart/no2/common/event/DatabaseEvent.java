@@ -14,7 +14,29 @@
  * limitations under the License.
  */
 
-rootProject.name = 'nitrite-java'
-include 'nitrite'
-include 'nitrite-android-example'
+package org.dizitart.no2.common.event;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.dizitart.no2.NitriteConfig;
+
+/**
+ * @author Anindya Chatterjee
+ */
+public enum DatabaseEvent {
+    ;
+    @Data
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    public static class Closing extends EventInfo {
+        private NitriteConfig nitriteConfig;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    public static class Closed extends EventInfo {
+        private NitriteConfig nitriteConfig;
+    }
+}

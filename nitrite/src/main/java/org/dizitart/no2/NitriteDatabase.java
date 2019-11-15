@@ -1,21 +1,32 @@
 package org.dizitart.no2;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.objects.ObjectRepository;
+import org.dizitart.no2.common.event.DatabaseEvent;
+import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.store.NitriteStore;
 
+import java.nio.channels.NonWritableChannelException;
 import java.util.Map;
 import java.util.Set;
 
-import static org.dizitart.no2.exceptions.ErrorMessage.NITRITE_STORE_IS_CLOSED;
+import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_CLOSED_NON_W_CHANNEL;
+import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee.
  */
+@Slf4j
 class NitriteDatabase implements Nitrite {
+    @Getter
     private final NitriteConfig nitriteConfig;
+
+    @Getter
     private NitriteStore store;
+
+    private NitriteEventBus eventBus;
 
     NitriteDatabase(NitriteConfig config) {
         this.nitriteConfig = config;
@@ -23,92 +34,67 @@ class NitriteDatabase implements Nitrite {
     }
 
     @Override
-    public NitriteCollection getCollection(String name) {
-        validateCollectionName(name);
+    public synchronized void close() {
         checkOpened();
-        return store.getCollection(name);
-    }
+        try {
+            DatabaseEvent.Closing event = new DatabaseEvent.Closing(nitriteConfig);
+            eventBus.post(event);
 
-    @Override
-    public <T> ObjectRepository<T> getRepository(Class<T> type) {
-        checkOpened();
-        String name = findRepositoryName(type);
-        return getRepositoryByName(name, type);
-    }
+            store.beforeClose();
+//            if (hasUnsavedChanges()) {
+//                log.debug("Unsaved changes detected, committing the changes.");
+//
+//                // TODO: Trigger store closing initiated
+//                // commit and compact in store implementation
+//                commit();
+//            }
+//            if (context.isAutoCompactEnabled()) {
+//                compact();
+//            }
 
-    @Override
-    public <T> ObjectRepository<T> getRepository(String key, Class<T> type) {
-        checkOpened();
-        String name = findRepositoryName(key, type);
-        return getRepositoryByName(name, type);
-    }
+            closeCollections();
+            store.close();
 
-    @Override
-    public Set<String> listCollectionNames() {
-        return null;
-    }
-
-    @Override
-    public Set<String> listRepositories() {
-        return null;
-    }
-
-    @Override
-    public Map<String, String> listKeyedRepository() {
-        return null;
-    }
-
-    @Override
-    public boolean hasCollection(String name) {
-        return false;
-    }
-
-    @Override
-    public <T> boolean hasRepository(Class<T> type) {
-        return false;
-    }
-
-    @Override
-    public <T> boolean hasRepository(String key, Class<T> type) {
-        return false;
-    }
-
-    @Override
-    public boolean hasUnsavedChanges() {
-        return false;
-    }
-
-    @Override
-    public void compact() {
-
-    }
-
-    @Override
-    public void commit() {
-
-    }
-
-    @Override
-    public boolean isClosed() {
-        return false;
-    }
-
-    @Override
-    public void close() {
-
+            DatabaseEvent.Closed closed = new DatabaseEvent.Closed(nitriteConfig);
+            eventBus.post(closed);
+            //                context.shutdown();
+        } catch (NonWritableChannelException error) {
+            if (!nitriteConfig.isReadOnly()) {
+                throw new NitriteIOException(errorMessage("error while shutting down nitrite",
+                    NIOE_CLOSED_NON_W_CHANNEL), error);
+            }
+        } finally {
+            store = null;
+            log.info("Nitrite database has been closed successfully.");
+        }
     }
 
     private void initialize() {
         store = nitriteConfig.getNitriteStore();
+        eventBus = NitriteEventBus.get();
     }
 
-    private void checkOpened() {
-        if (store == null || store.isClosed()) {
-            throw new NitriteIOException(NITRITE_STORE_IS_CLOSED);
+    private void closeCollections() {
+        Set<String> collections = store.getCollectionNames();
+        if (collections != null) {
+            for (String name : collections) {
+                NitriteCollection collection = getCollection(name);
+                if (collection != null && !collection.isClosed()) {
+                    collection.close();
+                }
+            }
+            collections.clear();
         }
-    }
 
-    private <T> ObjectRepository<T> getRepositoryByName(String name, Class<T> type) {
-
+        Map<String, Class<?>> repositories = store.getRepositoryRegistry();
+        if (repositories != null) {
+            for (String name : repositories.keySet()) {
+                NitriteCollection collection = getCollection(name);
+                if (collection != null && !collection.isClosed()) {
+                    collection.close();
+                }
+            }
+            repositories.clear();
+        }
     }
 }

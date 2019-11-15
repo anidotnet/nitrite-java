@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-rootProject.name = 'nitrite-java'
-include 'nitrite'
-include 'nitrite-android-example'
+package org.dizitart.no2.common.event;
 
+import lombok.Data;
+
+/**
+ * @author Anindya Chatterjee
+ */
+@Data
+public abstract class EventInfo {
+    private String originator;
+
+}
