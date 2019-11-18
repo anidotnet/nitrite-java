@@ -26,18 +26,6 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     // populate existing collection names when loading
     Set<String> getCollectionNames();
 
-    default <T> String findRepositoryName(String key, Class<T> type) {
-        notNull(key, errorMessage("key cannot be null", VE_OBJ_STORE_NULL_KEY));
-        notEmpty(key, errorMessage("key cannot be empty", VE_OBJ_STORE_EMPTY_KEY));
-        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
-        return type.getName() + KEY_OBJ_SEPARATOR + key;
-    }
-
-    default <T> String findRepositoryName(Class<T> type) {
-        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
-        return type.getName();
-    }
-
     <T> ObjectRepository<T> getRepository(Class<T> type);
 
     <T> ObjectRepository<T> getRepository(String key, Class<T> type);
@@ -57,4 +45,16 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     void close();
 
     void beforeClose();
+
+    default <T> String findRepositoryName(String key, Class<T> type) {
+        notNull(key, errorMessage("key cannot be null", VE_OBJ_STORE_NULL_KEY));
+        notEmpty(key, errorMessage("key cannot be empty", VE_OBJ_STORE_EMPTY_KEY));
+        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
+        return type.getName() + KEY_OBJ_SEPARATOR + key;
+    }
+
+    default <T> String findRepositoryName(Class<T> type) {
+        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
+        return type.getName();
+    }
 }

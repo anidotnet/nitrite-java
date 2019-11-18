@@ -23,6 +23,7 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.mapper.NitriteMapper;
 import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.Map;
 

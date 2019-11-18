@@ -19,25 +19,19 @@ package org.dizitart.no2;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.objects.ObjectRepository;
 import org.dizitart.no2.common.Constants;
-import org.dizitart.no2.common.event.EventInfo;
-import org.dizitart.no2.common.event.EventListener;
+import org.dizitart.no2.common.event.DatabaseEvent;
+import org.dizitart.no2.common.event.DatabaseEventListener;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.ValidationException;
-import org.dizitart.no2.store.NitriteStore;
 
 import java.io.Closeable;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.Constants.RESERVED_NAMES;
-import static org.dizitart.no2.common.util.ObjectUtils.*;
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.NITRITE_STORE_IS_CLOSED;
 import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
@@ -127,6 +121,18 @@ public interface Nitrite extends Closeable {
     void close();
 
     /**
+     * Commits the changes. For file based store, it saves the changes
+     * to disk if there are any unsaved changes.
+     *
+     * [icon="{@docRoot}/tip.png"]
+     * TIP: No need to call it after every change, if auto-commit is not disabled
+     * while opening the db. However, it may still be called to flush all
+     * changes to disk.
+     *
+     */
+    void commit();
+
+    /**
      * Opens a named collection from the store. If the collections does not
      * exist it will be created automatically and returned. If a collection
      * is already opened, it is returned as is. Returned collection is thread-safe
@@ -149,11 +155,7 @@ public interface Nitrite extends Closeable {
      * @return the collection
      * @see NitriteCollection
      */
-    default NitriteCollection getCollection(String name) {
-        validateCollectionName(name);
-        checkOpened();
-        return getStore().getCollection(name, getNitriteConfig());
-    }
+    NitriteCollection getCollection(String name);
 
     /**
      * Opens a type-safe object repository from the store. If the repository
@@ -168,10 +170,7 @@ public interface Nitrite extends Closeable {
      * @return the repository containing objects of type {@link T}.
      * @see ObjectRepository
      */
-    default <T> ObjectRepository<T> getRepository(Class<T> type) {
-        checkOpened();
-        return getStore().getRepository(type);
-    }
+    <T> ObjectRepository<T> getRepository(Class<T> type);
 
     /**
      * Opens a type-safe object repository with a key identifier from the store. If the repository
@@ -179,27 +178,22 @@ public interface Nitrite extends Closeable {
      * repository is already opened, it is returned as is.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: Returned repository is thread-safe for concurrent use.
+     * NOTE: The returned repository is thread-safe for concurrent use.
      *
-     * @param <T>  the type parameter
-     * @param key  the key that will be appended to the repositories name
-     * @param type the type of the object
+     * @param <T>  the type parameter.
+     * @param key  the key, which will be appended to the repositories name.
+     * @param type the type of the object.
      * @return the repository containing objects of type {@link T}.
      * @see ObjectRepository
      */
-    default <T> ObjectRepository<T> getRepository(String key, Class<T> type) {
-        checkOpened();
-        return getStore().getRepository(key, type);
-    }
+    <T> ObjectRepository<T> getRepository(String key, Class<T> type);
 
     /**
      * Gets the set of all {@link NitriteCollection}s' names saved in the store.
      *
      * @return the set of all collections' names.
      */
-    default Set<String> listCollectionNames() {
-        return new LinkedHashSet<>(getStore().getCollectionNames());
-    }
+    Set<String> listCollectionNames();
 
     /**
      * Gets the set of all fully qualified class names corresponding
@@ -207,16 +201,7 @@ public interface Nitrite extends Closeable {
      *
      * @return the set of all registered classes' names.
      */
-    default Set<String> listRepositories() {
-        Set<String> resultSet = new LinkedHashSet<>();
-        Set<String> repository = getStore().getRepositoryRegistry().keySet();
-        for (String name : repository) {
-            if (!isKeyedRepository(name)) {
-                resultSet.add(name);
-            }
-        }
-        return resultSet;
-    }
+    Set<String> listRepositories();
 
     /**
      * Gets the map of all key to the fully qualified class names corresponding
@@ -224,18 +209,29 @@ public interface Nitrite extends Closeable {
      *
      * @return the set of all registered classes' names.
      */
-    default Map<String, String> listKeyedRepository() {
-        Map<String, String> resultMap = new HashMap<>();
-        Set<String> repository = getStore().getRepositoryRegistry().keySet();
-        for (String name : repository) {
-            if (isKeyedRepository(name)) {
-                String key = getKeyName(name);
-                String type = getKeyedRepositoryType(name);
-                resultMap.put(key, type);
-            }
-        }
-        return resultMap;
-    }
+    Map<String, String> listKeyedRepository();
+
+    /**
+     * Checks whether the store has any unsaved changes.
+     *
+     * @return `true` if there are unsaved changes; otherwise `false`.
+     */
+    boolean hasUnsavedChanges();
+
+    /**
+     * Checks whether the store is closed.
+     *
+     * @return `true` if closed; otherwise `false`.
+     */
+    boolean isClosed();
+
+    /**
+     * Adds an event listener, which listens to various database events.
+     *
+     * @param listener the database event listener.
+     * @see DatabaseEvent
+     * */
+    void addEventListener(DatabaseEventListener listener);
 
     /**
      * Checks whether a particular {@link NitriteCollection} exists in the store.
@@ -244,7 +240,7 @@ public interface Nitrite extends Closeable {
      * @return `true` if the collection exists; otherwise `false`.
      */
     default boolean hasCollection(String name) {
-        return getStore().getCollectionNames().contains(name);
+        return listCollectionNames().contains(name);
     }
 
     /**
@@ -255,40 +251,21 @@ public interface Nitrite extends Closeable {
      * @return `true` if the repository exists; otherwise `false`.
      */
     default <T> boolean hasRepository(Class<T> type) {
-        return getStore().getRepositoryRegistry().containsKey(findRepositoryName(type));
+        return listRepositories().contains(type.getName());
     }
 
     /**
      * Checks whether a particular keyed-{@link ObjectRepository} exists in the store.
      *
-     * @param <T>  the type parameter
-     * @param key  the key that will be appended to the repositories name
-     * @param type the type of the object
+     * @param <T>  the type parameter.
+     * @param key  the key, which will be appended to the repositories name.
+     * @param type the type of the object.
      * @return `true` if the repository exists; otherwise `false`.
      */
     default <T> boolean hasRepository(String key, Class<T> type) {
-        return getStore().getRepositoryRegistry().containsKey(findRepositoryName(key, type));
+        return listKeyedRepository().containsKey(key)
+            && listKeyedRepository().get(key).equals(type.getName());
     }
-
-    /**
-     * Checks whether the store has any unsaved changes.
-     *
-     * @return `true` if there are unsaved changes; otherwise `false`.
-     */
-    default boolean hasUnsavedChanges() {
-        return getStore() != null && getStore().hasUnsavedChanges();
-    }
-
-    /**
-     * Checks whether the store is closed.
-     *
-     * @return `true` if closed; otherwise `false`.
-     */
-    default boolean isClosed() {
-        return getStore() == null || getStore().isClosed();
-    }
-
-    void addEventListener(EventListener listener);
 
     default void validateCollectionName(String name) {
         notNull(name, errorMessage("name cannot be null", VE_COLLECTION_NULL_NAME));
@@ -300,23 +277,5 @@ public interface Nitrite extends Closeable {
                     "name cannot contain " + reservedName, VE_COLLECTION_NAME_RESERVED));
             }
         }
-    }
-
-    default void checkOpened() {
-        if (getStore() == null || getStore().isClosed()) {
-            throw new NitriteIOException(NITRITE_STORE_IS_CLOSED);
-        }
-    }
-
-    default <T> String findRepositoryName(Class<T> type) {
-        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
-        return type.getName();
-    }
-
-    default <T> String findRepositoryName(String key, Class<T> type) {
-        notNull(key, errorMessage("key cannot be null", VE_OBJ_STORE_NULL_KEY));
-        notEmpty(key, errorMessage("key cannot be empty", VE_OBJ_STORE_EMPTY_KEY));
-        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
-        return type.getName() + KEY_OBJ_SEPARATOR + key;
     }
 }

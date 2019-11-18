@@ -17,9 +17,6 @@
 package org.dizitart.no2.common.concurrent;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.common.event.DatabaseEvent;
-import org.dizitart.no2.common.event.NitriteEventBus;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,17 +37,6 @@ public class ExecutorServiceManager {
     private static ScheduledExecutorService scheduledExecutor;
     private static ExecutorService syncExecutor;
     private static final Object lock = new Object();
-
-    static {
-        NitriteEventBus eventBus = NitriteEventBus.get();
-        eventBus.register(event -> {
-            if (event instanceof DatabaseEvent.Closed) {
-                NitriteConfig nitriteConfig = ((DatabaseEvent.Closed) event).getNitriteConfig();
-                int timeout = nitriteConfig.getPoolShutdownTimeout();
-                shutdownExecutors(timeout);
-            }
-        });
-    }
 
     /**
      * Creates an {@link ExecutorService} with pull size {@link Integer#MAX_VALUE}
@@ -93,7 +79,7 @@ public class ExecutorServiceManager {
      *
      * @param timeout the timeout in seconds
      */
-    private static void shutdownExecutors(int timeout) {
+    public static void shutdownExecutors(int timeout) {
         if (commonPool != null) {
             shutdownAndAwaitTermination(commonPool, timeout);
             commonPool = null;
