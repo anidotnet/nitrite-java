@@ -7,6 +7,6 @@ import org.dizitart.no2.NitriteConfig;
  */
 public class CollectionFactory {
     public static NitriteCollection getCollection(String name, NitriteConfig nitriteConfig) {
-        return null;
+        return new NitriteCollectionImpl(name, nitriteConfig);
     }
 }
