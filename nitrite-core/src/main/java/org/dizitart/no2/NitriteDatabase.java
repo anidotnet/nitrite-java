@@ -1,8 +1,10 @@
 package org.dizitart.no2;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.collection.CollectionFactory;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.objects.ObjectRepository;
+import org.dizitart.no2.collection.objects.RepositoryFactory;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.event.DatabaseEvent;
 import org.dizitart.no2.common.event.DatabaseEventListener;
@@ -39,19 +41,19 @@ class NitriteDatabase implements Nitrite {
     public NitriteCollection getCollection(String name) {
         validateCollectionName(name);
         checkOpened();
-        return store.getCollection(name, nitriteConfig);
+        return CollectionFactory.getCollection(name, nitriteConfig);
     }
 
     @Override
     public <T> ObjectRepository<T> getRepository(Class<T> type) {
         checkOpened();
-        return store.getRepository(type);
+        return RepositoryFactory.getRepository(type);
     }
 
     @Override
     public <T> ObjectRepository<T> getRepository(String key, Class<T> type) {
         checkOpened();
-        return store.getRepository(key, type);
+        return RepositoryFactory.getRepository(key, type);
     }
 
     @Override
