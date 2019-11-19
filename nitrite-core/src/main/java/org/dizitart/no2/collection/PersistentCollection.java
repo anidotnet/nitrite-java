@@ -135,7 +135,9 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @throws org.dizitart.no2.exceptions.ValidationException      if the `element` is `null`.
      * @throws org.dizitart.no2.exceptions.NotIdentifiableException if the `element` does not have any id.
      */
-    WriteResult update(T element);
+    default WriteResult update(T element) {
+        return update(element, false);
+    }
 
     /**
      * Updates `element` in the collection. Specified `element` must have an id.

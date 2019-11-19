@@ -3,6 +3,10 @@ package org.dizitart.no2.collection;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.collection.filters.Filter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Represents a named document collection stored in nitrite database.
  * It persists documents into the database. Each document is associated
@@ -62,7 +66,16 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @see org.dizitart.no2.NitriteId
      * @see WriteResult
      */
-    WriteResult insert(Document document, Document... documents);
+    default WriteResult insert(Document document, Document... documents) {
+        List<Document> documentList = new ArrayList<>();
+        documentList.add(document);
+
+        if (documents != null && documents.length > 0) {
+            Collections.addAll(documentList, documents);
+        }
+
+        return insert(documentList.toArray(new Document[0]));
+    }
 
     /**
      * Updates documents in the collection.
@@ -79,7 +92,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @return the result of the update operation.
      * @throws org.dizitart.no2.exceptions.ValidationException if the `update` document is `null`.
      */
-    WriteResult update(Filter filter, Document update);
+    default WriteResult update(Filter filter, Document update) {
+        return update(filter, update, new UpdateOptions());
+    }
 
     /**
      * Updates documents in the collection. Update operation can be customized
@@ -116,7 +131,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @param filter the filter to apply to select elements from collection.
      * @return the result of the remove operation.
      */
-    WriteResult remove(Filter filter);
+    default WriteResult remove(Filter filter) {
+        return remove(filter, new RemoveOptions());
+    }
 
     /**
      * Removes document from a collection. Remove operation can be customized by
