@@ -2,7 +2,7 @@ package org.dizitart.no2;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.dizitart.no2.indexer.Indexer;
+import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.plugin.NitritePlugin;
 import org.dizitart.no2.plugin.PluginManager;

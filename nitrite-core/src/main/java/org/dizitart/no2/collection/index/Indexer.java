@@ -1,4 +1,4 @@
-package org.dizitart.no2.indexer;
+package org.dizitart.no2.collection.index;
 
 import org.dizitart.no2.plugin.NitritePlugin;
 

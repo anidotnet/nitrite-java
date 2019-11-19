@@ -1,7 +1,7 @@
 package org.dizitart.no2.plugin;
 
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.indexer.Indexer;
+import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.NitriteStore;
 
