@@ -20,6 +20,7 @@ package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
 import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.filters.Filter;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.mapper.NitriteMapper;
 import org.dizitart.no2.filters.Filter;

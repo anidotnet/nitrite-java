@@ -57,4 +57,10 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
         notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
         return type.getName();
     }
+
+    long getCollectionSize(String collectionName);
+
+    void dropCollection(String collectionName);
+
+    void closeCollection(String collectionName);
 }

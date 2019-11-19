@@ -57,4 +57,6 @@ public interface Document extends Iterable<KeyValuePair>, Cloneable {
     Long getLastModifiedSinceEpoch();
 
     Set<String> getFields();
+
+    boolean hasId();
 }

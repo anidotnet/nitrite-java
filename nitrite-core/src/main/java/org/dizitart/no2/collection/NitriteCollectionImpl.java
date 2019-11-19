@@ -1,5 +1,6 @@
 package org.dizitart.no2.collection;
 
+import lombok.Getter;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.NitriteId;
@@ -7,23 +8,35 @@ import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
 import org.dizitart.no2.collection.filters.Filter;
 import org.dizitart.no2.collection.index.Index;
+import org.dizitart.no2.collection.index.IndexType;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperation;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.common.event.NitriteEventBus;
+import org.dizitart.no2.exceptions.IndexingException;
+import org.dizitart.no2.exceptions.NitriteIOException;
+import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
+
+import static org.dizitart.no2.common.util.DocumentUtils.createUniqueFilter;
+import static org.dizitart.no2.common.util.ValidationUtils.containsNull;
+import static org.dizitart.no2.common.util.ValidationUtils.notNull;
+import static org.dizitart.no2.exceptions.ErrorCodes.*;
+import static org.dizitart.no2.exceptions.ErrorMessage.*;
 
 /**
  * @author Anindya Chatterjee.
  */
 class NitriteCollectionImpl implements NitriteCollection {
+    private final String collectionName;
     private NitriteStore nitriteStore;
     private CollectionOperation collectionOperation;
     private EventBus<ChangedItem<Document>, ChangeListener> eventBus;
     private NitriteConfig nitriteConfig;
-    private final String collectionName;
+
+    @Getter
     private volatile boolean isDropped;
 
     NitriteCollectionImpl(String name, NitriteConfig nitriteConfig) {
@@ -33,144 +46,251 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
+    public WriteResult insert(Document[] documents) {
+        checkOpened();
+        notNull(documents, errorMessage("a null document cannot be inserted", VE_INSERT_NULL_DOCUMENT_ARRAY));
+        containsNull(documents, errorMessage("a null document cannot be inserted",
+            VE_INSERT_DOCUMENTS_CONTAINS_NULL));
+
+        return collectionOperation.insert(documents);
+    }
+
+    @Override
+    public WriteResult update(Document document, boolean upsert) {
+        checkOpened();
+        notNull(document, errorMessage("a null document cannot be used for update", VE_UPDATE_NULL_DOCUMENT_OPTION));
+
+        if (document.hasId()) {
+            return update(createUniqueFilter(document), document, UpdateOptions.updateOptions(upsert));
+        } else {
+            throw new NotIdentifiableException(UPDATE_FAILED_AS_NO_ID_FOUND);
+        }
+    }
+
+    @Override
     public WriteResult update(Filter filter, Document update, UpdateOptions updateOptions) {
-        return null;
+        checkOpened();
+        notNull(update, errorMessage("a null document cannot be used for update", VE_UPDATE_OPTIONS_NULL_DOCUMENT));
+        notNull(updateOptions, errorMessage("updateOptions cannot be null", VE_UPDATE_NULL_UPDATE_OPTIONS));
+
+        return collectionOperation.update(filter, update, updateOptions);
+    }
+
+    @Override
+    public WriteResult remove(Document document) {
+        checkOpened();
+        notNull(document, errorMessage("a null document cannot be removed", VE_REMOVE_NULL_DOCUMENT));
+
+        if (document.hasId()) {
+            return remove(createUniqueFilter(document));
+        } else {
+            throw new NotIdentifiableException(REMOVE_FAILED_AS_NO_ID_FOUND);
+        }
     }
 
     @Override
     public WriteResult remove(Filter filter, RemoveOptions removeOptions) {
-        return null;
+        checkOpened();
+        notNull(removeOptions, errorMessage("removeOptions cannot be null", VE_REMOVE_NULL_DOCUMENT));
+
+        return collectionOperation.remove(filter, removeOptions);
     }
 
     @Override
     public DocumentCursor find() {
-        return null;
+        checkOpened();
+        return collectionOperation.find();
     }
 
     @Override
     public DocumentCursor find(Filter filter) {
-        return null;
+        checkOpened();
+        return collectionOperation.find(filter);
     }
 
     @Override
     public DocumentCursor find(FindOptions findOptions) {
-        return null;
+        checkOpened();
+        notNull(findOptions, errorMessage("findOptions cannot be null", VE_FIND_NULL_FIND_OPTIONS));
+        return collectionOperation.find(findOptions);
     }
 
     @Override
     public DocumentCursor find(Filter filter, FindOptions findOptions) {
-        return null;
+        checkOpened();
+        notNull(findOptions, errorMessage("findOptions cannot be null", VE_FIND_FILTERED_NULL_FIND_OPTIONS));
+        return collectionOperation.find(filter, findOptions);
     }
 
     @Override
     public void createIndex(String field, IndexOptions indexOptions) {
+        checkOpened();
+        notNull(field, errorMessage("field cannot be null", VE_CREATE_INDEX_NULL_FIELD));
 
+        // by default async is false while creating index
+        if (indexOptions == null) {
+            collectionOperation.createIndex(field, IndexType.Unique, false);
+        } else {
+            collectionOperation.createIndex(field, indexOptions.getIndexType(),
+                indexOptions.isAsync());
+        }
     }
 
     @Override
     public void rebuildIndex(String field, boolean async) {
+        checkOpened();
+        notNull(field, errorMessage("field cannot be null", VE_REBUILD_INDEX_NULL_FIELD));
 
+        Index index = collectionOperation.findIndex(field);
+        if (index != null) {
+            validateRebuildIndex(index);
+            collectionOperation.rebuildIndex(index, async);
+        } else {
+            throw new IndexingException(errorMessage(field + " is not indexed",
+                IE_REBUILD_INDEX_FIELD_NOT_INDEXED));
+        }
     }
 
     @Override
     public Collection<Index> listIndices() {
-        return null;
+        checkOpened();
+        return collectionOperation.listIndexes();
     }
 
     @Override
     public boolean hasIndex(String field) {
-        return false;
+        checkOpened();
+        notNull(field, errorMessage("field cannot be null", VE_HAS_INDEX_NULL_FIELD));
+
+        return collectionOperation.hasIndex(field);
     }
 
     @Override
     public boolean isIndexing(String field) {
-        return false;
+        checkOpened();
+        notNull(field, errorMessage("field cannot be null", VE_IS_INDEXING_NULL_FIELD));
+        return collectionOperation.isIndexing(field);
     }
 
     @Override
     public void dropIndex(String field) {
-
+        checkOpened();
+        notNull(field, errorMessage("field cannot be null", VE_DROP_INDEX_NULL_FIELD));
+        collectionOperation.dropIndex(field);
     }
 
     @Override
     public void dropAllIndices() {
-
+        checkOpened();
+        collectionOperation.dropAllIndices();
     }
 
-    @Override
-    public WriteResult insert(Document[] elements) {
-        return null;
-    }
-
-    @Override
-    public WriteResult update(Document element, boolean upsert) {
-        return null;
-    }
-
-    @Override
-    public WriteResult remove(Document element) {
-        return null;
-    }
 
     @Override
     public Document getById(NitriteId nitriteId) {
-        return null;
+        checkOpened();
+        notNull(nitriteId, errorMessage("nitriteId cannot be null", VE_GET_BY_ID_NULL_ID));
+        return collectionOperation.getById(nitriteId);
     }
 
     @Override
     public void drop() {
+        checkOpened();
 
-    }
-
-    @Override
-    public boolean isDropped() {
-        return false;
+        collectionOperation.dropCollection();
+        isDropped = true;
+        close();
     }
 
     @Override
     public boolean isClosed() {
-        return false;
+        if (nitriteStore == null || nitriteStore.isClosed() || isDropped) {
+            close();
+            return true;
+        }
+        else return false;
     }
 
     @Override
     public void close() {
-
+        collectionOperation.close();
+        this.nitriteStore = null;
+        this.nitriteConfig = null;
+        this.collectionOperation = null;
+        closeEventBus();
     }
 
     @Override
     public String getName() {
-        return null;
+        return collectionName;
     }
 
     @Override
     public long size() {
-        return 0;
+        return collectionOperation.getSize();
     }
 
     @Override
     public void register(ChangeListener listener) {
+        checkOpened();
+        notNull(listener, errorMessage("listener cannot be null", VE_LISTENER_NULL));
 
+        eventBus.register(listener);
     }
 
     @Override
     public void deregister(ChangeListener listener) {
+        checkOpened();
+        notNull(listener, errorMessage("listener cannot be null", VE_LISTENER_DEREGISTER_NULL));
 
+        if (eventBus != null) {
+            eventBus.deregister(listener);
+        }
     }
 
     @Override
     public Attributes getAttributes() {
-        return null;
+        checkOpened();
+        return collectionOperation.getAttributes();
     }
 
     @Override
     public void setAttributes(Attributes attributes) {
+        checkOpened();
+        notNull(attributes, errorMessage("attributes cannot be null", VE_ATTRIBUTE_NULL));
+        collectionOperation.setAttributes(attributes);
+    }
 
+    private void closeEventBus() {
+        if (eventBus != null) {
+            eventBus.close();
+        }
+        eventBus = null;
     }
 
     private void initCollection() {
         nitriteStore = nitriteConfig.getNitriteStore();
         this.eventBus = new CollectionEventBus();
-        this.collectionOperation = new CollectionOperation(nitriteStore, nitriteConfig, eventBus);
+        this.collectionOperation = new CollectionOperation(collectionName, nitriteStore, nitriteConfig, eventBus);
+    }
+
+    private void checkOpened() {
+        if (isDropped) {
+            throw new NitriteIOException(COLLECTION_IS_DROPPED);
+        }
+
+        if (nitriteStore == null || nitriteStore.isClosed()) {
+            throw new NitriteIOException(STORE_IS_CLOSED);
+        }
+    }
+
+    private void validateRebuildIndex(Index index) {
+        notNull(index, errorMessage("index cannot be null", VE_NC_REBUILD_INDEX_NULL_INDEX));
+
+        if (isIndexing(index.getField())) {
+            throw new IndexingException(errorMessage("indexing on value " + index.getField() +
+                " is currently running", IE_VALIDATE_REBUILD_INDEX_RUNNING));
+        }
     }
 
     private static class CollectionEventBus extends NitriteEventBus<ChangedItem<Document>, ChangeListener> {

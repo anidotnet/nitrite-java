@@ -250,6 +250,7 @@ public class ErrorCodes {
     public static final int IE_OBJ_INDEX_ON_NON_COMPARABLE_FIELD = 5015;
     public static final int IE_FAILED_TO_WRITE_FTS_DATA = 5016;
     static final int IE_FAILED_TO_QUERY_FTS_DATA = 5017;
+    public static final int IE_INVALID_INDEX_TYPE = 5018;
 
     // endregion
 

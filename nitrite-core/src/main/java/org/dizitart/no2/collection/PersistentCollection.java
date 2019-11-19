@@ -2,8 +2,8 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeAware;
-import org.dizitart.no2.collection.meta.MetadataAware;
 import org.dizitart.no2.collection.index.Index;
+import org.dizitart.no2.collection.meta.MetadataAware;
 
 import java.io.Closeable;
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.Collection;
  *
  * @param <T> the type parameter
  * @since 1.0
- * @author Anindya Chatterjee
+ * @author Anindya Chatterjee.
  * @see NitriteCollection
  * @see org.dizitart.no2.collection.objects.ObjectRepository
  */

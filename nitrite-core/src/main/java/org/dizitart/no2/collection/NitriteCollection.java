@@ -7,10 +7,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.dizitart.no2.common.util.ValidationUtils.containsNull;
+import static org.dizitart.no2.common.util.ValidationUtils.notNull;
+import static org.dizitart.no2.exceptions.ErrorCodes.VE_INSERT_NULL_DOCUMENT;
+import static org.dizitart.no2.exceptions.ErrorCodes.VE_INSERT_OTHERS_CONTAINS_NULL;
+import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
+
 /**
  * Represents a named document collection stored in nitrite database.
  * It persists documents into the database. Each document is associated
- * with an unique {@link org.dizitart.no2.NitriteId} in a collection.
+ * with a unique {@link org.dizitart.no2.NitriteId} in a collection.
  *
  * A nitrite collection supports indexing. Every nitrite collection is also
  * observable.
@@ -37,8 +43,8 @@ import java.util.List;
  */
 public interface NitriteCollection extends PersistentCollection<Document> {
     /**
-     * Inserts documents into a collection. If the document contains a '_id' value, then
-     * the value will be used as an unique key to identify the document in the collection.
+     * Insert documents into a collection. If the document contains a '_id' value, then
+     * the value will be used as a unique key to identify the document in the collection.
      * If the document does not contain any '_id' value, then nitrite will generate a new
      * {@link org.dizitart.no2.NitriteId} and will add it to the document.
      *
@@ -46,18 +52,18 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * index will also be updated.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: These operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
      * instances registered to this collection with change type
      * {@link org.dizitart.no2.collection.events.ChangeType#Insert}.
      *
      * @param document  the document to insert
      * @param documents other documents to insert in a batch.
-     * @return the result of the write operation.
+     * @return the result of write operation.
      * @throws org.dizitart.no2.exceptions.ValidationException if `document` is `null`.
      * @throws org.dizitart.no2.exceptions.InvalidIdException if the '_id' value contains `null` value.
      * @throws org.dizitart.no2.exceptions.InvalidIdException if the '_id' value contains non comparable type, i.e.
      * type that does not implement {@link Comparable}.
-     * @throws org.dizitart.no2.exceptions.InvalidIdException if the '_id' contains value which is not of the same java
+     * @throws org.dizitart.no2.exceptions.InvalidIdException if the '_id' contains value, which is not of the same java
      * type as of other documents' '_id' in the collection.
      * @throws org.dizitart.no2.exceptions.UniqueConstraintException if the value of '_id' value clashes with the id
      * of another document in the collection.
@@ -67,6 +73,12 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @see WriteResult
      */
     default WriteResult insert(Document document, Document... documents) {
+        notNull(document, errorMessage("a null document cannot be inserted", VE_INSERT_NULL_DOCUMENT));
+        if (documents != null) {
+            containsNull(documents, errorMessage("a null document cannot be inserted",
+                VE_INSERT_OTHERS_CONTAINS_NULL));
+        }
+
         List<Document> documentList = new ArrayList<>();
         documentList.add(document);
 
@@ -78,7 +90,7 @@ public interface NitriteCollection extends PersistentCollection<Document> {
     }
 
     /**
-     * Updates documents in the collection.
+     * Update documents in the collection.
      *
      * If the `filter` is `null`, it will update all documents in the collection.
      *
