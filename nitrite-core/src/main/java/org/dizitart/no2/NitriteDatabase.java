@@ -12,7 +12,6 @@ import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.store.NitriteStore;
 
-import java.nio.channels.NonWritableChannelException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -106,7 +105,7 @@ class NitriteDatabase implements Nitrite {
     public synchronized void close() {
         checkOpened();
         try {
-            notify(DatabaseEvent.EventType.Closing);
+            alert(DatabaseEvent.EventType.Closing);
             store.beforeClose();
             if (hasUnsavedChanges()) {
                 log.debug("Unsaved changes detected, committing the changes.");
@@ -131,7 +130,7 @@ class NitriteDatabase implements Nitrite {
         checkOpened();
         if (store != null && !nitriteConfig.isReadOnly()) {
             store.commit();
-            notify(DatabaseEvent.EventType.Commit);
+            alert(DatabaseEvent.EventType.Commit);
             log.debug("Unsaved changes committed successfully.");
         }
     }
@@ -139,10 +138,10 @@ class NitriteDatabase implements Nitrite {
     private void initialize() {
         store = nitriteConfig.getNitriteStore();
         eventBus = new DatabaseEventBus();
-        notify(DatabaseEvent.EventType.Opened);
+        alert(DatabaseEvent.EventType.Opened);
     }
 
-    private void notify(DatabaseEvent.EventType eventType) {
+    private void alert(DatabaseEvent.EventType eventType) {
         DatabaseEvent event = new DatabaseEvent(eventType, nitriteConfig);
         eventBus.post(event);
     }
@@ -179,7 +178,7 @@ class NitriteDatabase implements Nitrite {
 
     private void shutdown() {
         try {
-            notify(DatabaseEvent.EventType.Closed);
+            alert(DatabaseEvent.EventType.Closed);
             int timeout = nitriteConfig.getPoolShutdownTimeout();
             ExecutorServiceManager.shutdownExecutors(timeout);
         } catch (Throwable t) {

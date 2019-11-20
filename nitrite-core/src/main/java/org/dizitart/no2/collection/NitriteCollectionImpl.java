@@ -16,6 +16,7 @@ import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.NotIdentifiableException;
+import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
@@ -31,6 +32,7 @@ import static org.dizitart.no2.exceptions.ErrorMessage.*;
  */
 class NitriteCollectionImpl implements NitriteCollection {
     private final String collectionName;
+    private NitriteMap<NitriteId, Document> nitriteMap;
     private NitriteStore nitriteStore;
     private CollectionOperation collectionOperation;
     private EventBus<ChangedItem<Document>, ChangeListener> eventBus;
@@ -39,10 +41,11 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Getter
     private volatile boolean isDropped;
 
-    NitriteCollectionImpl(String name, NitriteConfig nitriteConfig) {
+    NitriteCollectionImpl(String name, NitriteMap<NitriteId, Document> nitriteMap, NitriteConfig nitriteConfig) {
         this.collectionName = name;
         this.nitriteConfig = nitriteConfig;
-        initCollection();
+        this.nitriteMap = nitriteMap;
+        init();
     }
 
     @Override
@@ -214,7 +217,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void close() {
         collectionOperation.close();
-        this.nitriteStore = null;
+        this.nitriteMap = null;
         this.nitriteConfig = null;
         this.collectionOperation = null;
         closeEventBus();
@@ -268,10 +271,10 @@ class NitriteCollectionImpl implements NitriteCollection {
         eventBus = null;
     }
 
-    private void initCollection() {
+    private void init() {
         nitriteStore = nitriteConfig.getNitriteStore();
         this.eventBus = new CollectionEventBus();
-        this.collectionOperation = new CollectionOperation(collectionName, nitriteStore, nitriteConfig, eventBus);
+        this.collectionOperation = new CollectionOperation(nitriteMap, nitriteConfig, eventBus);
     }
 
     private void checkOpened() {

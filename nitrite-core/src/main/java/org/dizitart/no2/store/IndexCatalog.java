@@ -10,7 +10,7 @@ import java.util.Collection;
 public interface IndexCatalog {
     boolean hasIndexEntry(String collectionName, String field);
 
-    IndexEntry createIndexEntry(String collectionName, String field, String indexType);
+    IndexEntry createIndexEntry(String field, String indexType);
 
     IndexEntry findIndexEntry(String collectionName, String field);
 

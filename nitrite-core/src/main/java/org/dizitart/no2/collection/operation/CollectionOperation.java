@@ -12,7 +12,7 @@ import org.dizitart.no2.collection.filters.Filter;
 import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.event.EventBus;
-import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.NitriteMap;
 
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
@@ -22,9 +22,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author Anindya Chatterjee
  */
 public class CollectionOperation {
-    private String collectionName;
     private NitriteConfig nitriteConfig;
-    private NitriteStore nitriteStore;
+    private NitriteMap<NitriteId, Document> nitriteMap;
     private IndexTemplate indexTemplate;
     private ReadWriteOperation readWriteOperation;
     private QueryTemplate queryTemplate;
@@ -36,11 +35,10 @@ public class CollectionOperation {
     @Setter
     private Attributes attributes;
 
-    public CollectionOperation(String collectionName, NitriteStore nitriteStore,
+    public CollectionOperation(NitriteMap<NitriteId, Document> nitriteMap,
                                NitriteConfig nitriteConfig,
                                EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
-        this.collectionName = collectionName;
-        this.nitriteStore = nitriteStore;
+        this.nitriteMap = nitriteMap;
         this.nitriteConfig = nitriteConfig;
         this.eventBus = eventBus;
         init();
@@ -194,7 +192,7 @@ public class CollectionOperation {
         try {
             writeLock.lock();
             indexTemplate.dropAllIndices();
-            nitriteStore.dropCollection(collectionName);
+            nitriteMap.drop();
         } finally {
             writeLock.unlock();
         }
@@ -203,7 +201,7 @@ public class CollectionOperation {
     public long getSize() {
         try {
             readLock.lock();
-            return nitriteStore.getCollectionSize(collectionName);
+            return nitriteMap.size();
         } finally {
             readLock.unlock();
         }
@@ -212,7 +210,7 @@ public class CollectionOperation {
     public void close() {
         try {
             writeLock.lock();
-            nitriteStore.closeCollection(collectionName);
+            nitriteMap.close();
         } finally {
             writeLock.unlock();
         }
@@ -222,9 +220,9 @@ public class CollectionOperation {
         ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         this.readLock = readWriteLock.readLock();
         this.writeLock = readWriteLock.writeLock();
-        this.indexTemplate = new IndexTemplate(collectionName, nitriteConfig, nitriteStore);
-        this.queryTemplate = new QueryTemplate(collectionName, indexTemplate, nitriteConfig, nitriteStore);
-        this.readWriteOperation = new ReadWriteOperation(collectionName, indexTemplate, queryTemplate,
-            nitriteStore, eventBus);
+        this.indexTemplate = new IndexTemplate(nitriteConfig, nitriteMap);
+        this.queryTemplate = new QueryTemplate(indexTemplate, nitriteMap);
+        this.readWriteOperation = new ReadWriteOperation(indexTemplate, queryTemplate,
+            nitriteMap, eventBus);
     }
 }

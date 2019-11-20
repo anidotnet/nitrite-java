@@ -77,4 +77,6 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     Document getDocument(String collectionName, NitriteId next);
 
     Set<NitriteId> getIdSet(String collectionName);
+
+    NitriteMap<NitriteId, Document> openMap(String name);
 }

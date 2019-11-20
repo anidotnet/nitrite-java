@@ -108,7 +108,7 @@ class ProjectedDocumentIterable implements RecordIterable<Document> {
             if (projection == null) return original;
             Document result = original.clone();
 
-            for (KeyValuePair keyValuePair : original) {
+            for (KeyValuePair<String, Object> keyValuePair : original) {
                 if (!projection.containsKey(keyValuePair.getKey())) {
                     result.remove(keyValuePair.getKey());
                 }

@@ -6,7 +6,9 @@ import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.FindOptions;
 import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.collection.index.IndexedQueryTemplate;
 import org.dizitart.no2.exceptions.FilterException;
+import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Set;
@@ -17,26 +19,26 @@ import static org.dizitart.no2.exceptions.ErrorMessage.FILTERED_FIND_OPERATION_F
  * @author Anindya Chatterjee
  */
 class QueryTemplate {
-    private String collectionName;
     private IndexTemplate indexTemplate;
-    private NitriteStore nitriteStore;
+    private IndexedQueryTemplate indexedQueryTemplate;
+    private NitriteMap<NitriteId, Document> nitriteMap;
 
-    QueryTemplate(String collectionName, IndexTemplate indexTemplate,
-                  NitriteConfig nitriteConfig, NitriteStore nitriteStore) {
-        this.collectionName = collectionName;
+    QueryTemplate(IndexTemplate indexTemplate,
+                  NitriteMap<NitriteId, Document> nitriteMap) {
         this.indexTemplate = indexTemplate;
-        this.nitriteStore = nitriteStore;
+        this.nitriteMap = nitriteMap;
+        this.indexedQueryTemplate = new NitriteIndexedQueryTemplate(indexTemplate);
     }
 
     public DocumentCursor find(Filter filter) {
         if (filter == null) {
             return find();
         }
-        filter.setIndexedTemplate(indexTemplate);
+        filter.setIndexedQueryTemplate(indexedQueryTemplate);
         Set<NitriteId> result;
 
         try {
-            result = filter.apply(collectionName, nitriteStore);
+            result = filter.apply(nitriteMap);
         } catch (FilterException fe) {
             throw fe;
         } catch (Throwable t) {

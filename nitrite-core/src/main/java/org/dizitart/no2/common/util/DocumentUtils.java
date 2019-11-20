@@ -81,7 +81,7 @@ public class DocumentUtils {
 
     private Document removeValues(Document document) {
         if (document == null) return null;
-        for (KeyValuePair entry : document) {
+        for (KeyValuePair<String, Object> entry : document) {
             if (entry.getValue() instanceof Map) {
                 document.put(entry.getKey(), removeValues((Document) entry.getValue()));
             } else {

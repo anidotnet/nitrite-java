@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * @author Anindya Chatterjee
  */
-public interface Document extends Iterable<KeyValuePair>, Cloneable {
+public interface Document extends Iterable<KeyValuePair<String, Object>>, Cloneable {
 
     static Document createDocument() {
         Map<String, Object> document = new LinkedHashMap<>();

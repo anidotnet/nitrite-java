@@ -137,14 +137,14 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
     }
 
     @Override
-    public Iterator<KeyValuePair> iterator() {
+    public Iterator<KeyValuePair<String, Object>> iterator() {
         return new PairIterator(super.entrySet().iterator());
     }
 
     private Set<String> getFieldsInternal(String prefix) {
         Set<String> fields = new TreeSet<>();
 
-        for (KeyValuePair entry : this) {
+        for (KeyValuePair<String, Object> entry : this) {
             Object value = entry.getValue();
             if (value instanceof NitriteDocument) {
                 if (isNullOrEmpty(prefix)) {
@@ -257,7 +257,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
         return value instanceof Long;
     }
 
-    private static class PairIterator implements Iterator<KeyValuePair> {
+    private static class PairIterator implements Iterator<KeyValuePair<String, Object>> {
         private Iterator<Map.Entry<String, Object>> iterator;
 
         PairIterator(Iterator<Map.Entry<String, Object>> iterator) {
@@ -270,9 +270,9 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
         }
 
         @Override
-        public KeyValuePair next() {
+        public KeyValuePair<String, Object> next() {
             Map.Entry<String, Object> next = iterator.next();
-            return new KeyValuePair(next.getKey(), next.getValue());
+            return new KeyValuePair<>(next.getKey(), next.getValue());
         }
 
         @Override

@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode
 @AllArgsConstructor
-public class KeyValuePair {
+public class KeyValuePair<Key, Value> {
 
     /**
      * The key of the pair.
@@ -21,7 +21,7 @@ public class KeyValuePair {
      * @param key the key to set.
      * @returns the key.
      * */
-    private String key;
+    private Key key;
 
     /**
      * The value of the pair.
@@ -29,5 +29,5 @@ public class KeyValuePair {
      * @param value the value to set.
      * @returns the value.
      * */
-    private Object value;
+    private Value value;
 }

@@ -1,11 +1,7 @@
 package org.dizitart.no2.store;
 
 import org.dizitart.no2.collection.meta.MetadataAware;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.dizitart.no2.common.KeyValuePair;
 
 /**
  * Represents a Nitrite key-value pair map. Every piece of
@@ -54,13 +50,12 @@ public interface NitriteMap<Key, Value> extends MetadataAware {
     String getName();
 
     /**
-     * Gets a {@link Collection} view of the values contained in
+     * Gets a {@link ReadableStream} view of the values contained in
      * this map.
      *
      * @return the collection view of all values in this map.
      */
-    // TODO: Value Stream
-    Collection<Value> values();
+    ReadableStream<Value> values();
 
     /**
      * Removes the mapping for a key from this map if it is present.
@@ -71,12 +66,11 @@ public interface NitriteMap<Key, Value> extends MetadataAware {
     Value remove(Key key);
 
     /**
-     * Gets a {@link Set} view of the keys contained in this map.
+     * Gets a {@link ReadableStream} view of the keys contained in this map.
      *
      * @return a set view of the keys contained in this map.
      */
-    //TODO: KeyStream
-    Set<Key> keySet();
+    ReadableStream<Key> keySet();
 
     /**
      * Associates the specified value with the specified key in this map.
@@ -106,12 +100,11 @@ public interface NitriteMap<Key, Value> extends MetadataAware {
     Value putIfAbsent(Key key, Value value);
 
     /**
-     * Gets a {@link Set} view of the mappings contained in this map.
+     * Gets a {@link ReadableStream} view of the mappings contained in this map.
      *
      * @return a set view of the mappings contained in this map.
      */
-    //TODO: KeyValue Stream
-    Set<Map.Entry<Key, Value>> entrySet();
+    ReadableStream<KeyValuePair<Key, Value>> entries();
 
     /**
      * Get the smallest key that is larger than the given key, or null if no
@@ -155,15 +148,9 @@ public interface NitriteMap<Key, Value> extends MetadataAware {
     boolean isEmpty();
 
     /**
-     * Returns the list of all keys in the map.
-     *
-     * @return list of all keys.
-     * */
-    // TODO: KeyStream
-    List<Key> keyList();
-
-    /**
      * Deletes the map from the store.
      * */
     void drop();
+
+    void close();
 }

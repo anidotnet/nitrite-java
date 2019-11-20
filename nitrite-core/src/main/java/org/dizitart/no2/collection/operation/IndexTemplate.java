@@ -8,6 +8,7 @@ import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.store.IndexCatalog;
+import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
@@ -28,16 +29,15 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 class IndexTemplate {
     private String collectionName;
     private NitriteConfig nitriteConfig;
-    private NitriteStore nitriteStore;
+    private NitriteMap<NitriteId, Document> nitriteMap;
     private Map<String, Indexer> indexerMap;
     private IndexCatalog indexCatalog;
     private Map<String, AtomicBoolean> indexBuildRegistry;
     private ExecutorService rebuildExecutor;
 
-    IndexTemplate(String collectionName, NitriteConfig nitriteConfig, NitriteStore nitriteStore) {
-        this.collectionName = collectionName;
+    IndexTemplate(NitriteConfig nitriteConfig, NitriteMap<NitriteId, Document> nitriteMap) {
         this.nitriteConfig = nitriteConfig;
-        this.nitriteStore = nitriteStore;
+        this.nitriteMap = nitriteMap;
         init();
     }
 
@@ -45,7 +45,7 @@ class IndexTemplate {
         IndexEntry indexEntry;
         if (!hasIndexEntry(field)) {
             // if no index create index
-            indexEntry = indexCatalog.createIndexEntry(collectionName, field, indexType);
+            indexEntry = indexCatalog.createIndexEntry(field, indexType);
         } else {
             // if index already there throw
             throw new IndexingException(errorMessage(
@@ -73,7 +73,7 @@ class IndexTemplate {
                 } else {
                     String indexType = indexEntry.getIndexType();
                     Indexer indexer = findIndexer(indexType);
-                    indexer.writeIndex(collectionName, nitriteId, field, fieldValue);
+                    indexer.writeIndex(nitriteMap, nitriteId, field, fieldValue);
                 }
             }
         }
@@ -98,7 +98,7 @@ class IndexTemplate {
                 } else {
                     String indexType = indexEntry.getIndexType();
                     Indexer indexer = findIndexer(indexType);
-                    indexer.removeIndex(collectionName, nitriteId, field, fieldValue);
+                    indexer.removeIndex(nitriteMap, nitriteId, field, fieldValue);
                 }
             }
         }
@@ -128,7 +128,7 @@ class IndexTemplate {
                 } else {
                     String indexType = indexEntry.getIndexType();
                     Indexer indexer = findIndexer(indexType);
-                    indexer.updateIndex(collectionName, nitriteId, field, newValue, oldValue);
+                    indexer.updateIndex(nitriteMap, nitriteId, field, newValue, oldValue);
                 }
             }
         }
@@ -146,7 +146,7 @@ class IndexTemplate {
         if (indexEntry != null) {
             String indexType = indexEntry.getIndexType();
             Indexer indexer = findIndexer(indexType);
-            indexer.dropIndex(collectionName, field);
+            indexer.dropIndex(nitriteMap, field);
             indexCatalog.dropIndexEntry(collectionName, field);
             indexBuildRegistry.remove(field);
         } else {
@@ -207,9 +207,19 @@ class IndexTemplate {
         return indexCatalog.hasIndexEntry(collectionName, field);
     }
 
+    Indexer findIndexer(String indexType) {
+        if (indexerMap.containsKey(indexType)) {
+            return indexerMap.get(indexType);
+        }
+        throw new IndexingException(errorMessage("no indexer found for index type " + indexType,
+            IE_INVALID_INDEX_TYPE));
+    }
+
     private void init() {
-        this.indexBuildRegistry = new ConcurrentHashMap<>();
+        NitriteStore nitriteStore = nitriteConfig.getNitriteStore();
         this.indexCatalog = nitriteStore.getIndexCatalog();
+        this.collectionName = nitriteMap.getName();
+        this.indexBuildRegistry = new ConcurrentHashMap<>();
         this.rebuildExecutor = ExecutorServiceManager.commonPool();
         this.indexerMap = new HashMap<>();
 
@@ -219,14 +229,6 @@ class IndexTemplate {
         }
     }
 
-    private Indexer findIndexer(String indexType) {
-        if (indexerMap.containsKey(indexType)) {
-            return indexerMap.get(indexType);
-        }
-        throw new IndexingException(errorMessage("no indexer found for index type " + indexType,
-            IE_INVALID_INDEX_TYPE));
-    }
-
     private void buildIndexInternal(final String field, final IndexEntry indexEntry) {
         try {
             // first put dirty marker
@@ -234,7 +236,7 @@ class IndexTemplate {
 
             String indexType = indexEntry.getIndexType();
             Indexer indexer = findIndexer(indexType);
-            indexer.rebuildIndex(collectionName, field);
+            indexer.rebuildIndex(nitriteMap, field);
         } finally {
             // remove dirty marker to denote indexing completed successfully
             // if dirty marker is found in any index, it needs to be rebuild

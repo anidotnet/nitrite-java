@@ -14,7 +14,7 @@ import org.dizitart.no2.collection.filters.Filter;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
-import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.NitriteMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,24 +32,21 @@ class ReadWriteOperation {
     private final IndexTemplate indexTemplate;
     private final QueryTemplate queryTemplate;
     private final EventBus<ChangedItem<Document>, ChangeListener> eventBus;
-    private final String collectionName;
-    private final NitriteStore nitriteStore;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
 
-    ReadWriteOperation(String collectionName,
-                       IndexTemplate indexTemplate,
+    ReadWriteOperation(IndexTemplate indexTemplate,
                        QueryTemplate queryTemplate,
-                       NitriteStore nitriteStore,
+                       NitriteMap<NitriteId, Document> nitriteMap,
                        EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
         this.indexTemplate = indexTemplate;
         this.queryTemplate = queryTemplate;
         this.eventBus = eventBus;
-        this.nitriteStore = nitriteStore;
-        this.collectionName = collectionName;
+        this.nitriteMap = nitriteMap;
     }
 
     WriteResult insert(Document... documents) {
         List<NitriteId> nitriteIdList = new ArrayList<>(documents.length);
-        log.debug("Total {} document(s) to be inserted in {}", documents.length, collectionName);
+        log.debug("Total {} document(s) to be inserted in {}", documents.length, nitriteMap.getName());
 
         for (Document document : documents) {
             NitriteId nitriteId = document.getId();
@@ -67,22 +64,22 @@ class ReadWriteOperation {
             }
 
             Document item = document.clone();
-            Document already = nitriteStore.putIfAbsent(collectionName, nitriteId, item);
-            log.debug("Inserting document {} in {}", document, collectionName);
+            Document already = nitriteMap.putIfAbsent(nitriteId, item);
+            log.debug("Inserting document {} in {}", document, nitriteMap.getName());
 
             if (already != null) {
                 // rollback changes
-                nitriteStore.put(collectionName, nitriteId, already);
+                nitriteMap.put(nitriteId, already);
                 log.debug("Another document already exists with id {}", nitriteId);
                 throw new UniqueConstraintException(errorMessage("id constraint violation, " +
-                    "entry with same id already exists in " + collectionName, UCE_CONSTRAINT_VIOLATED));
+                    "entry with same id already exists in " + nitriteMap.getName(), UCE_CONSTRAINT_VIOLATED));
             } else {
                 try {
                     indexTemplate.updateIndexEntry(item, nitriteId);
                 } catch (UniqueConstraintException uce) {
                     log.error("Unique constraint violated for the document "
-                        + document + " in " + collectionName, uce);
-                    nitriteStore.remove(collectionName, nitriteId);
+                        + document + " in " + nitriteMap.getName(), uce);
+                    nitriteMap.remove(nitriteId);
                     throw uce;
                 }
             }
@@ -98,7 +95,7 @@ class ReadWriteOperation {
         WriteResultImpl result = new WriteResultImpl();
         result.setNitriteIdList(nitriteIdList);
 
-        log.debug("Returning write result {} for collection {}", result, collectionName);
+        log.debug("Returning write result {} for collection {}", result, nitriteMap.getName());
         return result;
     }
 
@@ -112,7 +109,7 @@ class ReadWriteOperation {
 
         WriteResultImpl writeResult = new WriteResultImpl();
         if (cursor == null || cursor.size() == 0) {
-            log.debug("No document found to update by the filter {} in {}", filter, collectionName);
+            log.debug("No document found to update by the filter {} in {}", filter, nitriteMap.getName());
             if (updateOptions.isUpsert()) {
                 return insert(update);
             } else {
@@ -136,13 +133,13 @@ class ReadWriteOperation {
             }
 
             log.debug("Filter {} found total {} document(s) to update with options {} in {}",
-                filter, cursor.size(), updateOptions, collectionName);
+                filter, cursor.size(), updateOptions, nitriteMap.getName());
 
             for(final Document document : cursor) {
                 if (document != null) {
                     NitriteId nitriteId = document.getId();
                     Document oldDocument = document.clone();
-                    log.debug("Document to update {} in {}", document, collectionName);
+                    log.debug("Document to update {} in {}", document, nitriteMap.getName());
 
                     if (!REPLICATOR.contentEquals(update.getSource())) {
                         update.remove(DOC_SOURCE);
@@ -156,8 +153,8 @@ class ReadWriteOperation {
                     }
 
                     Document item = document.clone();
-                    nitriteStore.put(collectionName, nitriteId, item);
-                    log.debug("Document {} updated in {}", document, collectionName);
+                    nitriteMap.put(nitriteId, item);
+                    log.debug("Document {} updated in {}", document, nitriteMap.getName());
 
                     // if 'update' only contains id value, affected count = 0
                     if (update.size() > 0) {
@@ -175,7 +172,7 @@ class ReadWriteOperation {
             }
         }
 
-        log.debug("Returning write result {} for collection {}", writeResult, collectionName);
+        log.debug("Returning write result {} for collection {}", writeResult, nitriteMap.getName());
         return writeResult;
     }
 
@@ -189,24 +186,23 @@ class ReadWriteOperation {
 
         WriteResultImpl result = new WriteResultImpl();
         if (cursor == null) {
-            log.debug("No document found to remove by the filter {} in {}", filter, collectionName);
+            log.debug("No document found to remove by the filter {} in {}", filter, nitriteMap.getName());
             return result;
         }
 
         log.debug("Filter {} found total {} document(s) to remove with options {} from {}",
-            filter, cursor.size(), removeOptions, collectionName);
+            filter, cursor.size(), removeOptions, nitriteMap.getName());
 
-        List<ChangedItem> changedItems = new ArrayList<>(cursor.size());
         for (Document document : cursor) {
             NitriteId nitriteId = document.getId();
             indexTemplate.removeIndexEntry(document, nitriteId);
 
-            Document removed = nitriteStore.remove(collectionName, nitriteId);
+            Document removed = nitriteMap.remove(nitriteId);
             int rev = removed.getRevision();
             removed.put(DOC_REVISION, rev + 1);
             removed.put(DOC_MODIFIED, System.currentTimeMillis());
 
-            log.debug("Document removed {} from {}", removed, collectionName);
+            log.debug("Document removed {} from {}", removed, nitriteMap.getName());
             result.addToList(nitriteId);
 
             ChangedItem<Document> changedItem = new ChangedItem<>();
@@ -220,12 +216,12 @@ class ReadWriteOperation {
             }
         }
 
-        log.debug("Returning write result {} for collection {}", result, collectionName);
+        log.debug("Returning write result {} for collection {}", result, nitriteMap.getName());
         return result;
     }
 
     private void alert(ChangeType action, ChangedItem<Document> changedItem) {
-        log.debug("Notifying {} event for item {} from {}", action, changedItem, collectionName);
+        log.debug("Notifying {} event for item {} from {}", action, changedItem, nitriteMap.getName());
         if (eventBus != null) {
             eventBus.post(changedItem);
         }

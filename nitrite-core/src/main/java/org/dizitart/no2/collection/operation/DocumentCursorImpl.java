@@ -105,12 +105,12 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     private void validateProjection(Document projection) {
-        for (KeyValuePair kvp : projection) {
+        for (KeyValuePair<String, Object> kvp : projection) {
             validateKeyValuePair(kvp);
         }
     }
 
-    private void validateKeyValuePair(KeyValuePair kvp) {
+    private void validateKeyValuePair(KeyValuePair<String, Object> kvp) {
         if (kvp.getValue() != null) {
             if (!(kvp.getValue() instanceof Document)) {
                 throw new ValidationException(PROJECTION_WITH_NOT_NULL_VALUES);
