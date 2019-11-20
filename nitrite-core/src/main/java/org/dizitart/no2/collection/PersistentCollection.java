@@ -2,7 +2,7 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeAware;
-import org.dizitart.no2.collection.index.Index;
+import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.meta.MetadataAware;
 
 import java.io.Closeable;
@@ -49,18 +49,18 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * Rebuilds index on `field` if it exists.
      *
      * @param field the value to be indexed.
-     * @param async if set to `true`, the indexing will run in background; otherwise, in foreground.
+     * @param isAsync if set to `true`, the indexing will run in background; otherwise, in foreground.
      * @throws org.dizitart.no2.exceptions.IndexingException if the `field` is not indexed.
      */
-    void rebuildIndex(String field, boolean async);
+    void rebuildIndex(String field, boolean isAsync);
 
     /**
      * Gets a set of all indices in the collection.
      *
      * @return a set of all indices.
-     * @see org.dizitart.no2.collection.index.Index
+     * @see IndexEntry
      */
-    Collection<Index> listIndices();
+    Collection<IndexEntry> listIndices();
 
     /**
      * Checks if a value is already indexed or not.

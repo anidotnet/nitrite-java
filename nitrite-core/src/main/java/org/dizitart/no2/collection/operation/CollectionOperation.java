@@ -9,7 +9,7 @@ import org.dizitart.no2.collection.*;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
 import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.index.Index;
+import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.store.NitriteStore;
@@ -32,7 +32,8 @@ public class CollectionOperation {
     private Lock readLock;
     private Lock writeLock;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Attributes attributes;
 
     public CollectionOperation(String collectionName, NitriteStore nitriteStore,
@@ -54,25 +55,25 @@ public class CollectionOperation {
         }
     }
 
-    public Index findIndex(String field) {
+    public IndexEntry findIndex(String field) {
         try {
             readLock.lock();
-            return indexTemplate.findIndex(field);
+            return indexTemplate.findIndexEntry(field);
         } finally {
             readLock.unlock();
         }
     }
 
-    public void rebuildIndex(Index index, boolean async) {
+    public void rebuildIndex(IndexEntry indexEntry, boolean async) {
         try {
             writeLock.lock();
-            indexTemplate.rebuildIndex(index, async);
+            indexTemplate.rebuildIndex(indexEntry, async);
         } finally {
             writeLock.unlock();
         }
     }
 
-    public Collection<Index> listIndexes() {
+    public Collection<IndexEntry> listIndexes() {
         try {
             readLock.lock();
             return indexTemplate.listIndexes();
@@ -84,7 +85,7 @@ public class CollectionOperation {
     public boolean hasIndex(String field) {
         try {
             readLock.lock();
-            return indexTemplate.hasIndex(field);
+            return indexTemplate.hasIndexEntry(field);
         } finally {
             readLock.unlock();
         }
@@ -224,6 +225,6 @@ public class CollectionOperation {
         this.indexTemplate = new IndexTemplate(collectionName, nitriteConfig, nitriteStore);
         this.queryTemplate = new QueryTemplate(collectionName, indexTemplate, nitriteConfig, nitriteStore);
         this.readWriteOperation = new ReadWriteOperation(collectionName, indexTemplate, queryTemplate,
-            nitriteConfig, nitriteStore, eventBus);
+            nitriteStore, eventBus);
     }
 }

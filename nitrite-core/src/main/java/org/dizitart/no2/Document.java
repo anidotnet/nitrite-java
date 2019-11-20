@@ -59,4 +59,14 @@ public interface Document extends Iterable<KeyValuePair>, Cloneable {
     Set<String> getFields();
 
     boolean hasId();
+
+    void remove(String key);
+
+    Document clone();
+
+    int size();
+
+    void putAll(Document update);
+
+    boolean containsKey(String key);
 }

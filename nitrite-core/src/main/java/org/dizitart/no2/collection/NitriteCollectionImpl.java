@@ -7,7 +7,7 @@ import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
 import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.index.Index;
+import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.index.IndexType;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperation;
@@ -137,14 +137,14 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void rebuildIndex(String field, boolean async) {
+    public void rebuildIndex(String field, boolean isAsync) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_REBUILD_INDEX_NULL_FIELD));
 
-        Index index = collectionOperation.findIndex(field);
-        if (index != null) {
-            validateRebuildIndex(index);
-            collectionOperation.rebuildIndex(index, async);
+        IndexEntry indexEntry = collectionOperation.findIndex(field);
+        if (indexEntry != null) {
+            validateRebuildIndex(indexEntry);
+            collectionOperation.rebuildIndex(indexEntry, isAsync);
         } else {
             throw new IndexingException(errorMessage(field + " is not indexed",
                 IE_REBUILD_INDEX_FIELD_NOT_INDEXED));
@@ -152,7 +152,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public Collection<Index> listIndices() {
+    public Collection<IndexEntry> listIndices() {
         checkOpened();
         return collectionOperation.listIndexes();
     }
@@ -284,11 +284,11 @@ class NitriteCollectionImpl implements NitriteCollection {
         }
     }
 
-    private void validateRebuildIndex(Index index) {
-        notNull(index, errorMessage("index cannot be null", VE_NC_REBUILD_INDEX_NULL_INDEX));
+    private void validateRebuildIndex(IndexEntry indexEntry) {
+        notNull(indexEntry, errorMessage("index cannot be null", VE_NC_REBUILD_INDEX_NULL_INDEX));
 
-        if (isIndexing(index.getField())) {
-            throw new IndexingException(errorMessage("indexing on value " + index.getField() +
+        if (isIndexing(indexEntry.getField())) {
+            throw new IndexingException(errorMessage("indexing on value " + indexEntry.getField() +
                 " is currently running", IE_VALIDATE_REBUILD_INDEX_RUNNING));
         }
     }

@@ -1,6 +1,8 @@
 package org.dizitart.no2.store;
 
+import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
+import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.objects.ObjectRepository;
 import org.dizitart.no2.plugin.NitritePlugin;
@@ -46,6 +48,14 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
 
     void beforeClose();
 
+    long getCollectionSize(String collectionName);
+
+    void dropCollection(String collectionName);
+
+    void closeCollection(String collectionName);
+
+    IndexCatalog getIndexCatalog();
+
     default <T> String findRepositoryName(String key, Class<T> type) {
         notNull(key, errorMessage("key cannot be null", VE_OBJ_STORE_NULL_KEY));
         notEmpty(key, errorMessage("key cannot be empty", VE_OBJ_STORE_EMPTY_KEY));
@@ -58,9 +68,13 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
         return type.getName();
     }
 
-    long getCollectionSize(String collectionName);
+    Document putIfAbsent(String collectionName, NitriteId nitriteId, Document item);
 
-    void dropCollection(String collectionName);
+    void put(String collectionName, NitriteId nitriteId, Document already);
 
-    void closeCollection(String collectionName);
+    Document remove(String collectionName, NitriteId nitriteId);
+
+    Document getDocument(String collectionName, NitriteId next);
+
+    Set<NitriteId> getIdSet(String collectionName);
 }

@@ -49,7 +49,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     @Override
     public Object get(String key) {
-        if (key != null && !containsKey(key)) {
+        if (key != null && containsKey(key)) {
             return deepGet(key);
         }
         return super.get(key);
@@ -65,7 +65,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
     public NitriteId getId() {
         Long id;
         try {
-            if (!containsKey(DOC_ID)) {
+            if (containsKey(DOC_ID)) {
                 id = newId().getIdValue();
                 super.put(DOC_ID, id);
             } else {
@@ -80,7 +80,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     @Override
     public Integer getRevision() {
-        if (!containsKey(DOC_REVISION)) {
+        if (containsKey(DOC_REVISION)) {
             return 0;
         }
         return get(DOC_REVISION, Integer.class);
@@ -88,7 +88,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     @Override
     public String getSource() {
-        if (!containsKey(DOC_SOURCE)) {
+        if (containsKey(DOC_SOURCE)) {
             return "";
         }
         return get(DOC_SOURCE, String.class);
@@ -96,7 +96,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     @Override
     public Long getLastModifiedSinceEpoch() {
-        if (!containsKey(DOC_MODIFIED)) {
+        if (containsKey(DOC_MODIFIED)) {
             return 0L;
         }
         return get(DOC_MODIFIED, Long.class);
@@ -108,10 +108,32 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
     }
 
     @Override
+    public boolean hasId() {
+        return super.containsKey(DOC_ID);
+    }
+
+    @Override
+    public void remove(String key) {
+        super.remove(key);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
-    public Object clone() {
+    public Document clone() {
         Map<String, Object> clone = (Map<String, Object>) super.clone();
         return new NitriteDocument(clone);
+    }
+
+    @Override
+    public void putAll(Document document) {
+        if (document instanceof NitriteDocument) {
+            super.putAll((NitriteDocument) document);
+        }
+    }
+
+    @Override
+    public boolean containsKey(String key) {
+        return super.containsKey(key);
     }
 
     @Override

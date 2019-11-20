@@ -1,5 +1,11 @@
 package org.dizitart.no2.collection.filters;
 
+import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.operation.IndexTemplate;
+import org.dizitart.no2.store.NitriteStore;
+
+import java.util.Set;
+
 /**
  * An interface to specify filtering criteria during find operation. When
  * a filter is applied to a collection, based on the criteria it returns
@@ -160,9 +166,12 @@ package org.dizitart.no2.collection.filters;
  * --
  *
  * @author Anindya Chatterjee
- * @see org.dizitart.no2.collection.NitriteCollection#find(Filter, FindOptions) NitriteCollection#find(Filter, FindOptions)
+ * @see org.dizitart.no2.collection.NitriteCollection#find(Filter, org.dizitart.no2.collection.FindOptions) NitriteCollection#find(Filter, FindOptions)
  * @see org.dizitart.no2.collection.NitriteCollection#find(Filter) NitriteCollection#find(Filter)
  * @since 1.0
  */
 public interface Filter {
+    void setIndexedTemplate(IndexTemplate indexTemplate);
+
+    Set<NitriteId> apply(String collectionName, NitriteStore nitriteStore);
 }
