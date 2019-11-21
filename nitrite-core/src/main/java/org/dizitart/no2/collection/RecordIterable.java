@@ -28,7 +28,7 @@ public interface RecordIterable<T> extends Iterable<T> {
      *
      * @return the size of the current record set.
      */
-    int size();
+    long size();
 
     /**
      * Gets the total count of the records in the database matching a filter criteria.
@@ -49,7 +49,7 @@ public interface RecordIterable<T> extends Iterable<T> {
      * @see NitriteCollection#find(FindOptions)
      * @see FindOptions#limit(int, int)
      */
-    int totalCount();
+    long totalCount();
 
     /**
      * Gets the first element of the result or

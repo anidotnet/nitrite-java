@@ -2,8 +2,7 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
-
-import java.util.Set;
+import org.dizitart.no2.store.ReadableStream;
 
 /**
  * An interface to iterate over database {@code find()} results. It provides a
@@ -64,5 +63,5 @@ public interface DocumentCursor extends RecordIterable<Document> {
      * @return a set of all {@link NitriteId}s.
      * @since 3.3.0
      */
-    Set<NitriteId> idSet();
+    ReadableStream<NitriteId> idSet();
 }

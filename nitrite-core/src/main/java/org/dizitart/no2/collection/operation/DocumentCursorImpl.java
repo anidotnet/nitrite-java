@@ -8,11 +8,10 @@ import org.dizitart.no2.collection.RecordIterable;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
-import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.store.ReadableStream;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.TreeSet;
 
 import static org.dizitart.no2.exceptions.ErrorMessage.PROJECTION_WITH_NOT_NULL_VALUES;
@@ -22,20 +21,20 @@ import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERAT
  * @author Anindya Chatterjee.
  */
 class DocumentCursorImpl implements DocumentCursor {
-    private final Set<NitriteId> resultSet;
-    private final NitriteStore store;
+    private final ReadableStream<NitriteId> resultSet;
+    private NitriteMap<NitriteId, Document> nitriteMap;
     private boolean hasMore;
-    private int totalCount;
+    private long totalCount;
     private FindResult findResult;
 
     DocumentCursorImpl(FindResult findResult) {
         if (findResult.getIdSet() != null) {
-            resultSet = Collections.unmodifiableSet(findResult.getIdSet());
+            resultSet = findResult.getIdSet();
         } else {
-            resultSet = Collections.unmodifiableSet(new TreeSet<>());
+            resultSet = ReadableStream.fromIterable(new TreeSet<>());
         }
-        this.store = findResult.getNitriteStore();
-        this.hasMore = findResult.isHasMore();
+        this.nitriteMap = findResult.getNitriteMap();
+        this.hasMore = findResult.getHasMore();
         this.totalCount = findResult.getTotalCount();
         this.findResult = findResult;
     }
@@ -52,7 +51,7 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     @Override
-    public Set<NitriteId> idSet() {
+    public ReadableStream<NitriteId> idSet() {
         return resultSet;
     }
 
@@ -67,12 +66,12 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     @Override
-    public int size() {
+    public long size() {
         return resultSet.size();
     }
 
     @Override
-    public int totalCount() {
+    public long totalCount() {
         return totalCount;
     }
 
@@ -91,7 +90,7 @@ class DocumentCursorImpl implements DocumentCursor {
         @Override
         public Document next() {
             NitriteId next = iterator.next();
-            Document document = store.getDocument(findResult.getCollectionName(), next);
+            Document document = nitriteMap.get(next);
             if (document != null) {
                 return document.clone();
             }

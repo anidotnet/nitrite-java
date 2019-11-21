@@ -19,14 +19,14 @@ public class UpdateOptions {
      * Indicates if the update operation will insert a new document if it
      * does not find any existing document to update.
      *
-     * @param upsert a value indicating, if a new document to insert in case the
+     * @param insertIfAbsent a value indicating, if a new document to insert in case the
      *               filter fails to find a document to update.
      * @return `true` if a new document to insert; otherwise, `false`.
      * @see NitriteCollection#update(org.dizitart.no2.collection.filters.Filter, Document, UpdateOptions)
      * */
     @Getter
     @Setter
-    private boolean upsert;
+    private boolean insertIfAbsent;
 
     /**
      * Indicates if only one document will be updated or all of them.
@@ -40,25 +40,25 @@ public class UpdateOptions {
     /**
      * Creates a new {@link UpdateOptions}.
      *
-     * @param upsert the upsert flag
+     * @param insertIfAbsent the insertIfAbsent flag
      * @return the {@link UpdateOptions}.
      */
-    public static UpdateOptions updateOptions(boolean upsert) {
+    public static UpdateOptions updateOptions(boolean insertIfAbsent) {
         UpdateOptions options = new UpdateOptions();
-        options.setUpsert(upsert);
+        options.setInsertIfAbsent(insertIfAbsent);
         return options;
     }
 
     /**
      * Creates a new {@link UpdateOptions}.
      *
-     * @param upsert   the upsert flag
+     * @param insertIfAbsent   the insertIfAbsent flag
      * @param justOnce the justOnce flag
      * @return the {@link UpdateOptions}.
      */
-    public static UpdateOptions updateOptions(boolean upsert, boolean justOnce) {
+    public static UpdateOptions updateOptions(boolean insertIfAbsent, boolean justOnce) {
         UpdateOptions options = new UpdateOptions();
-        options.setUpsert(upsert);
+        options.setInsertIfAbsent(insertIfAbsent);
         options.setJustOnce(justOnce);
         return options;
     }

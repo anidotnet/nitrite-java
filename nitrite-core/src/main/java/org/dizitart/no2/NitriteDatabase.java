@@ -6,11 +6,9 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.objects.ObjectRepository;
 import org.dizitart.no2.collection.objects.RepositoryFactory;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
-import org.dizitart.no2.common.event.DatabaseEvent;
-import org.dizitart.no2.common.event.DatabaseEventListener;
-import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.events.StoreEventListener;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -29,7 +27,6 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 class NitriteDatabase implements Nitrite {
     private final NitriteConfig nitriteConfig;
     private NitriteStore store;
-    private NitriteEventBus<DatabaseEvent, DatabaseEventListener> eventBus;
 
     NitriteDatabase(NitriteConfig config) {
         this.nitriteConfig = config;
@@ -97,15 +94,14 @@ class NitriteDatabase implements Nitrite {
     }
 
     @Override
-    public void addEventListener(DatabaseEventListener listener) {
-        eventBus.register(listener);
+    public void addEventListener(StoreEventListener listener) {
+        store.addStoreEventListener(listener);
     }
 
     @Override
     public synchronized void close() {
         checkOpened();
         try {
-            alert(DatabaseEvent.EventType.Closing);
             store.beforeClose();
             if (hasUnsavedChanges()) {
                 log.debug("Unsaved changes detected, committing the changes.");
@@ -130,20 +126,12 @@ class NitriteDatabase implements Nitrite {
         checkOpened();
         if (store != null && !nitriteConfig.isReadOnly()) {
             store.commit();
-            alert(DatabaseEvent.EventType.Commit);
             log.debug("Unsaved changes committed successfully.");
         }
     }
 
     private void initialize() {
         store = nitriteConfig.getNitriteStore();
-        eventBus = new DatabaseEventBus();
-        alert(DatabaseEvent.EventType.Opened);
-    }
-
-    private void alert(DatabaseEvent.EventType eventType) {
-        DatabaseEvent event = new DatabaseEvent(eventType, nitriteConfig);
-        eventBus.post(event);
     }
 
     private void closeCollections() {
@@ -178,22 +166,12 @@ class NitriteDatabase implements Nitrite {
 
     private void shutdown() {
         try {
-            alert(DatabaseEvent.EventType.Closed);
             int timeout = nitriteConfig.getPoolShutdownTimeout();
             ExecutorServiceManager.shutdownExecutors(timeout);
         } catch (Throwable t) {
             log.error("Error while shutting down database gracefully", t);
         } finally {
             store = null;
-        }
-    }
-
-    private static class DatabaseEventBus extends NitriteEventBus<DatabaseEvent, DatabaseEventListener> {
-        @Override
-        public void post(DatabaseEvent databaseEvent) {
-            for (final DatabaseEventListener listener : getListeners()) {
-                getEventExecutor().submit(() -> listener.onEvent(databaseEvent));
-            }
         }
     }
 }

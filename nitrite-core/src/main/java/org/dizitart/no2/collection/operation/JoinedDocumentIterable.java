@@ -6,9 +6,13 @@ import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.Lookup;
 import org.dizitart.no2.collection.RecordIterable;
 import org.dizitart.no2.exceptions.InvalidOperationException;
-import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.store.ReadableStream;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.dizitart.no2.common.util.ObjectUtils.deepEquals;
 import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED;
@@ -17,13 +21,12 @@ import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERAT
  * @author Anindya Chatterjee.
  */
 class JoinedDocumentIterable implements RecordIterable<Document> {
-    private final Collection<NitriteId> resultSet;
-    private final NitriteStore nitriteStore;
+    private final ReadableStream<NitriteId> resultSet;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
     private boolean hasMore;
-    private int totalCount;
+    private long totalCount;
     private DocumentCursor foreignCursor;
     private Lookup lookup;
-    private FindResult findResult;
 
     JoinedDocumentIterable(FindResult findResult, DocumentCursor foreignCursor, Lookup lookup) {
         this.foreignCursor = foreignCursor;
@@ -31,10 +34,10 @@ class JoinedDocumentIterable implements RecordIterable<Document> {
         if (findResult.getIdSet() != null) {
             resultSet = findResult.getIdSet();
         } else {
-            resultSet = new TreeSet<>();
+            resultSet = ReadableStream.fromIterable(new TreeSet<>());
         }
-        this.nitriteStore = findResult.getNitriteStore();
-        this.hasMore = findResult.isHasMore();
+        this.nitriteMap = findResult.getNitriteMap();
+        this.hasMore = findResult.getHasMore();
         this.totalCount = findResult.getTotalCount();
     }
 
@@ -44,12 +47,12 @@ class JoinedDocumentIterable implements RecordIterable<Document> {
     }
 
     @Override
-    public int size() {
+    public long size() {
         return resultSet.size();
     }
 
     @Override
-    public int totalCount() {
+    public long totalCount() {
         return totalCount;
     }
 
@@ -78,7 +81,7 @@ class JoinedDocumentIterable implements RecordIterable<Document> {
         @Override
         public Document next() {
             NitriteId next = iterator.next();
-            Document document = nitriteStore.getDocument(findResult.getCollectionName(), next);
+            Document document = nitriteMap.get(next);
             if (document != null) {
                 return join(document.clone(), foreignCursor, lookup);
             }

@@ -43,7 +43,7 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @see IndexOptions
      * @see org.dizitart.no2.collection.index.IndexType
      */
-    void createIndex(String field, IndexOptions indexOptions);
+    void createIndex(Field field, IndexOptions indexOptions);
 
     /**
      * Rebuilds index on `field` if it exists.
@@ -52,7 +52,7 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @param isAsync if set to `true`, the indexing will run in background; otherwise, in foreground.
      * @throws org.dizitart.no2.exceptions.IndexingException if the `field` is not indexed.
      */
-    void rebuildIndex(String field, boolean isAsync);
+    void rebuildIndex(Field field, boolean isAsync);
 
     /**
      * Gets a set of all indices in the collection.
@@ -68,7 +68,7 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @param field the value to check.
      * @return `true` if the `value` is indexed; otherwise, `false`.
      */
-    boolean hasIndex(String field);
+    boolean hasIndex(Field field);
 
     /**
      * Checks if indexing operation is currently ongoing for a `field`.
@@ -76,7 +76,7 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @param field the value to check.
      * @return `true` if indexing is currently running; otherwise, `false`.
      */
-    boolean isIndexing(String field);
+    boolean isIndexing(Field field);
 
     /**
      * Drops the index on a `field`.
@@ -85,7 +85,7 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @throws org.dizitart.no2.exceptions.IndexingException if indexing is currently running on the `field`.
      * @throws org.dizitart.no2.exceptions.IndexingException if the `field` is not indexed.
      */
-    void dropIndex(String field);
+    void dropIndex(Field field);
 
     /**
      * Drops all indices from the collection.
@@ -151,13 +151,13 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * or {@link org.dizitart.no2.collection.events.ChangeType#Insert}.
      *
      * @param element the element to update.
-     * @param upsert if set to `true`, `element` will be inserted if not found.
+     * @param insertIfAbsent if set to `true`, `element` will be inserted if not found.
      * @return the result of the update operation.
      * @throws org.dizitart.no2.exceptions.ValidationException if the `element` is `null`.
      * @throws org.dizitart.no2.exceptions.NotIdentifiableException if the `element`
      * does not have any id field.
      */
-    WriteResult update(T element, boolean upsert);
+    WriteResult update(T element, boolean insertIfAbsent);
 
     /**
      * Deletes the `element` from the collection. The `element` must have an id.
@@ -201,11 +201,11 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
     boolean isDropped();
 
     /**
-     * Returns `true` if the collection is closed; otherwise, `false`.
+     * Returns `true` if the collection is open; otherwise, `false`.
      *
      * @return a boolean value indicating if the collection has been closed or not.
      */
-    boolean isClosed();
+    boolean isOpen();
 
     /**
      * Closes the collection for further access. If a collection once closed

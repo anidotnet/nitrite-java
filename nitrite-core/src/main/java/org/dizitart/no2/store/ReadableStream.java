@@ -15,4 +15,12 @@ public interface ReadableStream<T> extends Iterable<T> {
     default List<T> toList() {
         return Iterables.toList(this);
     }
+
+    default boolean isEmpty() {
+        return !iterator().hasNext();
+    }
+
+    static <T> ReadableStream<T> fromIterable(Iterable<T> iterable) {
+        return iterable::iterator;
+    }
 }

@@ -5,9 +5,9 @@ import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.RecordIterable;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.InvalidOperationException;
-import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.store.ReadableStream;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
 
@@ -17,11 +17,11 @@ import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERAT
  * @author Anindya Chatterjee.
  */
 class ProjectedDocumentIterable implements RecordIterable<Document> {
-    private final Collection<NitriteId> resultSet;
-    private final NitriteStore nitriteStore;
+    private final ReadableStream<NitriteId> resultSet;
+    private NitriteMap<NitriteId, Document> nitriteMap;
     private Document projection;
     private boolean hasMore;
-    private int totalCount;
+    private long totalCount;
     private FindResult findResult;
 
     ProjectedDocumentIterable(Document projection, FindResult findResult) {
@@ -30,10 +30,10 @@ class ProjectedDocumentIterable implements RecordIterable<Document> {
         if (findResult.getIdSet() != null) {
             resultSet = findResult.getIdSet();
         } else {
-            resultSet = new TreeSet<>();
+            resultSet = ReadableStream.fromIterable(new TreeSet<>());
         }
-        this.nitriteStore = findResult.getNitriteStore();
-        this.hasMore = findResult.isHasMore();
+        this.nitriteMap = findResult.getNitriteMap();
+        this.hasMore = findResult.getHasMore();
         this.totalCount = findResult.getTotalCount();
     }
 
@@ -48,12 +48,12 @@ class ProjectedDocumentIterable implements RecordIterable<Document> {
     }
 
     @Override
-    public int size() {
+    public long size() {
         return resultSet.size();
     }
 
     @Override
-    public int totalCount() {
+    public long totalCount() {
         return totalCount;
     }
 
@@ -86,7 +86,7 @@ class ProjectedDocumentIterable implements RecordIterable<Document> {
         private void nextMatch() {
             while (iterator.hasNext()) {
                 NitriteId next = iterator.next();
-                Document document = nitriteStore.getDocument(findResult.getCollectionName(), next);
+                Document document = nitriteMap.get(next);
                 if (document != null) {
                     Document projected = project(document.clone());
                     if (projected != null) {

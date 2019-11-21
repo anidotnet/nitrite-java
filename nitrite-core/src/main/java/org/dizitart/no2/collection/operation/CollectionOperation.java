@@ -44,7 +44,7 @@ public class CollectionOperation {
         init();
     }
 
-    public void createIndex(String field, String indexType, boolean async) {
+    public void createIndex(Field field, String indexType, boolean async) {
         try {
             writeLock.lock();
             indexTemplate.ensureIndex(field, indexType, async);
@@ -53,7 +53,7 @@ public class CollectionOperation {
         }
     }
 
-    public IndexEntry findIndex(String field) {
+    public IndexEntry findIndex(Field field) {
         try {
             readLock.lock();
             return indexTemplate.findIndexEntry(field);
@@ -80,7 +80,7 @@ public class CollectionOperation {
         }
     }
 
-    public boolean hasIndex(String field) {
+    public boolean hasIndex(Field field) {
         try {
             readLock.lock();
             return indexTemplate.hasIndexEntry(field);
@@ -89,7 +89,7 @@ public class CollectionOperation {
         }
     }
 
-    public boolean isIndexing(String field) {
+    public boolean isIndexing(Field field) {
         try {
             readLock.lock();
             return indexTemplate.isIndexing(field);
@@ -98,7 +98,7 @@ public class CollectionOperation {
         }
     }
 
-    public void dropIndex(String field) {
+    public void dropIndex(Field field) {
         try {
             writeLock.lock();
             indexTemplate.dropIndex(field);

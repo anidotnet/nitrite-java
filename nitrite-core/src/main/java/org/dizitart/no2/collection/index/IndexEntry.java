@@ -1,8 +1,7 @@
 package org.dizitart.no2.collection.index;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
+import org.dizitart.no2.collection.Field;
 
 import java.io.Serializable;
 
@@ -16,10 +15,11 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
  *
  * @author Anindya Chatterjee
  * @since 1.0
- * @see NitriteCollection#createIndex(String, org.dizitart.no2.collection.IndexOptions)
+ * @see org.dizitart.no2.collection.NitriteCollection#createIndex(org.dizitart.no2.collection.Field, org.dizitart.no2.collection.IndexOptions)
  */
-@EqualsAndHashCode
 @ToString
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IndexEntry implements Comparable<IndexEntry>, Serializable {
 
     /**
@@ -32,12 +32,12 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
     private String indexType;
 
     /**
-     * Gets the target value for the index.
+     * Gets the target field for the index.
      *
-     * @return the target value.
+     * @return the target field.
      * */
     @Getter
-    private String field;
+    private Field field;
 
     /**
      * Gets the collection name.
@@ -54,20 +54,15 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
      * @param field          the value
      * @param collectionName the collection name
      */
-    public IndexEntry(String indexType, String field, String collectionName) {
+    public IndexEntry(String indexType, Field field, String collectionName) {
         notNull(indexType, errorMessage("indexType cannot be null", VE_INDEX_NULL_INDEX_TYPE));
         notNull(field, errorMessage("field cannot be null", VE_INDEX_NULL_FIELD));
-        notEmpty(field, errorMessage("field cannot be empty", VE_INDEX_EMPTY_FIELD));
         notNull(collectionName, errorMessage("collectionName cannot be null", VE_INDEX_NULL_COLLECTION));
         notEmpty(collectionName, errorMessage("collectionName cannot be empty", VE_INDEX_EMPTY_COLLECTION));
 
         this.indexType = indexType;
         this.field = field;
         this.collectionName = collectionName;
-    }
-
-    private IndexEntry() {
-        // constructor for jackson
     }
 
     @Override

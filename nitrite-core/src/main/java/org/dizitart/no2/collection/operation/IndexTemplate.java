@@ -3,6 +3,7 @@ package org.dizitart.no2.collection.operation;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.dizitart.no2.collection.Field.of;
 import static org.dizitart.no2.common.util.ValidationUtils.validateDocumentIndexField;
 import static org.dizitart.no2.exceptions.ErrorCodes.*;
 import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
@@ -32,7 +34,7 @@ class IndexTemplate {
     private NitriteMap<NitriteId, Document> nitriteMap;
     private Map<String, Indexer> indexerMap;
     private IndexCatalog indexCatalog;
-    private Map<String, AtomicBoolean> indexBuildRegistry;
+    private Map<Field, AtomicBoolean> indexBuildRegistry;
     private ExecutorService rebuildExecutor;
 
     IndexTemplate(NitriteConfig nitriteConfig, NitriteMap<NitriteId, Document> nitriteMap) {
@@ -41,11 +43,11 @@ class IndexTemplate {
         init();
     }
 
-    void ensureIndex(String field, String indexType, boolean isAsync) {
+    void ensureIndex(Field field, String indexType, boolean isAsync) {
         IndexEntry indexEntry;
         if (!hasIndexEntry(field)) {
             // if no index create index
-            indexEntry = indexCatalog.createIndexEntry(field, indexType);
+            indexEntry = indexCatalog.createIndexEntry(collectionName, field, indexType);
         } else {
             // if index already there throw
             throw new IndexingException(errorMessage(
@@ -56,13 +58,14 @@ class IndexTemplate {
     }
 
     void updateIndexEntry(Document document, NitriteId nitriteId) {
-        Set<String> fields = document.getFields();
-        for (String field : fields) {
+        Set<String> fieldNames = document.getFields();
+        for (String name : fieldNames) {
+            Field field = of(name);
             IndexEntry indexEntry = findIndexEntry(field);
             if (indexEntry != null) {
-                Object fieldValue = document.get(field);
+                Object fieldValue = document.get(name);
                 if (fieldValue == null) continue;
-                validateDocumentIndexField(fieldValue, field);
+                validateDocumentIndexField(fieldValue, name);
 
                 // if dirty index and currently indexing is not running, rebuild
                 if (indexCatalog.isDirtyIndex(collectionName, field)
@@ -80,14 +83,15 @@ class IndexTemplate {
     }
 
     void removeIndexEntry(Document document, NitriteId nitriteId) {
-        Set<String> fields = document.getFields();
-        for (String field : fields) {
+        Set<String> fieldNames = document.getFields();
+        for (String name : fieldNames) {
+            Field field = of(name);
             IndexEntry indexEntry = findIndexEntry(field);
             if (indexEntry != null) {
-                Object fieldValue = document.get(field);
+                Object fieldValue = document.get(name);
 
                 if (fieldValue == null) continue;
-                validateDocumentIndexField(fieldValue, field);
+                validateDocumentIndexField(fieldValue, name);
 
                 // if dirty index and currently indexing is not running, rebuild
                 if (indexCatalog.isDirtyIndex(collectionName, field)
@@ -106,19 +110,20 @@ class IndexTemplate {
 
     @SuppressWarnings({"unchecked"})
     void refreshIndexEntry(Document oldDocument, Document newDocument, NitriteId nitriteId) {
-        Set<String> fields = newDocument.getFields();
-        for (String field : fields) {
+        Set<String> fieldNames = newDocument.getFields();
+        for (String name : fieldNames) {
+            Field field = of(name);
             IndexEntry indexEntry = findIndexEntry(field);
             if (indexEntry != null) {
-                Object newValue = newDocument.get(field);
-                Object oldValue = oldDocument.get(field);
+                Object newValue = newDocument.get(name);
+                Object oldValue = oldDocument.get(name);
 
                 if (newValue == null) continue;
                 if (newValue instanceof Comparable && oldValue instanceof Comparable) {
                     if (((Comparable) newValue).compareTo(oldValue) == 0) continue;
                 }
 
-                validateDocumentIndexField(newValue, field);
+                validateDocumentIndexField(newValue, name);
 
                 if (indexCatalog.isDirtyIndex(collectionName, field)
                     && indexBuildRegistry.get(field) != null
@@ -134,7 +139,7 @@ class IndexTemplate {
         }
     }
 
-    void dropIndex(String field) {
+    void dropIndex(Field field) {
         if (indexBuildRegistry.get(field) != null
             && indexBuildRegistry.get(field).get()) {
             throw new IndexingException(errorMessage(
@@ -156,7 +161,7 @@ class IndexTemplate {
     }
 
     void dropAllIndices() {
-        for (Map.Entry<String, AtomicBoolean> entry :indexBuildRegistry.entrySet()) {
+        for (Map.Entry<Field, AtomicBoolean> entry :indexBuildRegistry.entrySet()) {
             if (entry.getValue() != null && entry.getValue().get()) {
                 throw new IndexingException(errorMessage(
                     "cannot drop index as indexing is running on " + entry.getKey(),
@@ -173,7 +178,7 @@ class IndexTemplate {
     // call to this method is already synchronized, only one thread per field
     // can access it only if rebuild is already not running for that field
     void rebuildIndex(IndexEntry indexEntry, boolean isAsync) {
-        final String field = indexEntry.getField();
+        final Field field = indexEntry.getField();
         if (getBuildFlag(field).compareAndSet(false, true)) {
             if (isAsync) {
                 rebuildExecutor.submit(() -> buildIndexInternal(field, indexEntry));
@@ -191,11 +196,11 @@ class IndexTemplate {
         return indexCatalog.listIndexEntries(collectionName);
     }
 
-    IndexEntry findIndexEntry(String field) {
+    IndexEntry findIndexEntry(Field field) {
         return indexCatalog.findIndexEntry(collectionName, field);
     }
 
-    boolean isIndexing(String field) {
+    boolean isIndexing(Field field) {
         // has index will only return true, if there is an index on
         // the value and indexing is not running on it
         return indexCatalog.hasIndexEntry(collectionName, field)
@@ -203,7 +208,7 @@ class IndexTemplate {
             && indexBuildRegistry.get(field).get();
     }
 
-    boolean hasIndexEntry(String field) {
+    boolean hasIndexEntry(Field field) {
         return indexCatalog.hasIndexEntry(collectionName, field);
     }
 
@@ -229,7 +234,7 @@ class IndexTemplate {
         }
     }
 
-    private void buildIndexInternal(final String field, final IndexEntry indexEntry) {
+    private void buildIndexInternal(final Field field, final IndexEntry indexEntry) {
         try {
             // first put dirty marker
             indexCatalog.beginIndexing(collectionName, field);
@@ -245,7 +250,7 @@ class IndexTemplate {
         }
     }
 
-    private AtomicBoolean getBuildFlag(String field) {
+    private AtomicBoolean getBuildFlag(Field field) {
         AtomicBoolean flag = indexBuildRegistry.get(field);
         if (flag != null) return flag;
 

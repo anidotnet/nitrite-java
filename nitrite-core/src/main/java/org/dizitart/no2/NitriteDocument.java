@@ -142,7 +142,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
     }
 
     private Set<String> getFieldsInternal(String prefix) {
-        Set<String> fields = new TreeSet<>();
+        Set<String> fields = new HashSet<>();
 
         for (KeyValuePair<String, Object> entry : this) {
             Object value = entry.getValue();

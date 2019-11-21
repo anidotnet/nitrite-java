@@ -59,12 +59,12 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public WriteResult update(Document document, boolean upsert) {
+    public WriteResult update(Document document, boolean insertIfAbsent) {
         checkOpened();
         notNull(document, errorMessage("a null document cannot be used for update", VE_UPDATE_NULL_DOCUMENT_OPTION));
 
         if (document.hasId()) {
-            return update(createUniqueFilter(document), document, UpdateOptions.updateOptions(upsert));
+            return update(createUniqueFilter(document), document, UpdateOptions.updateOptions(insertIfAbsent));
         } else {
             throw new NotIdentifiableException(UPDATE_FAILED_AS_NO_ID_FOUND);
         }
@@ -126,7 +126,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void createIndex(String field, IndexOptions indexOptions) {
+    public void createIndex(Field field, IndexOptions indexOptions) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_CREATE_INDEX_NULL_FIELD));
 
@@ -140,7 +140,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void rebuildIndex(String field, boolean isAsync) {
+    public void rebuildIndex(Field field, boolean isAsync) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_REBUILD_INDEX_NULL_FIELD));
 
@@ -161,7 +161,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public boolean hasIndex(String field) {
+    public boolean hasIndex(Field field) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_HAS_INDEX_NULL_FIELD));
 
@@ -169,14 +169,14 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public boolean isIndexing(String field) {
+    public boolean isIndexing(Field field) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_IS_INDEXING_NULL_FIELD));
         return collectionOperation.isIndexing(field);
     }
 
     @Override
-    public void dropIndex(String field) {
+    public void dropIndex(Field field) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_DROP_INDEX_NULL_FIELD));
         collectionOperation.dropIndex(field);
@@ -206,12 +206,12 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public boolean isClosed() {
+    public boolean isOpen() {
         if (nitriteStore == null || nitriteStore.isClosed() || isDropped) {
             close();
-            return true;
+            return false;
         }
-        else return false;
+        else return true;
     }
 
     @Override
@@ -278,6 +278,8 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     private void checkOpened() {
+        if (isOpen()) return;
+
         if (isDropped) {
             throw new NitriteIOException(COLLECTION_IS_DROPPED);
         }

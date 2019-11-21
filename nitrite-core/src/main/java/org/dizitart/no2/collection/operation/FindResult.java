@@ -1,10 +1,10 @@
 package org.dizitart.no2.collection.operation;
 
 import lombok.Data;
+import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.store.NitriteStore;
-
-import java.util.Set;
+import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.store.ReadableStream;
 
 /**
  * @author Anindya Chatterjee.
@@ -13,8 +13,7 @@ import java.util.Set;
 class FindResult {
     private Boolean hasMore;
     private Long totalCount;
-    private Set<NitriteId> idSet;
-    private String collectionName;
-    private NitriteStore nitriteStore;
+    private ReadableStream<NitriteId> idSet;
+    private NitriteMap<NitriteId, Document> nitriteMap;
 }
 

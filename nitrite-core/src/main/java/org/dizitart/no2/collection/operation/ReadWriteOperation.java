@@ -110,7 +110,7 @@ class ReadWriteOperation {
         WriteResultImpl writeResult = new WriteResultImpl();
         if (cursor == null || cursor.size() == 0) {
             log.debug("No document found to update by the filter {} in {}", filter, nitriteMap.getName());
-            if (updateOptions.isUpsert()) {
+            if (updateOptions.isInsertIfAbsent()) {
                 return insert(update);
             } else {
                 return writeResult;
