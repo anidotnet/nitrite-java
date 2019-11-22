@@ -1,5 +1,6 @@
 package org.dizitart.no2.collection.operation;
 
+import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.index.IndexedQueryTemplate;
 import org.dizitart.no2.collection.index.Indexer;
@@ -15,17 +16,17 @@ class NitriteIndexedQueryTemplate implements IndexedQueryTemplate {
     }
 
     @Override
-    public boolean hasIndex(String field) {
+    public boolean hasIndex(Field field) {
         return indexTemplate.hasIndexEntry(field);
     }
 
     @Override
-    public boolean isIndexing(String field) {
+    public boolean isIndexing(Field field) {
         return indexTemplate.isIndexing(field);
     }
 
     @Override
-    public IndexEntry findIndex(String field) {
+    public IndexEntry findIndex(Field field) {
         return indexTemplate.findIndexEntry(field);
     }
 

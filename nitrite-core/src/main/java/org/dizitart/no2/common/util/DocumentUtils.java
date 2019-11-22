@@ -22,15 +22,13 @@ import lombok.experimental.UtilityClass;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.collection.filters.Filter;
 import org.dizitart.no2.common.KeyValuePair;
-import org.dizitart.no2.common.mapper.NitriteMapper;
-import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
-import static org.dizitart.no2.filters.Filter.eq;
 
 /**
  * A utility class for {@link Document}.
@@ -49,8 +47,8 @@ public class DocumentUtils {
      * @return the boolean value
      */
     public static boolean isRecent(Document recent, Document older) {
-        if (recent.getRevision() == older.getRevision()) {
-            return recent.getLastModifiedTime() >= older.getLastModifiedTime();
+        if (Objects.equals(recent.getRevision(), older.getRevision())) {
+            return recent.getLastModifiedSinceEpoch() >= older.getLastModifiedSinceEpoch();
         }
         return recent.getRevision() > older.getRevision();
     }

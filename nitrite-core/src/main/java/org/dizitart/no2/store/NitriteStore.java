@@ -27,12 +27,17 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     boolean isClosed();
 
     /**
-     * Gets the set of all collection names.
+     * Gets the set of all {@link org.dizitart.no2.collection.NitriteCollection} names in store.
      *
      * @return the set of names.
      */
     Set<String> getCollectionNames();
 
+    /**
+     * Gets the set of all {@link org.dizitart.no2.collection.objects.ObjectRepository} details in store.
+     *
+     * @return the details of all {@link org.dizitart.no2.collection.objects.ObjectRepository}.
+     */
     Map<String, Class<?>> getRepositoryRegistry();
 
     /**
@@ -42,6 +47,11 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      */
     boolean hasUnsavedChanges();
 
+    /**
+     * Checks whether the store is opened in readonly mode.
+     *
+     * @return `true` if the store is opened in readonly mode.; `false` otherwise.
+     */
     boolean isReadOnly();
 
     /**
@@ -60,8 +70,16 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      */
     void close();
 
+    /**
+     * This method runs before {@link #close()}, to run cleanup routines.
+     */
     void beforeClose();
 
+    /**
+     * Gets the {@link IndexCatalog} instances from the store.
+     *
+     * @return the IndexCatalog instance.
+     */
     IndexCatalog getIndexCatalog();
 
     /**
@@ -79,15 +97,35 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     /**
      * Removes a map from the store.
      *
-     * @param <Key>      the key type
-     * @param <Value>    the value type
-     * @param nitriteMap the map to remove.
+     * @param mapName the map name to remove.
      */
-    <Key, Value> void removeMap(NitriteMap<Key, Value> nitriteMap);
+    void removeMap(String mapName);
 
+    /**
+     * Opens a {@link NitriteRTree} with the default settings. The RTree is
+     * automatically create if it does not yet exist. If a RTree with this
+     * name is already open, this RTree is returned.
+     *
+     * @param <Key>   the key type
+     * @param <Value> the value type
+     * @param rTreeName the RTree name
+     * @return the map.
+     */
+    <Key, Value> NitriteRTree<Key, Value> openRTree(String rTreeName);
+
+    /**
+     * Removes a RTree from the store.
+     *
+     * @param rTreeName the RTree name to remove.
+     */
+    void removeRTree(String rTreeName);
+
+    /**
+     * Adds a {@link StoreEventListener} to listen to all store events.
+     *
+     * @param listener the listener instances.
+     * */
     void addStoreEventListener(StoreEventListener listener);
-
-    <Store> Store underlyingStore();
 
     default <T> String findRepositoryName(String key, Class<T> type) {
         notNull(key, errorMessage("key cannot be null", VE_OBJ_STORE_NULL_KEY));
