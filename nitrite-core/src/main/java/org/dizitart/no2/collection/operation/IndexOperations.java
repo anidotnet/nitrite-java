@@ -28,7 +28,7 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 /**
  * @author Anindya Chatterjee
  */
-class IndexTemplate {
+class IndexOperations {
     private String collectionName;
     private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
@@ -37,7 +37,7 @@ class IndexTemplate {
     private Map<Field, AtomicBoolean> indexBuildRegistry;
     private ExecutorService rebuildExecutor;
 
-    IndexTemplate(NitriteConfig nitriteConfig, NitriteMap<NitriteId, Document> nitriteMap) {
+    IndexOperations(NitriteConfig nitriteConfig, NitriteMap<NitriteId, Document> nitriteMap) {
         this.nitriteConfig = nitriteConfig;
         this.nitriteMap = nitriteMap;
         init();

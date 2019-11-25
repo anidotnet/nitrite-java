@@ -2,7 +2,7 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.store.ReadableStream;
+import org.dizitart.no2.common.ReadableStream;
 
 /**
  * An interface to iterate over database {@code find()} results. It provides a
@@ -32,7 +32,7 @@ import org.dizitart.no2.store.ReadableStream;
  *  @author Anindya Chatterjee
  *  @since 4.0
  */
-public interface DocumentCursor extends RecordIterable<Document> {
+public interface DocumentCursor extends ReadableStream<Document> {
 
     /**
      * Gets a lazy iterable containing all the selected keys of the result documents.
@@ -40,7 +40,7 @@ public interface DocumentCursor extends RecordIterable<Document> {
      * @param projection the selected keys of a result document.
      * @return a lazy iterable of documents.
      */
-    RecordIterable<Document> project(Document projection);
+    ReadableStream<Document> project(Document projection);
 
     /**
      * Performs a left outer join with a foreign cursor with the specified lookup parameters.
@@ -55,13 +55,5 @@ public interface DocumentCursor extends RecordIterable<Document> {
      * @return a lazy iterable of joined documents.
      * @since 2.1.0
      */
-    RecordIterable<Document> join(DocumentCursor foreignCursor, Lookup lookup);
-
-    /**
-     * Gets the set of all {@link NitriteId}s from the {@code find()} results.
-     *
-     * @return a set of all {@link NitriteId}s.
-     * @since 3.3.0
-     */
-    ReadableStream<NitriteId> idSet();
+    ReadableStream<Document> join(DocumentCursor foreignCursor, Lookup lookup);
 }

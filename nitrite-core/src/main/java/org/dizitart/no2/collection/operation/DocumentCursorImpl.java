@@ -4,15 +4,13 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.Lookup;
-import org.dizitart.no2.collection.RecordIterable;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.store.ReadableStream;
 
 import java.util.Iterator;
-import java.util.TreeSet;
 
 import static org.dizitart.no2.exceptions.ErrorMessage.PROJECTION_WITH_NOT_NULL_VALUES;
 import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED;
@@ -21,65 +19,35 @@ import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERAT
  * @author Anindya Chatterjee.
  */
 class DocumentCursorImpl implements DocumentCursor {
-    private final ReadableStream<NitriteId> resultSet;
-    private NitriteMap<NitriteId, Document> nitriteMap;
-    private boolean hasMore;
-    private long totalCount;
-    private FindResult findResult;
+    private final Iterator<NitriteId> iterator;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
 
-    DocumentCursorImpl(FindResult findResult) {
-        if (findResult.getIdSet() != null) {
-            resultSet = findResult.getIdSet();
-        } else {
-            resultSet = ReadableStream.fromIterable(new TreeSet<>());
-        }
-        this.nitriteMap = findResult.getNitriteMap();
-        this.hasMore = findResult.getHasMore();
-        this.totalCount = findResult.getTotalCount();
-        this.findResult = findResult;
+    DocumentCursorImpl(Iterator<NitriteId> iterator, NitriteMap<NitriteId, Document> nitriteMap) {
+        this.iterator = iterator;
+        this.nitriteMap = nitriteMap;
     }
 
     @Override
-    public RecordIterable<Document> project(Document projection) {
+    public ReadableStream<Document> project(Document projection) {
         validateProjection(projection);
-        return new ProjectedDocumentIterable(projection, findResult);
+        return new ProjectedDocumentIterable(iterator, nitriteMap, projection);
     }
 
     @Override
-    public RecordIterable<Document> join(DocumentCursor cursor, Lookup lookup) {
-        return new JoinedDocumentIterable(findResult, cursor, lookup);
-    }
-
-    @Override
-    public ReadableStream<NitriteId> idSet() {
-        return resultSet;
+    public ReadableStream<Document> join(DocumentCursor cursor, Lookup lookup) {
+        return new JoinedDocumentIterable(iterator, nitriteMap, cursor, lookup);
     }
 
     @Override
     public Iterator<Document> iterator() {
-        return new DocumentCursorIterator();
-    }
-
-    @Override
-    public boolean hasMore() {
-        return hasMore;
-    }
-
-    @Override
-    public long size() {
-        return resultSet.size();
-    }
-
-    @Override
-    public long totalCount() {
-        return totalCount;
+        return new DocumentCursorIterator(iterator);
     }
 
     private class DocumentCursorIterator implements Iterator<Document> {
         private Iterator<NitriteId> iterator;
 
-        DocumentCursorIterator() {
-            iterator = resultSet.iterator();
+        DocumentCursorIterator(Iterator<NitriteId> iterator) {
+            this.iterator = iterator;
         }
 
         @Override

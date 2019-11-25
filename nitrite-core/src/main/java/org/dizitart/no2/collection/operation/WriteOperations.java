@@ -28,18 +28,18 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
  * @author Anindya Chatterjee
  */
 @Slf4j
-class ReadWriteOperation {
-    private final IndexTemplate indexTemplate;
-    private final QueryTemplate queryTemplate;
+class WriteOperations {
+    private final IndexOperations indexOperations;
+    private final ReadOperations readOperations;
     private final EventBus<ChangedItem<Document>, ChangeListener> eventBus;
     private final NitriteMap<NitriteId, Document> nitriteMap;
 
-    ReadWriteOperation(IndexTemplate indexTemplate,
-                       QueryTemplate queryTemplate,
-                       NitriteMap<NitriteId, Document> nitriteMap,
-                       EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
-        this.indexTemplate = indexTemplate;
-        this.queryTemplate = queryTemplate;
+    WriteOperations(IndexOperations indexOperations,
+                    ReadOperations readOperations,
+                    NitriteMap<NitriteId, Document> nitriteMap,
+                    EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
+        this.indexOperations = indexOperations;
+        this.readOperations = readOperations;
         this.eventBus = eventBus;
         this.nitriteMap = nitriteMap;
     }
@@ -75,7 +75,7 @@ class ReadWriteOperation {
                     "entry with same id already exists in " + nitriteMap.getName(), UCE_CONSTRAINT_VIOLATED));
             } else {
                 try {
-                    indexTemplate.updateIndexEntry(item, nitriteId);
+                    indexOperations.updateIndexEntry(item, nitriteId);
                 } catch (UniqueConstraintException uce) {
                     log.error("Unique constraint violated for the document "
                         + document + " in " + nitriteMap.getName(), uce);
@@ -102,9 +102,9 @@ class ReadWriteOperation {
     WriteResult update(Filter filter, Document update, UpdateOptions updateOptions) {
         DocumentCursor cursor;
         if (filter == null) {
-            cursor = queryTemplate.find();
+            cursor = readOperations.find();
         } else {
-            cursor = queryTemplate.find(filter);
+            cursor = readOperations.find(filter);
         }
 
         WriteResultImpl writeResult = new WriteResultImpl();
@@ -161,7 +161,7 @@ class ReadWriteOperation {
                         writeResult.addToList(nitriteId);
                     }
 
-                    indexTemplate.refreshIndexEntry(oldDocument, item, nitriteId);
+                    indexOperations.refreshIndexEntry(oldDocument, item, nitriteId);
 
                     ChangedItem<Document> changedItem = new ChangedItem<>();
                     changedItem.setItem(document);
@@ -179,9 +179,9 @@ class ReadWriteOperation {
     WriteResult remove(Filter filter, RemoveOptions removeOptions) {
         DocumentCursor cursor;
         if (filter == null) {
-            cursor = queryTemplate.find();
+            cursor = readOperations.find();
         } else {
-            cursor = queryTemplate.find(filter);
+            cursor = readOperations.find(filter);
         }
 
         WriteResultImpl result = new WriteResultImpl();
@@ -195,7 +195,7 @@ class ReadWriteOperation {
 
         for (Document document : cursor) {
             NitriteId nitriteId = document.getId();
-            indexTemplate.removeIndexEntry(document, nitriteId);
+            indexOperations.removeIndexEntry(document, nitriteId);
 
             Document removed = nitriteMap.remove(nitriteId);
             int rev = removed.getRevision();

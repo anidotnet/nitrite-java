@@ -1,5 +1,7 @@
 package org.dizitart.no2.store;
 
+import org.dizitart.no2.common.ReadableStream;
+
 /**
  * @author Anindya Chatterjee.
  */

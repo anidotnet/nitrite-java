@@ -54,6 +54,11 @@ public abstract class NitriteConfig {
         return this;
     }
 
+    public NitriteConfig autoConfigure() {
+        // load plugins using Class.forName("...")
+        return this;
+    }
+
     public NitriteConfig load(NitritePlugin... plugins) {
         pluginManager.load(plugins);
         return this;

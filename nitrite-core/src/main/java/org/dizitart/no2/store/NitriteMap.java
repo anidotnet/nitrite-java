@@ -2,6 +2,7 @@ package org.dizitart.no2.store;
 
 import org.dizitart.no2.collection.meta.MetadataAware;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.ReadableStream;
 
 /**
  * Represents a Nitrite key-value pair map. Every piece of

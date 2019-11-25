@@ -21,4 +21,6 @@ public interface Indexer extends NitritePlugin {
     void dropIndex(NitriteMap<NitriteId, Document> collection, Field field);
 
     void rebuildIndex(NitriteMap<NitriteId, Document> collection, Field field);
+
+    IndexedQueryTemplate queryTemplate();
 }

@@ -7,12 +7,12 @@ import org.dizitart.no2.collection.FindOptions;
 import org.dizitart.no2.collection.NullOrder;
 import org.dizitart.no2.collection.SortOrder;
 import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.index.IndexedQueryTemplate;
+import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.FilterException;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.store.ReadableStream;
+import org.dizitart.no2.common.ReadableStream;
 
 import java.text.Collator;
 import java.util.*;
@@ -23,56 +23,34 @@ import static org.dizitart.no2.exceptions.ErrorMessage.*;
 /**
  * @author Anindya Chatterjee
  */
-class QueryTemplate {
-    private IndexedQueryTemplate indexedQueryTemplate;
+class ReadOperations {
+    private IndexOperations indexOperations;
     private NitriteMap<NitriteId, Document> nitriteMap;
 
-    QueryTemplate(IndexTemplate indexTemplate,
-                  NitriteMap<NitriteId, Document> nitriteMap) {
+    ReadOperations(IndexOperations indexOperations,
+                   NitriteMap<NitriteId, Document> nitriteMap) {
         this.nitriteMap = nitriteMap;
-        this.indexedQueryTemplate = new NitriteIndexedQueryTemplate(indexTemplate);
+        this.indexOperations = indexOperations;
     }
 
     public DocumentCursor find() {
-        FindResult findResult = new FindResult();
-        findResult.setHasMore(false);
-        findResult.setTotalCount(nitriteMap.size());
-        findResult.setIdSet(nitriteMap.keySet());
-        findResult.setNitriteMap(nitriteMap);
-
-        return new DocumentCursorImpl(findResult);
+        Iterator<NitriteId> iterator = nitriteMap.keySet().iterator();
+        return new DocumentCursorImpl(iterator, nitriteMap);
     }
 
     public DocumentCursor find(Filter filter) {
         if (filter == null) {
             return find();
         }
-        filter.setIndexedQueryTemplate(indexedQueryTemplate);
-        ReadableStream<NitriteId> result;
 
-        try {
-            result = filter.apply(nitriteMap);
-        } catch (FilterException fe) {
-            throw fe;
-        } catch (Throwable t) {
-            throw new FilterException(FILTERED_FIND_OPERATION_FAILED, t);
-        }
+        Iterator<KeyValuePair<NitriteId, Document>> entryIterator = nitriteMap.entries().iterator();
+        Iterator<NitriteId> filteredIterator = new FilteredIterator(entryIterator, filter);
 
-        FindResult findResult = new FindResult();
-        findResult.setNitriteMap(nitriteMap);
-        if (result != null) {
-            findResult.setHasMore(false);
-            findResult.setTotalCount(result.size());
-            findResult.setIdSet(result);
-        }
-
-        return new DocumentCursorImpl(findResult);
+        return new DocumentCursorImpl(filteredIterator, nitriteMap);
     }
 
     public DocumentCursor find(FindOptions findOptions) {
-        FindResult findResult = new FindResult();
-        findResult.setNitriteMap(nitriteMap);
-        setUnfilteredResultSet(findOptions, findResult);
+        setUnfilteredResultSet(findOptions);
 
         return new DocumentCursorImpl(findResult);
     }
@@ -93,7 +71,7 @@ class QueryTemplate {
         return nitriteMap.get(nitriteId);
     }
 
-    private void setUnfilteredResultSet(FindOptions findOptions, FindResult findResult) {
+    private ReadableStream<NitriteId> setUnfilteredResultSet(FindOptions findOptions) {
         validateLimit(findOptions, nitriteMap.size());
 
         ReadableStream<NitriteId> resultSet;
@@ -102,10 +80,7 @@ class QueryTemplate {
         } else {
             resultSet = sortIdSet(nitriteMap.keySet(), findOptions);
         }
-
-        findResult.setIdSet(resultSet);
-        findResult.setTotalCount(nitriteMap.size());
-        findResult.setHasMore(nitriteMap.keySet().size() > (findOptions.getSize() + findOptions.getOffset()));
+        return resultSet;
     }
 
     private void setFilteredResultSet(Filter filter, FindOptions findOptions, FindResult findResult) {
@@ -129,7 +104,7 @@ class QueryTemplate {
             resultSet = sortIdSet(nitriteIdSet, findOptions);
         }
 
-        findResult.setIdSet(resultSet);
+        findResult.setIdIterator(resultSet);
         findResult.setHasMore(nitriteIdSet.size() > (findOptions.getSize() + findOptions.getOffset()));
         findResult.setTotalCount(nitriteIdSet.size());
     }
@@ -233,4 +208,5 @@ class QueryTemplate {
             throw new ValidationException(PAGINATION_OFFSET_GREATER_THAN_SIZE);
         }
     }
+
 }

@@ -2,10 +2,7 @@ package org.dizitart.no2.collection.filters;
 
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.index.IndexedQueryTemplate;
-import org.dizitart.no2.mapper.NitriteMapper;
-import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.store.ReadableStream;
+import org.dizitart.no2.common.KeyValuePair;
 
 /**
  * An interface to specify filtering criteria during find operation. When
@@ -172,10 +169,6 @@ import org.dizitart.no2.store.ReadableStream;
  * @since 1.0
  */
 public interface Filter {
-    /**
-     * A filter to select all elements.
-     */
-    Filter ALL = null;
 
     /**
      * Filters a document map and returns the set of {@link NitriteId}s of
@@ -184,19 +177,5 @@ public interface Filter {
      * @param nitriteMap the document map
      * @return a set of {@link NitriteId}s of matching documents.
      */
-    ReadableStream<NitriteId> apply(NitriteMap<NitriteId, Document> nitriteMap);
-
-    /**
-     * Sets {@link IndexedQueryTemplate} in the filter object.
-     *
-     * @param indexedQueryTemplate the indexed query template.
-     */
-    void setIndexedQueryTemplate(IndexedQueryTemplate indexedQueryTemplate);
-
-    /**
-     * Sets {@link NitriteMapper} to the filter.
-     *
-     * @param nitriteMapper the {@link NitriteMapper}.
-     */
-    void setNitriteMapper(NitriteMapper nitriteMapper);
+    boolean apply(KeyValuePair<NitriteId, Document> element);
 }
