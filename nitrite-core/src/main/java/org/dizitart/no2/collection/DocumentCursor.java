@@ -4,6 +4,8 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.common.ReadableStream;
 
+import java.text.Collator;
+
 /**
  * An interface to iterate over database {@code find()} results. It provides a
  * mechanism to iterate over all {@link NitriteId}s of the result.
@@ -34,6 +36,10 @@ import org.dizitart.no2.common.ReadableStream;
  */
 public interface DocumentCursor extends ReadableStream<Document> {
 
+    DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder);
+
+    DocumentCursor limit(int offset, int size);
+
     /**
      * Gets a lazy iterable containing all the selected keys of the result documents.
      *
@@ -56,4 +62,20 @@ public interface DocumentCursor extends ReadableStream<Document> {
      * @since 2.1.0
      */
     ReadableStream<Document> join(DocumentCursor foreignCursor, Lookup lookup);
+
+    default DocumentCursor sort(String field) {
+        return sort(field, SortOrder.Ascending);
+    }
+
+    default DocumentCursor sort(String field, SortOrder sortOrder) {
+        return sort(field, sortOrder, NullOrder.Default);
+    }
+
+    default DocumentCursor sort(String field, SortOrder sortOrder, Collator collator) {
+        return sort(field, sortOrder, collator, NullOrder.Default);
+    }
+
+    default DocumentCursor sort(String field, SortOrder sortOrder, NullOrder nullOrder) {
+        return sort(field, sortOrder, null, nullOrder);
+    }
 }

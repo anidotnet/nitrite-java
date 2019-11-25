@@ -27,6 +27,7 @@ import org.dizitart.no2.mapper.NitriteMapper;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.dizitart.no2.collection.filters.FluentFilter.when;
 import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
 
@@ -60,7 +61,7 @@ public class DocumentUtils {
      * @return the unique filter
      */
     public static Filter createUniqueFilter(Document document) {
-        return eq(DOC_ID, document.getId().getIdValue());
+        return when(DOC_ID).eq(document.getId().getIdValue());
     }
 
     /**

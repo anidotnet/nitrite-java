@@ -4,12 +4,16 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.Lookup;
+import org.dizitart.no2.collection.NullOrder;
+import org.dizitart.no2.collection.SortOrder;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.LimitedIterator;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.store.NitriteMap;
 
+import java.text.Collator;
 import java.util.Iterator;
 
 import static org.dizitart.no2.exceptions.ErrorMessage.PROJECTION_WITH_NOT_NULL_VALUES;
@@ -25,6 +29,17 @@ class DocumentCursorImpl implements DocumentCursor {
     DocumentCursorImpl(Iterator<NitriteId> iterator, NitriteMap<NitriteId, Document> nitriteMap) {
         this.iterator = iterator;
         this.nitriteMap = nitriteMap;
+    }
+
+    @Override
+    public DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
+        return new DocumentCursorImpl(new SortedDocumentIterator(field, sortOrder, collator,
+            nullOrder, iterator, nitriteMap), nitriteMap);
+    }
+
+    @Override
+    public DocumentCursor limit(int offset, int size) {
+        return new DocumentCursorImpl(new LimitedIterator<>(iterator, offset, size), nitriteMap);
     }
 
     @Override

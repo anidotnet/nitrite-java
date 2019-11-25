@@ -164,7 +164,6 @@ import org.dizitart.no2.common.KeyValuePair;
  * --
  *
  * @author Anindya Chatterjee
- * @see org.dizitart.no2.collection.NitriteCollection#find(Filter, org.dizitart.no2.collection.FindOptions)
  * @see org.dizitart.no2.collection.NitriteCollection#find(Filter)
  * @since 1.0
  */

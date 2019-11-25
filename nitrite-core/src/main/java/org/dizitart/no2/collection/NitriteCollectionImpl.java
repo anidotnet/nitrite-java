@@ -112,20 +112,6 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public DocumentCursor find(FindOptions findOptions) {
-        checkOpened();
-        notNull(findOptions, errorMessage("findOptions cannot be null", VE_FIND_NULL_FIND_OPTIONS));
-        return collectionOperations.find(findOptions);
-    }
-
-    @Override
-    public DocumentCursor find(Filter filter, FindOptions findOptions) {
-        checkOpened();
-        notNull(findOptions, errorMessage("findOptions cannot be null", VE_FIND_FILTERED_NULL_FIND_OPTIONS));
-        return collectionOperations.find(filter, findOptions);
-    }
-
-    @Override
     public void createIndex(Field field, IndexOptions indexOptions) {
         checkOpened();
         notNull(field, errorMessage("field cannot be null", VE_CREATE_INDEX_NULL_FIELD));

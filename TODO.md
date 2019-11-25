@@ -1,0 +1,1 @@
+1. Raise Indexing events (Start, End, Removed)

@@ -189,40 +189,4 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @see DocumentCursor#project(Document)
      */
     DocumentCursor find(Filter filter);
-
-    /**
-     * Returns a customized cursor to all documents in the collection.
-     *
-     * @param findOptions specifies pagination, sort options for the cursor.
-     * @return a cursor to all selected documents.
-     * @throws org.dizitart.no2.exceptions.ValidationException if `findOptions` is null.
-     * @see FindOptions#limit(int, int)
-     * @see FindOptions#sort(String, SortOrder)
-     * @see SortOrder
-     * @see DocumentCursor#project(Document)
-     */
-    DocumentCursor find(FindOptions findOptions);
-
-    /**
-     * Applies a filter on the collection and returns a customized cursor to the
-     * selected documents.
-     *
-     * See {@link Filter} for all available filters.
-     *
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: If there is an index on the value specified in the filter, this operation
-     * will take advantage of the index.
-     *
-     * @param filter      the filter to apply to select documents from collection.
-     * @param findOptions specifies pagination, sort options for the cursor.
-     * @return a cursor to all selected documents.
-     * @throws org.dizitart.no2.exceptions.ValidationException if `filter` is null.
-     * @throws org.dizitart.no2.exceptions.ValidationException if `findOptions` is null.
-     * @see Filter
-     * @see FindOptions#limit(int, int)
-     * @see FindOptions#sort(String, SortOrder)
-     * @see SortOrder
-     * @see DocumentCursor#project(Document)
-     */
-    DocumentCursor find(Filter filter, FindOptions findOptions);
 }

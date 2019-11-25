@@ -28,7 +28,7 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 /**
  * @author Anindya Chatterjee
  */
-class IndexOperations {
+public class IndexOperations {
     private String collectionName;
     private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
@@ -41,6 +41,18 @@ class IndexOperations {
         this.nitriteConfig = nitriteConfig;
         this.nitriteMap = nitriteMap;
         init();
+    }
+
+    public boolean isIndexing(Field field) {
+        // has index will only return true, if there is an index on
+        // the value and indexing is not running on it
+        return indexCatalog.hasIndexEntry(collectionName, field)
+            && indexBuildRegistry.get(field) != null
+            && indexBuildRegistry.get(field).get();
+    }
+
+    public boolean hasIndexEntry(Field field) {
+        return indexCatalog.hasIndexEntry(collectionName, field);
     }
 
     void ensureIndex(Field field, String indexType, boolean isAsync) {
@@ -198,18 +210,6 @@ class IndexOperations {
 
     IndexEntry findIndexEntry(Field field) {
         return indexCatalog.findIndexEntry(collectionName, field);
-    }
-
-    boolean isIndexing(Field field) {
-        // has index will only return true, if there is an index on
-        // the value and indexing is not running on it
-        return indexCatalog.hasIndexEntry(collectionName, field)
-            && indexBuildRegistry.get(field) != null
-            && indexBuildRegistry.get(field).get();
-    }
-
-    boolean hasIndexEntry(Field field) {
-        return indexCatalog.hasIndexEntry(collectionName, field);
     }
 
     Indexer findIndexer(String indexType) {

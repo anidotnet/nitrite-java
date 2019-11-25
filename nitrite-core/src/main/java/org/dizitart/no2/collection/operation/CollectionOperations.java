@@ -161,24 +161,6 @@ public class CollectionOperations {
         }
     }
 
-    public DocumentCursor find(FindOptions findOptions) {
-        try {
-            readLock.lock();
-            return readOperations.find(findOptions);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    public DocumentCursor find(Filter filter, FindOptions findOptions) {
-        try {
-            readLock.lock();
-            return readOperations.find(filter, findOptions);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
     public Document getById(NitriteId nitriteId) {
         try {
             readLock.lock();
