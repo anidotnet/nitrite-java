@@ -1,5 +1,6 @@
 package org.dizitart.no2.store;
 
+
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.store.events.EventInfo;
@@ -16,6 +17,12 @@ public class NitriteMVStore implements NitriteStore {
     private StoreConfig storeConfig;
     private NitriteConfig nitriteConfig;
     private NitriteEventBus<EventInfo, StoreEventListener> eventBus;
+
+    @Override
+    public void openOrCreate(String username, String password) {
+        // code
+        alert(StoreEvents.Opened);
+    }
 
     @Override
     public boolean isClosed() {
@@ -55,9 +62,9 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public void close() {
-        if (storeConfig.autoCompactEnabled) {
-            compact();
-        }
+//        if (storeConfig.autoCompactEnabled) {
+//            compact();
+//        }
 
 
         alert(StoreEvents.Closed);
@@ -102,7 +109,6 @@ public class NitriteMVStore implements NitriteStore {
     public void initialize(NitriteConfig nitriteConfig) {
         this.nitriteConfig = nitriteConfig;
         eventBus = new StoreEventBus();
-        alert(StoreEvents.Opened);
     }
 
     private void alert(StoreEvents eventType) {

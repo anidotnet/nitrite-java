@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compile project(':nitrite-core')
+    compile project(path: ':nitrite-core', configuration: 'default')
     compile "org.slf4j:slf4j-api:$slf4jVersion"
     compile "com.h2database:h2-mvstore:$h2Version"
 

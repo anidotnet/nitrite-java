@@ -17,8 +17,8 @@
 package org.dizitart.no2.example.android;
 
 import org.dizitart.no2.Document;
-import org.dizitart.no2.common.mapper.Mappable;
-import org.dizitart.no2.common.mapper.NitriteMapper;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee.
@@ -63,7 +63,7 @@ public class User implements Mappable {
 
     @Override
     public Document write(NitriteMapper mapper) {
-        Document document = new Document();
+        Document document = Document.createDocument();
         document.put("id", id);
         document.put("username", username);
         document.put("email", email);

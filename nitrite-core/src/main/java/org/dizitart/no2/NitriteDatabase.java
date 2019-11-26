@@ -30,7 +30,12 @@ class NitriteDatabase implements Nitrite {
 
     NitriteDatabase(NitriteConfig config) {
         this.nitriteConfig = config;
-        this.initialize();
+        this.initialize(null, null);
+    }
+
+    NitriteDatabase(String username, String password, NitriteConfig config) {
+        this.nitriteConfig = config;
+        this.initialize(username, password);
     }
 
     @Override
@@ -130,8 +135,9 @@ class NitriteDatabase implements Nitrite {
         }
     }
 
-    private void initialize() {
-        store = nitriteConfig.getNitriteStore();
+    private void initialize(String username, String password) {
+        this.store = nitriteConfig.getNitriteStore();
+        this.store.openOrCreate(username, password);
     }
 
     private void closeCollections() {
@@ -139,7 +145,7 @@ class NitriteDatabase implements Nitrite {
         if (collections != null) {
             for (String name : collections) {
                 NitriteCollection collection = getCollection(name);
-                if (collection != null && !collection.isClosed()) {
+                if (collection != null && collection.isOpen()) {
                     collection.close();
                 }
             }
@@ -150,7 +156,7 @@ class NitriteDatabase implements Nitrite {
         if (repositories != null) {
             for (String name : repositories.keySet()) {
                 NitriteCollection collection = getCollection(name);
-                if (collection != null && !collection.isClosed()) {
+                if (collection != null && collection.isOpen()) {
                     collection.close();
                 }
             }

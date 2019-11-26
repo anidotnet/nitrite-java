@@ -102,6 +102,36 @@ public interface Nitrite extends Closeable {
      * by discarding any unsaved changes to avoid database corruption.
      *
      * --
+     * @param username   the user id
+     * @param password the password
+     * @return the nitrite database instance.
+     * @throws NitriteIOException if unable to create a new in-memory database.
+     * @throws NitriteIOException if the database is corrupt and recovery fails.
+     * @throws IllegalArgumentException if the directory does not exist.
+     */
+    static Nitrite openOrCreate(String username, String password) {
+        return openOrCreate(username, password, NitriteConfig.create());
+    }
+
+    /**
+     * Opens or creates a new database. If it is an in-memory store, then it
+     * will create a new one. If it is a file based store, and if the file does not
+     * exists, then it will create a new file store and open; otherwise it will
+     * open the existing file store.
+     *
+     * [icon="{@docRoot}/note.png"]
+     * [NOTE]
+     * --
+     * If the database is corrupted somehow then at the time of opening, it will
+     * try to repair it using the last known good version. If still it fails to
+     * recover, then it will throw a {@link NitriteIOException}.
+     *
+     * It also adds a JVM shutdown hook to the database instance. If JVM exists
+     * before closing the database properly by calling {@link Nitrite#close()},
+     * then the shutdown hook will try to close the database as soon as possible
+     * by discarding any unsaved changes to avoid database corruption.
+     *
+     * --
      * @param nitriteConfig database configuration.
      * @return the nitrite database instance.
      * @throws NitriteIOException if unable to create a new in-memory database.
@@ -111,6 +141,36 @@ public interface Nitrite extends Closeable {
      */
     static Nitrite openOrCreate(NitriteConfig nitriteConfig) {
         return new NitriteDatabase(nitriteConfig);
+    }
+
+    /**
+     * Opens or creates a new database. If it is an in-memory store, then it
+     * will create a new one. If it is a file based store, and if the file does not
+     * exists, then it will create a new file store and open; otherwise it will
+     * open the existing file store.
+     *
+     * [icon="{@docRoot}/note.png"]
+     * [NOTE]
+     * --
+     * If the database is corrupted somehow then at the time of opening, it will
+     * try to repair it using the last known good version. If still it fails to
+     * recover, then it will throw a {@link NitriteIOException}.
+     *
+     * It also adds a JVM shutdown hook to the database instance. If JVM exists
+     * before closing the database properly by calling {@link Nitrite#close()},
+     * then the shutdown hook will try to close the database as soon as possible
+     * by discarding any unsaved changes to avoid database corruption.
+     *
+     * --
+     * @param username   the user id
+     * @param password the password
+     * @return the nitrite database instance.
+     * @throws NitriteIOException if unable to create a new in-memory database.
+     * @throws NitriteIOException if the database is corrupt and recovery fails.
+     * @throws IllegalArgumentException if the directory does not exist.
+     */
+    static Nitrite openOrCreate(String username, String password, NitriteConfig nitriteConfig) {
+        return new NitriteDatabase(username, password, nitriteConfig);
     }
 
     /**

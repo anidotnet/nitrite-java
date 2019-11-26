@@ -6,6 +6,9 @@ import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.plugin.NitritePlugin;
 import org.dizitart.no2.store.NitriteMap;
 
+import static org.dizitart.no2.common.Constants.INDEX_PREFIX;
+import static org.dizitart.no2.common.Constants.INTERNAL_NAME_SEPARATOR;
+
 /**
  * @author Anindya Chatterjee.
  */
@@ -21,4 +24,14 @@ public interface Indexer extends NitritePlugin {
     void dropIndex(NitriteMap<NitriteId, Document> collection, Field field);
 
     void rebuildIndex(NitriteMap<NitriteId, Document> collection, Field field);
+
+    default String getIndexMapName(String collectionName, Field field) {
+        return INDEX_PREFIX +
+            INTERNAL_NAME_SEPARATOR +
+            collectionName +
+            INTERNAL_NAME_SEPARATOR +
+            field.getName() +
+            INTERNAL_NAME_SEPARATOR +
+            getIndexType();
+    }
 }

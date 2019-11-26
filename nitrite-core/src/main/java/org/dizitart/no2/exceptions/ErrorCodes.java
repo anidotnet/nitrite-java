@@ -337,5 +337,8 @@ public class ErrorCodes {
     static final int SYE_UPDATE_ACCOUNT_REMOTE_ERROR = 11023;
 
     // endregion
+
+    // region PluginException Codes
+    public static final int PE_LOAD_FAILED = 12001;
 }
 
