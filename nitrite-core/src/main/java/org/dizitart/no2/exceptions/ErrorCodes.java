@@ -63,7 +63,7 @@ public class ErrorCodes {
     public static final int VE_HAS_INDEX_NULL_FIELD = 1033;
     public static final int VE_FIND_EQUAL_INDEX_NULL_FIELD = 1034;
     public static final int VE_FIND_GT_INDEX_NULL_FIELD = 1035;
-    public static final int VE_FIND_GT_INDEX_NULL_VALUE = 1036;
+    public static final int VE_INDEX_NULL_VALUE = 1036;
     public static final int VE_FIND_GTE_INDEX_NULL_FIELD = 1037;
     public static final int VE_FIND_GTE_INDEX_NULL_VALUE = 1038;
     public static final int VE_FIND_LT_INDEX_NULL_FIELD = 1039;
@@ -147,6 +147,7 @@ public class ErrorCodes {
     public static final int VE_NOT_IN_FILTER_EMPTY_FIELD = 1117;
     public static final int VE_NOT_IN_FILTER_NULL_VALUES = 1118;
     public static final int VE_NOT_IN_FILTER_EMPTY_VALUES = 1119;
+    public static final int VE_INDEX_NOT_COMPARABLE_VALUE = 1120;
 
     // endregion
 
@@ -216,7 +217,7 @@ public class ErrorCodes {
     static final int FE_FTS_STAR_NOT_VALID = 4023;
     static final int FE_FILTERED_FIND_FAILED = 4024;
     static final int FE_FILTERED_FIND_WITH_OPTION_FAILED = 4025;
-    public static final int FE_EQ_NOT_SPATIAL = 4026;
+    public static final int FE_EQ_NOT_SUPPORTED = 4026;
     public static final int FE_INTERSECTS_FILTER_FIELD_NOT_INDEXED = 4027;
     public static final int FE_WITHIN_FILTER_FIELD_NOT_INDEXED = 4028;
     public static final int FE_POINT_NULL = 4029;

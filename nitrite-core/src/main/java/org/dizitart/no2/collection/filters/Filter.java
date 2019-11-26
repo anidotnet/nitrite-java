@@ -173,8 +173,12 @@ public interface Filter {
      * Filters a document map and returns the set of {@link NitriteId}s of
      * matching {@link Document}s.
      *
-     * @param nitriteMap the document map
+     * @param element the {@link org.dizitart.no2.store.NitriteMap} entry to check.
      * @return a set of {@link NitriteId}s of matching documents.
      */
     boolean apply(KeyValuePair<NitriteId, Document> element);
+
+    default Filter and(Filter filter) {
+        return new AndFilter(this, filter);
+    }
 }

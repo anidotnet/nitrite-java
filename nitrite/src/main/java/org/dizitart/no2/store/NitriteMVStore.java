@@ -1,8 +1,6 @@
 package org.dizitart.no2.store;
 
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.store.events.EventInfo;
 import org.dizitart.no2.store.events.StoreEventListener;
@@ -18,10 +16,6 @@ public class NitriteMVStore implements NitriteStore {
     private StoreConfig storeConfig;
     private NitriteConfig nitriteConfig;
     private NitriteEventBus<EventInfo, StoreEventListener> eventBus;
-
-    public NitriteMVStore(StoreConfig storeConfig) {
-        this.storeConfig = storeConfig;
-    }
 
     @Override
     public boolean isClosed() {
@@ -80,23 +74,28 @@ public class NitriteMVStore implements NitriteStore {
     }
 
     @Override
-    public <Key, Value> void removeMap(NitriteMap<Key, Value> nitriteMap) {
-
-    }
-
-    @Override
     public <Key, Value> NitriteMap<Key, Value> openMap(String name) {
         return null;
     }
 
     @Override
-    public void addStoreEventListener(StoreEventListener listener) {
+    public void removeMap(String mapName) {
 
     }
 
     @Override
-    public <Store> Store underlyingStore() {
+    public <Key, Value> NitriteRTree<Key, Value> openRTree(String rTreeName) {
         return null;
+    }
+
+    @Override
+    public void removeRTree(String rTreeName) {
+
+    }
+
+    @Override
+    public void addStoreEventListener(StoreEventListener listener) {
+
     }
 
     @Override

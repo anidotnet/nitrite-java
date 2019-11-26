@@ -1,12 +1,11 @@
 package org.dizitart.no2.collection.operation;
 
 import org.dizitart.no2.Document;
+import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.filters.FieldBasedFilter;
 import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.index.IndexEntry;
-import org.dizitart.no2.collection.index.Indexer;
+import org.dizitart.no2.collection.filters.NitriteFilter;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.store.NitriteMap;
 
@@ -16,13 +15,16 @@ import java.util.Iterator;
  * @author Anindya Chatterjee
  */
 class ReadOperations {
-    private IndexOperations indexOperations;
+    private String collectionName;
+    private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
 
-    ReadOperations(IndexOperations indexOperations,
+    ReadOperations(String collectionName,
+                   NitriteConfig nitriteConfig,
                    NitriteMap<NitriteId, Document> nitriteMap) {
         this.nitriteMap = nitriteMap;
-        this.indexOperations = indexOperations;
+        this.nitriteConfig = nitriteConfig;
+        this.collectionName = collectionName;
     }
 
     public DocumentCursor find() {
@@ -35,11 +37,10 @@ class ReadOperations {
             return find();
         }
 
-        if (filter instanceof FieldBasedFilter) {
-            FieldBasedFilter fieldBasedFilter = (FieldBasedFilter) filter;
-            IndexEntry indexEntry = indexOperations.findIndexEntry(fieldBasedFilter.getField());
-            Indexer indexer = indexOperations.findIndexer(indexEntry.getIndexType());
-            fieldBasedFilter.setIndexer(indexer);
+        if (filter instanceof NitriteFilter) {
+            NitriteFilter nitriteFilter = (NitriteFilter) filter;
+            nitriteFilter.setNitriteConfig(nitriteConfig);
+            nitriteFilter.setCollectionName(collectionName);
         }
 
         Iterator<KeyValuePair<NitriteId, Document>> entryIterator = nitriteMap.entries().iterator();

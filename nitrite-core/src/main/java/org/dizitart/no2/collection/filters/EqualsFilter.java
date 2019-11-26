@@ -4,41 +4,68 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.index.ComparableIndexer;
+import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.exceptions.FilterException;
+
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import static org.dizitart.no2.common.Constants.DOC_ID;
+import static org.dizitart.no2.common.util.ObjectUtils.deepEquals;
+import static org.dizitart.no2.exceptions.ErrorCodes.FE_EQUAL_NOT_COMPARABLE;
+import static org.dizitart.no2.exceptions.ErrorCodes.FE_EQ_NOT_SUPPORTED;
+import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee.
  */
-class EqualsFilter extends FieldBasedFilter {
+class EqualsFilter extends IndexAwareFilter {
     EqualsFilter(Field field, Object value) {
         super(field, value);
     }
 
     @Override
+    protected Set<NitriteId> findIndexedIds() {
+        Set<NitriteId> idSet = new LinkedHashSet<>();
+        Indexer indexer = getIndexer(getField());
+        if (indexer != null) {
+            if (indexer instanceof ComparableIndexer && getValue() instanceof Comparable) {
+                setIsFieldIndexed(true);
+                ComparableIndexer comparableIndexer = (ComparableIndexer) indexer;
+                idSet = comparableIndexer.findEqual(getCollectionName(), getField(), (Comparable) getValue());
+            } else {
+                if (getValue() instanceof Comparable) {
+                    throw new FilterException(errorMessage("eq filter is not supported on indexed field "
+                        + getField().getName(), FE_EQ_NOT_SUPPORTED));
+                } else {
+                    throw new FilterException(errorMessage(getValue() + " is not comparable",
+                        FE_EQUAL_NOT_COMPARABLE));
+                }
+            }
+        }
+        return idSet;
+    }
+
+    @Override
     public boolean apply(KeyValuePair<NitriteId, Document> element) {
         Object value = getValue();
-        NitriteId nitriteId = null;
 
         if (getField().getName().equalsIgnoreCase(DOC_ID)) {
             if (value instanceof Long) {
-                nitriteId = NitriteId.createId((Long) value);
+                return Objects.equals(element.getKey().getIdValue(), getValue());
             }
-        } else if (getIndexOperations().hasIndexEntry(getField())
-            && !getIndexOperations().isIndexing(getField())
-            && value != null) {
-
-            if (getIndexer() instanceof ComparableIndexer) {
-                ComparableIndexer comparableIndexer = (ComparableIndexer) getIndexer();
-                nitriteId = comparableIndexer.findByEqual(value);
-            }
-        }
-
-        if (nitriteId != null) {
-            if (element.getKey().equals(nitriteId)) {
-                return true;
+        } else {
+            if (getIsFieldIndexed()) {
+                return getIndexedIdSet().contains(element.getKey());
+            } else {
+                Document document = element.getValue();
+                Object fieldValue = document.get(getField().getName());
+                return deepEquals(fieldValue, value);
             }
         }
+
+        return false;
     }
 }

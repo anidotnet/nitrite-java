@@ -260,7 +260,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     private void init() {
         nitriteStore = nitriteConfig.getNitriteStore();
         this.eventBus = new CollectionEventBus();
-        this.collectionOperations = new CollectionOperations(nitriteMap, nitriteConfig, eventBus);
+        this.collectionOperations = new CollectionOperations(collectionName, nitriteMap, nitriteConfig, eventBus);
     }
 
     private void checkOpened() {

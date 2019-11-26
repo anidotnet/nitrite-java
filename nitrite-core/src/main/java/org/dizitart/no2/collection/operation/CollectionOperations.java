@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author Anindya Chatterjee
  */
 public class CollectionOperations {
+    private String collectionName;
     private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
     private IndexOperations indexOperations;
@@ -35,9 +36,11 @@ public class CollectionOperations {
     @Setter
     private Attributes attributes;
 
-    public CollectionOperations(NitriteMap<NitriteId, Document> nitriteMap,
+    public CollectionOperations(String collectionName,
+                                NitriteMap<NitriteId, Document> nitriteMap,
                                 NitriteConfig nitriteConfig,
                                 EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
+        this.collectionName = collectionName;
         this.nitriteMap = nitriteMap;
         this.nitriteConfig = nitriteConfig;
         this.eventBus = eventBus;
@@ -203,7 +206,7 @@ public class CollectionOperations {
         this.readLock = readWriteLock.readLock();
         this.writeLock = readWriteLock.writeLock();
         this.indexOperations = new IndexOperations(nitriteConfig, nitriteMap);
-        this.readOperations = new ReadOperations(indexOperations, nitriteMap);
+        this.readOperations = new ReadOperations(collectionName, nitriteConfig, nitriteMap);
         this.writeOperations = new WriteOperations(indexOperations, readOperations,
             nitriteMap, eventBus);
     }

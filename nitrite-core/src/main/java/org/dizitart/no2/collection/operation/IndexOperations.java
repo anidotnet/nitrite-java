@@ -28,7 +28,7 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 /**
  * @author Anindya Chatterjee
  */
-public class IndexOperations {
+class IndexOperations {
     private String collectionName;
     private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
@@ -43,7 +43,7 @@ public class IndexOperations {
         init();
     }
 
-    public boolean isIndexing(Field field) {
+    boolean isIndexing(Field field) {
         // has index will only return true, if there is an index on
         // the value and indexing is not running on it
         return indexCatalog.hasIndexEntry(collectionName, field)
@@ -51,7 +51,7 @@ public class IndexOperations {
             && indexBuildRegistry.get(field).get();
     }
 
-    public boolean hasIndexEntry(Field field) {
+    boolean hasIndexEntry(Field field) {
         return indexCatalog.hasIndexEntry(collectionName, field);
     }
 
@@ -212,7 +212,7 @@ public class IndexOperations {
         return indexCatalog.findIndexEntry(collectionName, field);
     }
 
-    Indexer findIndexer(String indexType) {
+    private Indexer findIndexer(String indexType) {
         if (indexerMap.containsKey(indexType)) {
             return indexerMap.get(indexType);
         }

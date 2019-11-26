@@ -1,28 +1,17 @@
 package org.dizitart.no2.collection.filters;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.collection.index.Indexer;
-import org.dizitart.no2.collection.operation.IndexOperations;
-import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
- * @author Anindya Chatterjee.
+ * @author Anindya Chatterjee
  */
-@Getter
-@Setter(AccessLevel.PROTECTED)
-public abstract class FieldBasedFilter implements Filter {
+@Data
+@EqualsAndHashCode(callSuper = true)
+abstract class FieldBasedFilter extends NitriteFilter {
     private Field field;
     private Object value;
-    private NitriteMapper nitriteMapper;
-
-    @Setter(AccessLevel.PUBLIC)
-    private IndexOperations indexOperations;
-
-    @Setter(AccessLevel.PUBLIC)
-    private Indexer indexer;
 
     protected FieldBasedFilter(Field field, Object value) {
         this.field = field;

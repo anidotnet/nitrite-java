@@ -23,11 +23,6 @@ public class PluginManager {
         this.nitriteConfig = nitriteConfig;
     }
 
-    public void load(NitritePlugin[] plugins) {
-        populatePlugins(plugins);
-        initializePlugins(plugins);
-    }
-
     public Set<Indexer> getIndexers() {
         return indexers;
     }
@@ -79,5 +74,9 @@ public class PluginManager {
 
             indexerMap.put(plugin.getClass(), indexerSet);
         }
+    }
+
+    public void load(Class<? extends NitritePlugin>[] plugins) {
+
     }
 }

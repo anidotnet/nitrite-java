@@ -5,7 +5,6 @@ package org.dizitart.no2.collection;
  *
  * @author Anindya Chatterjee
  * @since 1.0
- * @see FindOptions#sort(String, SortOrder)
  */
 public enum SortOrder {
     /**

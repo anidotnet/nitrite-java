@@ -5,9 +5,11 @@ import lombok.Getter;
 import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.plugin.NitritePlugin;
+import org.dizitart.no2.plugin.NitritePluginContainer;
 import org.dizitart.no2.plugin.PluginManager;
 import org.dizitart.no2.store.NitriteStore;
 
+import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
@@ -55,10 +57,11 @@ public abstract class NitriteConfig {
     }
 
     public NitriteConfig autoConfigure() {
+        findAndLoadPlugins();
         return this;
     }
 
-    public NitriteConfig load(NitritePlugin...plugins) {
+    public NitriteConfig load(Class<? extends NitritePlugin>... plugins) {
         pluginManager.load(plugins);
         return this;
     }
@@ -73,5 +76,19 @@ public abstract class NitriteConfig {
 
     public NitriteStore getNitriteStore() {
         return pluginManager.getNitriteStore();
+    }
+
+    private void findAndLoadPlugins() {
+        Package[] packages = Package.getPackages();
+        for (Package p : packages) {
+            Annotation[] annotations = p.getAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotation.annotationType().equals(NitritePluginContainer.class)) {
+                    NitritePluginContainer container = (NitritePluginContainer) annotation;
+                    Class<? extends NitritePlugin>[] plugins = container.plugins();
+                    load(plugins);
+                }
+            }
+        }
     }
 }
