@@ -43,31 +43,49 @@ public abstract class NitriteConfig {
     }
 
     public NitriteConfig fieldSeparator(String separator) {
+        if (configured) {
+            // throw
+        }
         NitriteConfig.fieldSeparator = separator;
         return this;
     }
 
     public NitriteConfig readOnly(boolean readOnly) {
+        if (configured) {
+            // throw
+        }
         this.readOnly = readOnly;
         return this;
     }
 
     public NitriteConfig poolShutdownTimeout(int timeout) {
+        if (configured) {
+            // throw
+        }
         this.poolShutdownTimeout = timeout;
         return this;
     }
 
     public NitriteConfig autoConfigure() {
+        if (configured) {
+            // throw
+        }
         findAndLoadPlugins();
         return this;
     }
 
     public NitriteConfig load(NitritePlugin...plugins) {
+        if (configured) {
+            // throw
+        }
         pluginManager.load(plugins);
         return this;
     }
 
     public NitriteConfig load(Class<? extends NitritePlugin>... plugins) {
+        if (configured) {
+            // throw
+        }
         pluginManager.load(plugins);
         return this;
     }
