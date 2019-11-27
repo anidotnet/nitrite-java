@@ -20,7 +20,7 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
  */
 public interface NitriteStore extends NitritePlugin, AutoCloseable {
 
-    void openOrCreate(String username, String password);
+    void openOrCreate(String username, String password, StoreConfig storeConfig);
 
     /**
      * Checks whether this store is closed for further modification.

@@ -154,7 +154,7 @@ public class ErrorCodes {
     // region NitriteIOException Codes
 
     static final int NIOE_DATABASE_OPENED = 2001;
-    static final int NIOE_REPAIR_FAILED = 2002;
+    static final int NIOE_DATABASE_CORRUPTED = 2002;
     static final int NIOE_IN_MEMORY_FAILED = 2003;
     static final int NIOE_STORE_CLOSED = 2004;
     static final int NIOE_COLLECTION_DROPPED = 2005;
@@ -187,6 +187,7 @@ public class ErrorCodes {
     public static final int IOE_DOC_ID_AUTO_GENERATED = 3009;
     static final int IOE_OBJ_REMOVE_JOINED_OBJECT_ITERATOR = 3010;
     static final int IOE_OBJ_MULTI_UPDATE_WITH_JUST_ONCE = 3011;
+    public static final int IOE_DATABASE_ALREADY_INITIALIZED = 3012;
 
     // endregion
 

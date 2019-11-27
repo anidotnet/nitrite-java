@@ -6,7 +6,9 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.objects.ObjectRepository;
 import org.dizitart.no2.collection.objects.RepositoryFactory;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.exceptions.NitriteIOException;
+import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.store.NitriteStore;
 import org.dizitart.no2.store.events.StoreEventListener;
 
@@ -17,8 +19,7 @@ import java.util.Set;
 
 import static org.dizitart.no2.common.util.ObjectUtils.*;
 import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_CLOSED_NON_W_CHANNEL;
-import static org.dizitart.no2.exceptions.ErrorMessage.NITRITE_STORE_IS_CLOSED;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
+import static org.dizitart.no2.exceptions.ErrorMessage.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -34,6 +35,7 @@ class NitriteDatabase implements Nitrite {
     }
 
     NitriteDatabase(String username, String password, NitriteConfig config) {
+        validateUserCredentials(username, password);
         this.nitriteConfig = config;
         this.initialize(username, password);
     }
@@ -116,7 +118,7 @@ class NitriteDatabase implements Nitrite {
             closeCollections();
             store.close();
         } catch (Throwable error) {
-            if (!nitriteConfig.isReadOnly()) {
+            if (!nitriteConfig.getStoreConfig().isReadOnly()) {
                 throw new NitriteIOException(errorMessage("error while shutting down nitrite",
                     NIOE_CLOSED_NON_W_CHANNEL), error);
             }
@@ -129,15 +131,25 @@ class NitriteDatabase implements Nitrite {
     @Override
     public void commit() {
         checkOpened();
-        if (store != null && !nitriteConfig.isReadOnly()) {
+        if (store != null && !nitriteConfig.getStoreConfig().isReadOnly()) {
             store.commit();
             log.debug("Unsaved changes committed successfully.");
         }
     }
 
+    private void validateUserCredentials(String username, String password) {
+        if (StringUtils.isNullOrEmpty(username)) {
+            throw new SecurityException(USER_ID_IS_EMPTY);
+        }
+        if (StringUtils.isNullOrEmpty(password)) {
+            throw new SecurityException(PASSWORD_IS_EMPTY);
+        }
+    }
+
     private void initialize(String username, String password) {
+        nitriteConfig.initialized();
         this.store = nitriteConfig.getNitriteStore();
-        this.store.openOrCreate(username, password);
+        this.store.openOrCreate(username, password, nitriteConfig.getStoreConfig());
     }
 
     private void closeCollections() {

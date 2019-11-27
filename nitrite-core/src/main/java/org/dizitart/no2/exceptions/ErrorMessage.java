@@ -101,9 +101,9 @@ public class ErrorMessage {
             new ErrorMessage("database is already opened in other process",
                     NIOE_DATABASE_OPENED);
 
-    public static final ErrorMessage UNABLE_TO_REPAIR_DB =
-            new ErrorMessage("unable to repair database",
-                    NIOE_REPAIR_FAILED);
+    public static final ErrorMessage DB_FILE_CORRUPTED =
+            new ErrorMessage("database file is corrupted",
+                NIOE_DATABASE_CORRUPTED);
 
     public static final ErrorMessage UNABLE_TO_CREATE_IN_MEMORY_DB =
             new ErrorMessage("unable to create in-memory database",

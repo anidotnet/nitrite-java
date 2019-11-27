@@ -2,10 +2,7 @@ package org.dizitart.no2.store;
 
 
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.common.event.NitriteEventBus;
-import org.dizitart.no2.store.events.EventInfo;
 import org.dizitart.no2.store.events.StoreEventListener;
-import org.dizitart.no2.store.events.StoreEvents;
 
 import java.util.Map;
 import java.util.Set;
@@ -14,65 +11,56 @@ import java.util.Set;
  * @author Anindya Chatterjee
  */
 public class NitriteMVStore implements NitriteStore {
-    private StoreConfig storeConfig;
-    private NitriteConfig nitriteConfig;
-    private NitriteEventBus<EventInfo, StoreEventListener> eventBus;
+    private MVStoreOperations storeOperations;
 
     @Override
-    public void openOrCreate(String username, String password) {
-        // code
-        alert(StoreEvents.Opened);
+    public void openOrCreate(String username, String password, StoreConfig storeConfig) {
+        this.storeOperations.openOrCreate(username, password, storeConfig);
     }
 
     @Override
     public boolean isClosed() {
-        return false;
+        return this.storeOperations.isClosed();
     }
 
     @Override
     public Set<String> getCollectionNames() {
-        return null;
+        return this.storeOperations.getCollectionNames();
     }
 
     @Override
     public Map<String, Class<?>> getRepositoryRegistry() {
-        return null;
+        return this.storeOperations.getRepositoryRegistry();
     }
 
     @Override
     public boolean hasUnsavedChanges() {
-        return false;
+        return this.storeOperations.hasUnsavedChanges();
     }
 
     @Override
     public boolean isReadOnly() {
-        return false;
+        return this.storeOperations.isReadOnly();
     }
 
     @Override
     public void compact() {
-
+        this.storeOperations.compact();
     }
 
     @Override
     public void commit() {
-
-        alert(StoreEvents.Commit);
+        this.storeOperations.commit();
     }
 
     @Override
     public void close() {
-//        if (storeConfig.autoCompactEnabled) {
-//            compact();
-//        }
-
-
-        alert(StoreEvents.Closed);
+        this.storeOperations.close();
     }
 
     @Override
     public void beforeClose() {
-        alert(StoreEvents.Closing);
+        this.storeOperations.beforeClose();
     }
 
     @Override
@@ -107,21 +95,7 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public void initialize(NitriteConfig nitriteConfig) {
-        this.nitriteConfig = nitriteConfig;
-        eventBus = new StoreEventBus();
+        this.storeOperations = new MVStoreOperations(nitriteConfig);
     }
 
-    private void alert(StoreEvents eventType) {
-        EventInfo event = new EventInfo(eventType, nitriteConfig);
-        eventBus.post(event);
-    }
-
-    private static class StoreEventBus extends NitriteEventBus<EventInfo, StoreEventListener> {
-        @Override
-        public void post(EventInfo storeEvent) {
-            for (final StoreEventListener listener : getListeners()) {
-                getEventExecutor().submit(() -> listener.onEvent(storeEvent));
-            }
-        }
-    }
 }
