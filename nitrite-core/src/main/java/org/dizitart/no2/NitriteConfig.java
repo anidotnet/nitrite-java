@@ -16,6 +16,8 @@ import java.util.Set;
  * @author Anindya Chatterjee.
  */
 public abstract class NitriteConfig {
+    private boolean configured = false;
+
     @Getter
     private static String fieldSeparator;
 
@@ -39,7 +41,6 @@ public abstract class NitriteConfig {
         config.poolShutdownTimeout(5);
         return config;
     }
-
 
     public NitriteConfig fieldSeparator(String separator) {
         NitriteConfig.fieldSeparator = separator;
@@ -81,6 +82,10 @@ public abstract class NitriteConfig {
 
     public NitriteStore getNitriteStore() {
         return pluginManager.getNitriteStore();
+    }
+
+    void configured() {
+        this.configured = true;
     }
 
     private void findAndLoadPlugins() {
