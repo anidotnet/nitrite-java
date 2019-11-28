@@ -7,9 +7,10 @@ import org.h2.mvstore.MVMap;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
+import static org.dizitart.no2.collection.meta.Attributes.LAST_MODIFIED_TIME;
 import static org.dizitart.no2.common.Constants.META_MAP_NAME;
+import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
  * @author Anindya Chatterjee
@@ -130,13 +131,8 @@ class NitriteMVMap<Key, Value> implements NitriteMap<Key, Value> {
     }
 
     @Override
-    public void close() {
-
-    }
-
-    @Override
     public Attributes getAttributes() {
-        NitriteMap<String, Attributes> metaMap = nitriteStore.metaMap();
+        NitriteMap<String, Attributes> metaMap = nitriteStore.openMap(META_MAP_NAME);
         if (metaMap != null && !getName().contentEquals(META_MAP_NAME)) {
             return metaMap.get(getName());
         }
@@ -145,9 +141,24 @@ class NitriteMVMap<Key, Value> implements NitriteMap<Key, Value> {
 
     @Override
     public void setAttributes(Attributes attributes) {
-        NitriteMap<String, Attributes> metaMap = nitriteStore.metaMap();
+        NitriteMap<String, Attributes> metaMap = nitriteStore.openMap(META_MAP_NAME);
         if (metaMap != null && !getName().contentEquals(META_MAP_NAME)) {
             metaMap.put(getName(), attributes);
+        }
+    }
+
+    private void updateAttributes() {
+        if (isNullOrEmpty(getName())
+            || META_MAP_NAME.equals(getName())) return;
+
+        NitriteMap<String, Attributes> metaMap = nitriteStore.openMap(META_MAP_NAME);
+        if (metaMap != null) {
+            Attributes attributes = metaMap.get(getName());
+            if (attributes == null) {
+                attributes = new Attributes(getName());
+                metaMap.put(getName(), attributes);
+            }
+            attributes.set(LAST_MODIFIED_TIME, System.currentTimeMillis());
         }
     }
 }

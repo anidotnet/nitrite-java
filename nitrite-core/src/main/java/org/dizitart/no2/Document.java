@@ -66,7 +66,7 @@ public interface Document extends Iterable<KeyValuePair<String, Object>>, Clonea
 
     int size();
 
-    void putAll(Document update);
+    Document putAll(Document update);
 
     boolean containsKey(String key);
 }

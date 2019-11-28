@@ -192,15 +192,6 @@ public class CollectionOperations {
         }
     }
 
-    public void close() {
-        try {
-            writeLock.lock();
-            nitriteMap.close();
-        } finally {
-            writeLock.unlock();
-        }
-    }
-
     private void init() {
         ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         this.readLock = readWriteLock.readLock();

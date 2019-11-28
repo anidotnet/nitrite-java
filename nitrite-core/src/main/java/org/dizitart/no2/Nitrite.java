@@ -80,7 +80,7 @@ public interface Nitrite extends Closeable {
      * @throws IllegalArgumentException if the directory does not exist.
      */
     static Nitrite openOrCreate() {
-        return openOrCreate(NitriteConfig.create());
+        return openOrCreate(NitriteConfig.create().autoConfigure());
     }
 
     /**
@@ -110,7 +110,7 @@ public interface Nitrite extends Closeable {
      * @throws IllegalArgumentException if the directory does not exist.
      */
     static Nitrite openOrCreate(String username, String password) {
-        return openOrCreate(username, password, NitriteConfig.create());
+        return openOrCreate(username, password, NitriteConfig.create().autoConfigure());
     }
 
     /**

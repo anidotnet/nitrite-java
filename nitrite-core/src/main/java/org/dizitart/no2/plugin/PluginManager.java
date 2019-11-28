@@ -6,6 +6,7 @@ import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.exceptions.PluginException;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.NitriteStore;
+import org.dizitart.no2.store.StoreConfig;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public class PluginManager {
     private NitriteMapper nitriteMapper;
     private NitriteStore nitriteStore;
     private NitriteConfig nitriteConfig;
+    private StoreConfig storeConfig;
 
     public PluginManager(NitriteConfig nitriteConfig) {
         indexerMap = new HashMap<>();
@@ -66,6 +68,10 @@ public class PluginManager {
         return nitriteStore;
     }
 
+    public StoreConfig getStoreConfig() {
+        return storeConfig;
+    }
+
     private void initializePlugins(NitritePlugin[] plugins) {
         for (NitritePlugin plugin : plugins) {
             plugin.initialize(nitriteConfig);
@@ -85,6 +91,8 @@ public class PluginManager {
     private void loadIfNitriteStore(NitritePlugin plugin) {
         if (plugin instanceof NitriteStore) {
             this.nitriteStore = (NitriteStore) plugin;
+        } else if (plugin instanceof StoreConfig) {
+            this.storeConfig = (StoreConfig) plugin;
         }
     }
 

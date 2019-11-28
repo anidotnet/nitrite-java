@@ -152,6 +152,4 @@ public interface NitriteMap<Key, Value> extends MetadataAware {
      * Deletes the map from the store.
      * */
     void drop();
-
-    void close();
 }

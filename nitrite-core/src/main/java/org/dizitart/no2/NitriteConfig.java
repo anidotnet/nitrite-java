@@ -112,6 +112,13 @@ public abstract class NitriteConfig {
         return pluginManager.getNitriteStore();
     }
 
+    public StoreConfig getStoreConfig() {
+        if (storeConfig == null) {
+            storeConfig = pluginManager.getStoreConfig();
+        }
+        return storeConfig;
+    }
+
     void initialized() {
         this.configured = true;
     }

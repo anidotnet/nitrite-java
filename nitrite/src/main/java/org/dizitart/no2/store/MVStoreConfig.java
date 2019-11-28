@@ -3,6 +3,7 @@ package org.dizitart.no2.store;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.h2.mvstore.FileStore;
 
@@ -182,5 +183,10 @@ public class MVStoreConfig implements StoreConfig {
 
     void configured() {
         this.configured = true;
+    }
+
+    @Override
+    public void initialize(NitriteConfig nitriteConfig) {
+
     }
 }
