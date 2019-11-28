@@ -12,6 +12,7 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_DIR_DOES_NOT_EXISTS;
 import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_PATH_IS_DIRECTORY;
 import static org.dizitart.no2.exceptions.ErrorMessage.*;
+import static org.dizitart.no2.store.Recovery.recover;
 import static org.dizitart.no2.store.Security.createSecurely;
 import static org.dizitart.no2.store.Security.openSecurely;
 
@@ -79,8 +80,9 @@ class MVStoreUtils {
                         }
 
                         if (file.exists() && file.isFile()) {
-                            log.error("Database corruption detected.", ise);
-                            throw new NitriteIOException(DB_FILE_CORRUPTED, ise);
+                            log.error("Database corruption detected. Trying to repair", ise);
+                            recover(mvStoreConfig.getFilePath());
+                            store = builder.open();
                         } else {
                             if (mvStoreConfig.isReadOnly()) {
                                 throw new NitriteIOException(FAILED_TO_CREATE_READONLY_DB, ise);
