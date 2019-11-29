@@ -27,7 +27,7 @@ class EqualsFilter extends IndexAwareFilter {
     }
 
     @Override
-    protected Set<NitriteId> findIndexedIds() {
+    protected Set<NitriteId> calculateIndexedIds() {
         Set<NitriteId> idSet = new LinkedHashSet<>();
         Indexer indexer = getIndexer(getField());
         if (indexer != null) {

@@ -1,7 +1,6 @@
 package org.dizitart.no2.collection.filters;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.index.IndexEntry;
@@ -14,17 +13,26 @@ import java.util.Set;
  * @author Anindya Chatterjee
  */
 @Data
+@ToString(exclude = "indexedIdSet")
 @EqualsAndHashCode(callSuper = true)
 abstract class IndexAwareFilter extends FieldBasedFilter {
+    @Getter(AccessLevel.NONE)
     private Set<NitriteId> indexedIdSet;
+
     private Boolean isFieldIndexed = false;
 
     protected IndexAwareFilter(Field field, Object value) {
         super(field, value);
-        this.indexedIdSet = findIndexedIds();
     }
 
-    protected abstract Set<NitriteId> findIndexedIds();
+    protected abstract Set<NitriteId> calculateIndexedIds();
+
+    public Set<NitriteId> getIndexedIdSet() {
+        if (indexedIdSet == null) {
+            indexedIdSet = calculateIndexedIds();
+        }
+        return indexedIdSet;
+    }
 
     protected Indexer getIndexer(Field field) {
         IndexCatalog indexCatalog = getNitriteConfig().getNitriteStore().getIndexCatalog();

@@ -49,7 +49,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     @Override
     public Object get(String key) {
-        if (key != null && containsKey(key)) {
+        if (key != null && !containsKey(key)) {
             return deepGet(key);
         }
         return super.get(key);

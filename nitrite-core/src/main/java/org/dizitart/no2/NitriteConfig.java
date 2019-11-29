@@ -126,6 +126,9 @@ public abstract class NitriteConfig {
     private void findAndLoadPlugins() {
         Package[] packages = Package.getPackages();
         for (Package p : packages) {
+            if (p.getName().startsWith("org.dizitart")) {
+                System.out.println(p.getName());
+            }
             Annotation[] annotations = p.getAnnotations();
             for (Annotation annotation : annotations) {
                 if (annotation.annotationType().equals(NitritePluginContainer.class)) {

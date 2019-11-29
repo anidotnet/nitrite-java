@@ -12,7 +12,6 @@ import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -113,7 +112,7 @@ public abstract class ComparableIndexer implements Indexer {
     }
 
     public Set<NitriteId> findEqual(String collectionName, Field field, Comparable value) {
-        if (value == null) return new HashSet<>();
+        if (value == null) return new LinkedHashSet<>();
 
         NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> indexMap = getIndexMap(collectionName, field);
 
