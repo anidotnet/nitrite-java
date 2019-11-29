@@ -27,7 +27,7 @@ public class NitriteTest {
         WriteResult res = collection.insert(document);
         System.out.println(res.getAffectedCount());
 
-        DocumentCursor cursor = collection.find(when("first").eq(1));
+        DocumentCursor cursor = collection.find(when("first").eq(1).and(when("second").eq(3)));
         for (Document doc : cursor) {
             System.out.println(doc);
         }

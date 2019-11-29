@@ -341,5 +341,9 @@ public class ErrorCodes {
 
     // region PluginException Codes
     public static final int PE_LOAD_FAILED = 12001;
+    public static final int PE_MULTIPLE_INDEXER_FOUND = 12002;
+    public static final int PE_MULTIPLE_MAPPER_FOUND = 12003;
+    public static final int PE_MULTIPLE_STORE_FOUND = 12004;
+    public static final int PE_MULTIPLE_STORE_CONFIG_FOUND = 12005;
 }
 

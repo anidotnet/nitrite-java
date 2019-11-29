@@ -13,7 +13,6 @@ import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +31,6 @@ class IndexOperations {
     private String collectionName;
     private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
-    private Map<String, Indexer> indexerMap;
     private IndexCatalog indexCatalog;
     private Map<Field, AtomicBoolean> indexBuildRegistry;
     private ExecutorService rebuildExecutor;
@@ -213,8 +211,9 @@ class IndexOperations {
     }
 
     private Indexer findIndexer(String indexType) {
-        if (indexerMap.containsKey(indexType)) {
-            return indexerMap.get(indexType);
+        Indexer indexer = nitriteConfig.findIndexer(indexType);
+        if (indexer != null) {
+            return indexer;
         }
         throw new IndexingException(errorMessage("no indexer found for index type " + indexType,
             IE_INVALID_INDEX_TYPE));
@@ -226,12 +225,6 @@ class IndexOperations {
         this.collectionName = nitriteMap.getName();
         this.indexBuildRegistry = new ConcurrentHashMap<>();
         this.rebuildExecutor = ExecutorServiceManager.commonPool();
-        this.indexerMap = new HashMap<>();
-
-        Set<Indexer> indexers = nitriteConfig.getIndexers();
-        for (Indexer indexer : indexers) {
-            indexerMap.put(indexer.getIndexType(), indexer);
-        }
     }
 
     private void buildIndexInternal(final Field field, final IndexEntry indexEntry) {

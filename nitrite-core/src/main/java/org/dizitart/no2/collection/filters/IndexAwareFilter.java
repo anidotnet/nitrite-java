@@ -1,51 +1,37 @@
 package org.dizitart.no2.collection.filters;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.collection.index.IndexEntry;
 import org.dizitart.no2.collection.index.Indexer;
-import org.dizitart.no2.store.IndexCatalog;
 
 import java.util.Set;
 
 /**
  * @author Anindya Chatterjee
  */
-@Data
+@Getter
 @ToString(exclude = "indexedIdSet")
 @EqualsAndHashCode(callSuper = true)
-abstract class IndexAwareFilter extends FieldBasedFilter {
-    @Getter(AccessLevel.NONE)
+public abstract class IndexAwareFilter extends FieldBasedFilter {
     private Set<NitriteId> indexedIdSet;
-
+    @Setter
     private Boolean isFieldIndexed = false;
+    @Setter
+    private Indexer indexer;
 
     protected IndexAwareFilter(Field field, Object value) {
         super(field, value);
     }
 
-    protected abstract Set<NitriteId> calculateIndexedIds();
+    protected abstract Set<NitriteId> findIndexedIdSet();
 
-    public Set<NitriteId> getIndexedIdSet() {
+    public void cacheIndexedIds() {
         if (indexedIdSet == null) {
-            indexedIdSet = calculateIndexedIds();
+            indexedIdSet = findIndexedIdSet();
         }
-        return indexedIdSet;
-    }
-
-    protected Indexer getIndexer(Field field) {
-        IndexCatalog indexCatalog = getNitriteConfig().getNitriteStore().getIndexCatalog();
-        IndexEntry indexEntry = indexCatalog.findIndexEntry(getCollectionName(), field);
-        String indexType = indexEntry.getIndexType();
-
-        Set<Indexer> indexers = getNitriteConfig().getIndexers();
-        for (Indexer indexer : indexers) {
-            if (indexer.getIndexType().equalsIgnoreCase(indexType)) {
-                return indexer;
-            }
-        }
-
-        return null;
     }
 }

@@ -4,10 +4,13 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Anindya Chatterjee
  */
-class AndFilter extends NitriteFilter {
+class AndFilter extends LogicalFilter {
     private Filter rhs;
     private Filter lhs;
 
@@ -19,5 +22,10 @@ class AndFilter extends NitriteFilter {
     @Override
     public boolean apply(KeyValuePair<NitriteId, Document> element) {
         return rhs.apply(element) && lhs.apply(element);
+    }
+
+    @Override
+    public List<Filter> getFilters() {
+        return Arrays.asList(rhs, lhs);
     }
 }

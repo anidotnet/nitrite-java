@@ -1,28 +1,33 @@
 package org.dizitart.no2.plugin;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.index.Indexer;
+import org.dizitart.no2.collection.index.NonUniqueIndexer;
+import org.dizitart.no2.collection.index.UniqueIndexer;
 import org.dizitart.no2.exceptions.PluginException;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.NitriteStore;
 import org.dizitart.no2.store.StoreConfig;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.dizitart.no2.exceptions.ErrorCodes.PE_LOAD_FAILED;
+import static org.dizitart.no2.exceptions.ErrorCodes.*;
 import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee.
  */
 @Slf4j
+@Getter
 public class PluginManager {
-    private Map<Class<?>, Set<Indexer>> indexerMap;
+    private Map<String, Indexer> indexerMap;
     private Set<Indexer> indexers;
     private NitriteMapper nitriteMapper;
     private NitriteStore nitriteStore;
@@ -56,20 +61,21 @@ public class PluginManager {
         }
     }
 
-    public Set<Indexer> getIndexers() {
-        return indexers;
-    }
+    public void findAndLoadPlugins() {
+        Package[] packages = Package.getPackages();
+        for (Package p : packages) {
+            Annotation[] annotations = p.getAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotation.annotationType().equals(NitritePluginContainer.class)) {
+                    NitritePluginContainer container = (NitritePluginContainer) annotation;
+                    Class<? extends NitritePlugin>[] plugins = container.plugins();
+                    load(plugins);
+                }
+            }
+        }
 
-    public NitriteMapper getNitriteMapper() {
-        return nitriteMapper;
-    }
-
-    public NitriteStore getNitriteStore() {
-        return nitriteStore;
-    }
-
-    public StoreConfig getStoreConfig() {
-        return storeConfig;
+        load(new UniqueIndexer());
+        load(new NonUniqueIndexer());
     }
 
     private void initializePlugins(NitritePlugin[] plugins) {
@@ -90,28 +96,39 @@ public class PluginManager {
 
     private void loadIfNitriteStore(NitritePlugin plugin) {
         if (plugin instanceof NitriteStore) {
+            if (nitriteStore != null) {
+                throw new PluginException(errorMessage("multiple NitriteStore found",
+                    PE_MULTIPLE_STORE_FOUND));
+            }
             this.nitriteStore = (NitriteStore) plugin;
         } else if (plugin instanceof StoreConfig) {
+            if (storeConfig != null) {
+                throw new PluginException(errorMessage("multiple StoreConfig found",
+                    PE_MULTIPLE_STORE_CONFIG_FOUND));
+            }
             this.storeConfig = (StoreConfig) plugin;
         }
     }
 
     private void loadIfNitriteMapper(NitritePlugin plugin) {
         if (plugin instanceof NitriteMapper) {
+            if (nitriteMapper != null) {
+                throw new PluginException(errorMessage("multiple NitriteMapper found",
+                    PE_MULTIPLE_MAPPER_FOUND));
+            }
             this.nitriteMapper = (NitriteMapper) plugin;
         }
     }
 
-    private void loadIfIndexer(NitritePlugin plugin) {
+    private synchronized void loadIfIndexer(NitritePlugin plugin) {
         if (plugin instanceof Indexer) {
-            this.indexers.add((Indexer) plugin);
-            Set<Indexer> indexerSet = this.indexerMap.get(plugin.getClass());
-            if (indexerSet == null) {
-                indexerSet = new HashSet<>();
+            Indexer indexer = (Indexer) plugin;
+            if (indexerMap.containsKey(indexer.getIndexType())) {
+                throw new PluginException(errorMessage("multiple Indexer found for type "
+                    + indexer.getIndexType(), PE_MULTIPLE_INDEXER_FOUND));
             }
-            indexerSet.add((Indexer) plugin);
-
-            indexerMap.put(plugin.getClass(), indexerSet);
+            this.indexers.add((Indexer) plugin);
+            this.indexerMap.put(indexer.getIndexType(), indexer);
         }
     }
 }

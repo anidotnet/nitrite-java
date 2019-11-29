@@ -3,7 +3,7 @@ package org.dizitart.no2.collection.index;
 /**
  * @author Anindya Chatterjee
  */
-class NonUniqueIndexer extends ComparableIndexer {
+public class NonUniqueIndexer extends ComparableIndexer {
 
     @Override
     boolean isUnique() {

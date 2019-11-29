@@ -1,10 +1,10 @@
 package org.dizitart.no2.collection.filters;
 
+import lombok.ToString;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.index.ComparableIndexer;
-import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.FilterException;
 
@@ -21,19 +21,18 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 /**
  * @author Anindya Chatterjee.
  */
+@ToString
 class EqualsFilter extends IndexAwareFilter {
     EqualsFilter(Field field, Object value) {
         super(field, value);
     }
 
     @Override
-    protected Set<NitriteId> calculateIndexedIds() {
+    protected Set<NitriteId> findIndexedIdSet() {
         Set<NitriteId> idSet = new LinkedHashSet<>();
-        Indexer indexer = getIndexer(getField());
-        if (indexer != null) {
-            if (indexer instanceof ComparableIndexer && getValue() instanceof Comparable) {
-                setIsFieldIndexed(true);
-                ComparableIndexer comparableIndexer = (ComparableIndexer) indexer;
+        if (getIsFieldIndexed()) {
+            if (getIndexer() instanceof ComparableIndexer && getValue() instanceof Comparable) {
+                ComparableIndexer comparableIndexer = (ComparableIndexer) getIndexer();
                 idSet = comparableIndexer.findEqual(getCollectionName(), getField(), (Comparable) getValue());
             } else {
                 if (getValue() instanceof Comparable) {

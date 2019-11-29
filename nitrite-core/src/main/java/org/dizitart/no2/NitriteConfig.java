@@ -6,12 +6,10 @@ import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.plugin.NitritePlugin;
-import org.dizitart.no2.plugin.NitritePluginContainer;
 import org.dizitart.no2.plugin.PluginManager;
 import org.dizitart.no2.store.NitriteStore;
 import org.dizitart.no2.store.StoreConfig;
 
-import java.lang.annotation.Annotation;
 import java.util.Set;
 
 import static org.dizitart.no2.exceptions.ErrorCodes.IOE_DATABASE_ALREADY_INITIALIZED;
@@ -78,7 +76,7 @@ public abstract class NitriteConfig {
             throw new InvalidOperationException(errorMessage("cannot execute autoconfigure after database" +
                 " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
         }
-        findAndLoadPlugins();
+        pluginManager.findAndLoadPlugins();
         return this;
     }
 
@@ -104,6 +102,10 @@ public abstract class NitriteConfig {
         return pluginManager.getIndexers();
     }
 
+    public Indexer findIndexer(String indexType) {
+        return pluginManager.getIndexerMap().get(indexType);
+    }
+
     public NitriteMapper nitriteMapper() {
         return pluginManager.getNitriteMapper();
     }
@@ -121,22 +123,5 @@ public abstract class NitriteConfig {
 
     void initialized() {
         this.configured = true;
-    }
-
-    private void findAndLoadPlugins() {
-        Package[] packages = Package.getPackages();
-        for (Package p : packages) {
-            if (p.getName().startsWith("org.dizitart")) {
-                System.out.println(p.getName());
-            }
-            Annotation[] annotations = p.getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (annotation.annotationType().equals(NitritePluginContainer.class)) {
-                    NitritePluginContainer container = (NitritePluginContainer) annotation;
-                    Class<? extends NitritePlugin>[] plugins = container.plugins();
-                    load(plugins);
-                }
-            }
-        }
     }
 }
