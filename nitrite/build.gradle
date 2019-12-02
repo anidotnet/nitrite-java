@@ -36,6 +36,7 @@ dependencies {
     testImplementation "joda-time:joda-time:$jodaTimeVersion"
     testImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
     testImplementation "org.meanbean:meanbean:$meanbeanVersion"
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 }
 
 

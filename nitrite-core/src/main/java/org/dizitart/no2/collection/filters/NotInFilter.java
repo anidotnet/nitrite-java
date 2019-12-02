@@ -4,14 +4,12 @@ import lombok.Getter;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.index.ComparableIndexer;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.FilterException;
 import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.index.ComparableIndexer;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 
@@ -25,6 +23,8 @@ class NotInFilter extends IndexAwareFilter {
 
     NotInFilter(Field field, Comparable<?>... values) {
         super(field, values);
+        this.comparableSet = new HashSet<>();
+        Collections.addAll(this.comparableSet, values);
     }
 
     @Override

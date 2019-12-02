@@ -4,7 +4,6 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.*;
 import org.dizitart.no2.common.KeyValuePair;
-import org.dizitart.no2.common.LimitedIterator;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
@@ -17,39 +16,39 @@ import java.util.Iterator;
  * @author Anindya Chatterjee.
  */
 class DocumentCursorImpl implements DocumentCursor {
-    private final Iterator<NitriteId> iterator;
+    private final ReadableStream<NitriteId> readableStream;
     private final NitriteMap<NitriteId, Document> nitriteMap;
 
-    DocumentCursorImpl(Iterator<NitriteId> iterator, NitriteMap<NitriteId, Document> nitriteMap) {
-        this.iterator = iterator;
+    DocumentCursorImpl(ReadableStream<NitriteId> readableStream, NitriteMap<NitriteId, Document> nitriteMap) {
+        this.readableStream = readableStream;
         this.nitriteMap = nitriteMap;
     }
 
     @Override
     public DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
-        return new DocumentCursorImpl(new SortedDocumentIterator(field, sortOrder, collator,
-            nullOrder, iterator, nitriteMap), nitriteMap);
+        return new DocumentCursorImpl(new SortedDocumentCursor(field, sortOrder, collator,
+            nullOrder, readableStream, nitriteMap), nitriteMap);
     }
 
     @Override
     public DocumentCursor limit(int offset, int size) {
-        return new DocumentCursorImpl(new LimitedIterator<>(iterator, offset, size), nitriteMap);
+        return new DocumentCursorImpl(new LimitedDocumentCursor(readableStream, offset, size), nitriteMap);
     }
 
     @Override
     public ReadableStream<Document> project(Document projection) {
         validateProjection(projection);
-        return new ProjectedDocumentIterable(iterator, nitriteMap, projection);
+        return new ProjectedDocumentIterable(readableStream, nitriteMap, projection);
     }
 
     @Override
     public ReadableStream<Document> join(DocumentCursor cursor, Lookup lookup) {
-        return new JoinedDocumentIterable(iterator, nitriteMap, cursor, lookup);
+        return new JoinedDocumentIterable(readableStream, nitriteMap, cursor, lookup);
     }
 
     @Override
     public Iterator<Document> iterator() {
-        return new DocumentCursorIterator(iterator);
+        return new DocumentCursorIterator(readableStream.iterator());
     }
 
     private class DocumentCursorIterator implements Iterator<Document> {

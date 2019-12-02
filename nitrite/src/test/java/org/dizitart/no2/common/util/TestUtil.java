@@ -18,11 +18,22 @@
 
 package org.dizitart.no2.common.util;
 
-import java.util.Iterator;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.Document;
+import org.dizitart.no2.exceptions.ObjectMappingException;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @author Anindya Chatterjee
  */
+@Slf4j
 public class TestUtil {
     /**
      * Determines whether the supplied `iterable` is sorted.
@@ -52,5 +63,93 @@ public class TestUtil {
             t = t2;
         }
         return true;
+    }
+
+    public static Document parse(String json) {
+        try {
+            ObjectMapper objectMapper = createObjectMapper();
+            JsonNode node = objectMapper.readValue(json, JsonNode.class);
+            return loadDocument(node);
+        } catch (IOException e) {
+            log.error("Error while parsing json", e);
+            throw new ObjectMappingException("failed to parse json " + json);
+        }
+    }
+
+    private static Document loadDocument(JsonNode node) {
+        Map<String, Object> objectMap = new LinkedHashMap<>();
+        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            String name = entry.getKey();
+            JsonNode value = entry.getValue();
+            Object object = loadObject(value);
+            objectMap.put(name, object);
+        }
+
+        return Document.createDocument(objectMap);
+    }
+
+    private static Object loadObject(JsonNode node) {
+        if (node == null)
+            return null;
+        try {
+            switch (node.getNodeType()) {
+                case ARRAY:
+                    return loadArray(node);
+                case BINARY:
+                    return node.binaryValue();
+                case BOOLEAN:
+                    return node.booleanValue();
+                case MISSING:
+                case NULL:
+                    return null;
+                case NUMBER:
+                    return node.numberValue();
+                case OBJECT:
+                case POJO:
+                    return loadDocument(node);
+                case STRING:
+                    return node.textValue();
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static List loadArray(JsonNode array) {
+        if (array.isArray()) {
+            List list = new ArrayList();
+            Iterator iterator = array.elements();
+            while (iterator.hasNext()) {
+                Object element = iterator.next();
+                if (element instanceof JsonNode) {
+                    list.add(loadObject((JsonNode) element));
+                } else {
+                    list.add(element);
+                }
+            }
+            return list;
+        }
+        return null;
+    }
+
+
+    private static ObjectMapper createObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(
+            objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE));
+        objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        objectMapper.findAndRegisterModules();
+        return objectMapper;
     }
 }

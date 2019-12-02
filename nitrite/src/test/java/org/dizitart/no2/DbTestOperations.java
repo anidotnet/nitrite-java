@@ -168,12 +168,12 @@ public class DbTestOperations {
         cursor = collection.find(when("birthDay").lte(new Date()).or(when("firstName").eq("fn12")));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthday").lte(new Date())
+        cursor = collection.find(when("birthDay").lte(new Date())
             .or(when("firstName").eq("fn12"))
             .and(when("lastName").eq("ln1")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthday").lte(new Date())
+        cursor = collection.find(when("birthDay").lte(new Date())
                 .or(when("firstName").eq("fn12"))
                 .and(when("lastName").eq("ln1"))
             .not());

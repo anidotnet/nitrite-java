@@ -21,7 +21,6 @@ package org.dizitart.no2;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.WriteResult;
-import org.dizitart.no2.store.MVStoreConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -135,29 +134,28 @@ public abstract class BaseCollectionTest {
     }
 
     private void openDb() {
-        MVStoreConfig storeConfig = MVStoreConfig.create();
+        NitriteBuilder builder = NitriteBuilder.get();
+
         if (isCompressed) {
-            storeConfig.compressed();
+            builder.compressed();
         }
 
         if (!isAutoCommit) {
-            storeConfig.disableAutoCommit();
+            builder.disableAutoCommit();
         }
 
         if (!inMemory) {
-            storeConfig.filePath(fileName);
+            builder.filePath(fileName);
         }
 
         if (!isAutoCompact) {
-            storeConfig.disableAutoCompact();
+            builder.disableAutoCompact();
         }
 
-        NitriteConfig config = NitriteConfig.create();
-        config.storeConfig(storeConfig);
         if (isSecured) {
-            db = Nitrite.openOrCreate("test-user", "test-password", config);
+            db = builder.openOrCreate("test-user", "test-password");
         } else {
-            db = Nitrite.openOrCreate(config);
+            db = builder.openOrCreate();
         }
     }
 

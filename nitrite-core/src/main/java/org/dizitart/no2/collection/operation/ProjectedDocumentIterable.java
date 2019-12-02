@@ -13,21 +13,21 @@ import java.util.Iterator;
  * @author Anindya Chatterjee.
  */
 class ProjectedDocumentIterable implements ReadableStream<Document> {
-    private final Iterator<NitriteId> iterator;
+    private final ReadableStream<NitriteId> readableStream;
     private NitriteMap<NitriteId, Document> nitriteMap;
     private Document projection;
 
-    public ProjectedDocumentIterable(Iterator<NitriteId> iterator,
+    public ProjectedDocumentIterable(ReadableStream<NitriteId> readableStream,
                                      NitriteMap<NitriteId, Document> nitriteMap,
                                      Document projection) {
-        this.iterator = iterator;
+        this.readableStream = readableStream;
         this.nitriteMap = nitriteMap;
         this.projection = projection;
     }
 
     @Override
     public Iterator<Document> iterator() {
-        return new ProjectedDocumentIterator(iterator);
+        return new ProjectedDocumentIterator(readableStream.iterator());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.dizitart.no2;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.plugin.NitritePlugin;
@@ -45,16 +46,16 @@ import java.io.File;
  */
 @Slf4j
 public abstract class NitriteBuilder {
+    @Getter
     private NitriteConfig nitriteConfig;
     private MVStoreConfig storeConfig;
-    private boolean customized = false;
 
     private NitriteBuilder() {}
 
     /**
-     * Get nitrite builder.
+     * Creates a new {@link NitriteBuilder} instance.
      *
-     * @return the nitrite builder
+     * @return the {@link NitriteBuilder} instance.
      */
     public static NitriteBuilder get() {
         NitriteBuilder builder = new NitriteBuilder() {};
@@ -71,7 +72,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder filePath(String path) {
-        this.customized = true;
         this.storeConfig.filePath(path);
         return this;
     }
@@ -84,7 +84,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder filePath(File file) {
-        this.customized = true;
         if (file == null) {
             this.storeConfig.filePath((String) null);
         } else {
@@ -109,7 +108,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder autoCommitBufferSize(int size) {
-        this.customized = true;
         this.storeConfig.autoCommitBufferSize(size);
         return this;
     }
@@ -128,7 +126,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder readOnly() {
-        this.customized = true;
         this.storeConfig.readOnly();
         return this;
     }
@@ -146,7 +143,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder compressed() {
-        this.customized = true;
         this.storeConfig.compressed();
         return this;
     }
@@ -160,7 +156,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder disableAutoCommit() {
-        this.customized = true;
         this.storeConfig.disableAutoCommit();
         return this;
     }
@@ -174,7 +169,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder disableAutoCompact() {
-        this.customized = true;
         this.storeConfig.disableAutoCompact();
         return this;
     }
@@ -187,7 +181,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder fieldSeparator(String separator) {
-        this.customized = true;
         this.nitriteConfig.fieldSeparator(separator);
         return this;
     }
@@ -200,7 +193,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder poolShutdownTimeout(int timeout) {
-        this.customized = true;
         this.nitriteConfig.poolShutdownTimeout(timeout);
         return this;
     }
@@ -212,7 +204,6 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public NitriteBuilder loadPlugin(NitritePlugin... plugins) {
-        this.customized = true;
         this.nitriteConfig.load(plugins);
         return this;
     }
@@ -225,7 +216,6 @@ public abstract class NitriteBuilder {
      */
     @SafeVarargs
     public final NitriteBuilder loadPlugin(Class<? extends NitritePlugin>... plugins) {
-        this.customized = true;
         this.nitriteConfig.load(plugins);
         return this;
     }
@@ -257,14 +247,12 @@ public abstract class NitriteBuilder {
      */
     public Nitrite openOrCreate() {
         this.nitriteConfig.storeConfig(storeConfig);
-        if (!customized) {
-            this.nitriteConfig.autoConfigure();
-        }
+        this.nitriteConfig.autoConfigure();
         return Nitrite.openOrCreate(nitriteConfig);
     }
 
     /**
-     * Opens or creates a new nitrite database backed by mvstore.. If it is an in-memory store,
+     * Opens or creates a new nitrite database backed by mvstore. If it is an in-memory store,
      * then it will create a new one. If it is a file based store, and if the file does not
      * exists, then it will create a new file store and open; otherwise it will
      * open the existing file store.
@@ -297,9 +285,7 @@ public abstract class NitriteBuilder {
      */
     public Nitrite openOrCreate(String username, String password) {
         this.nitriteConfig.storeConfig(storeConfig);
-        if (!customized) {
-            this.nitriteConfig.autoConfigure();
-        }
+        this.nitriteConfig.autoConfigure();
         return Nitrite.openOrCreate(username, password, nitriteConfig);
     }
 }

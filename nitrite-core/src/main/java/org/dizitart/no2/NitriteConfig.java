@@ -26,7 +26,7 @@ public abstract class NitriteConfig {
      * @returns the embedded field separator character.
      * */
     @Getter
-    private static String fieldSeparator;
+    private static String fieldSeparator = ".";
 
     @Getter(AccessLevel.PACKAGE)
     private final PluginManager pluginManager;
@@ -38,7 +38,7 @@ public abstract class NitriteConfig {
      * @returns the thread pool shutdown timeout in seconds.
      * */
     @Getter
-    private Integer poolShutdownTimeout;
+    private Integer poolShutdownTimeout = 5;
 
     /**
      * Gets the {@link NitriteStore} configuration.
@@ -58,10 +58,7 @@ public abstract class NitriteConfig {
      * @return the {@link NitriteConfig} instance.
      */
     public static NitriteConfig create() {
-        NitriteConfig config = new NitriteConfig(){};
-        config.fieldSeparator(".");
-        config.poolShutdownTimeout(5);
-        return config;
+        return new NitriteConfig(){};
     }
 
     /**

@@ -11,9 +11,7 @@ import org.dizitart.no2.store.NitriteStore;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Anindya Chatterjee.
@@ -22,14 +20,12 @@ import java.util.Set;
 @Getter
 public class PluginManager {
     private Map<String, Indexer> indexerMap;
-    private Set<Indexer> indexers;
     private NitriteMapper nitriteMapper;
     private NitriteStore nitriteStore;
     private NitriteConfig nitriteConfig;
 
     public PluginManager(NitriteConfig nitriteConfig) {
-        indexerMap = new HashMap<>();
-        indexers = new HashSet<>();
+        this.indexerMap = new HashMap<>();
         this.nitriteConfig = nitriteConfig;
     }
 
@@ -38,7 +34,8 @@ public class PluginManager {
         initializePlugins(plugins);
     }
 
-    public void load(Class<? extends NitritePlugin>... plugins) {
+    @SafeVarargs
+    public final void load(Class<? extends NitritePlugin>... plugins) {
         if (plugins != null) {
             for (Class<? extends NitritePlugin> plugin : plugins) {
                 try {
@@ -54,7 +51,7 @@ public class PluginManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
+
     public void findAndLoadPlugins() {
         Package[] packages = Package.getPackages();
         for (Package p : packages) {
@@ -69,12 +66,10 @@ public class PluginManager {
         }
 
         try {
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.UniqueIndexer"));
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NonUniqueIndexer"));
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NitriteTextIndexer"));
-        } catch (ClassNotFoundException e) {
-            log.error("Error while loading default plugin", e);
-            throw new PluginException("error while loading default plugin", e);
+            loadInternalPlugins();
+        } catch (Exception e) {
+            log.error("Error while loading internal plugins", e);
+            throw new PluginException("error while loading internal plugins", e);
         }
     }
 
@@ -119,8 +114,14 @@ public class PluginManager {
                 throw new PluginException("multiple Indexer found for type "
                     + indexer.getIndexType());
             }
-            this.indexers.add((Indexer) plugin);
             this.indexerMap.put(indexer.getIndexType(), indexer);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadInternalPlugins() throws Exception {
+        load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.UniqueIndexer"));
+        load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NonUniqueIndexer"));
+        load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NitriteTextIndexer"));
     }
 }

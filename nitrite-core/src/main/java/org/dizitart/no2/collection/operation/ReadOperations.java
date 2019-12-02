@@ -10,12 +10,12 @@ import org.dizitart.no2.collection.filters.IndexAwareFilter;
 import org.dizitart.no2.collection.filters.LogicalFilter;
 import org.dizitart.no2.collection.filters.NitriteFilter;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.store.IndexCatalog;
 import org.dizitart.no2.store.NitriteMap;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -35,8 +35,8 @@ class ReadOperations {
     }
 
     public DocumentCursor find() {
-        Iterator<NitriteId> iterator = nitriteMap.keySet().iterator();
-        return new DocumentCursorImpl(iterator, nitriteMap);
+        ReadableStream<NitriteId> readableStream = nitriteMap.keySet();
+        return new DocumentCursorImpl(readableStream, nitriteMap);
     }
 
     public DocumentCursor find(Filter filter) {
@@ -45,10 +45,10 @@ class ReadOperations {
         }
 
         prepareFilter(filter);
-        Iterator<KeyValuePair<NitriteId, Document>> entryIterator = nitriteMap.entries().iterator();
-        Iterator<NitriteId> filteredIterator = new FilteredIterator(entryIterator, filter);
+        ReadableStream<KeyValuePair<NitriteId, Document>> readableStream = nitriteMap.entries();
+        FilteredReadableStream filteredReadableStream = new FilteredReadableStream(readableStream, filter);
 
-        return new DocumentCursorImpl(filteredIterator, nitriteMap);
+        return new DocumentCursorImpl(filteredReadableStream, nitriteMap);
     }
 
     Document getById(NitriteId nitriteId) {

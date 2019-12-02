@@ -89,6 +89,7 @@ public class NitriteMVStore implements NitriteStore {
         if (mvStoreConfig.isAutoCompact()) {
             compact();
         }
+        mvStore.close();
         alert(StoreEvents.Closed);
     }
 
