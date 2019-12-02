@@ -32,7 +32,7 @@ public class InvalidIdException extends NitriteException {
      *
      * @param message the message
      */
-    public InvalidIdException(ErrorMessage message) {
+    public InvalidIdException(String message) {
         super(message);
     }
 
@@ -42,7 +42,7 @@ public class InvalidIdException extends NitriteException {
      * @param message the message
      * @param cause   the cause
      */
-    public InvalidIdException(ErrorMessage message, Throwable cause) {
+    public InvalidIdException(String message, Throwable cause) {
         super(message, cause);
     }
 }

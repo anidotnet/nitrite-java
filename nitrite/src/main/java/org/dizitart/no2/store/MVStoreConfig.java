@@ -3,14 +3,10 @@ package org.dizitart.no2.store;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.h2.mvstore.FileStore;
 
 import java.io.File;
-
-import static org.dizitart.no2.exceptions.ErrorCodes.IOE_DATABASE_ALREADY_INITIALIZED;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee
@@ -28,6 +24,17 @@ public class MVStoreConfig implements StoreConfig {
     @Getter(AccessLevel.NONE)
     private boolean configured = false;
 
+    private MVStoreConfig() {}
+
+    /**
+     * Creates a mew {@link MVStoreConfig} instance.
+     *
+     * @return a new {@link MVStoreConfig} instance.
+     * */
+    public static MVStoreConfig create() {
+        return new MVStoreConfig();
+    }
+
     /**
      * Sets file name for the file based store. If `file` is `null`
      * the builder will create an in-memory database.
@@ -37,8 +44,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig filePath(String path) {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change the path after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change the path after database" +
+                " initialization");
         }
         this.filePath = path;
         return this;
@@ -53,8 +60,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig filePath(File file) {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change the file path after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change the file path after database" +
+                " initialization");
         }
         if (file == null) {
             this.filePath = null;
@@ -73,8 +80,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig fileStore(FileStore fileStore) {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change the file store after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change the file store after database" +
+                " initialization");
         }
         this.fileStore = fileStore;
         return this;
@@ -97,8 +104,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig autoCommitBufferSize(int size) {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change buffer size after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change buffer size after database" +
+                " initialization");
         }
         this.autoCommitBufferSize = size;
         return this;
@@ -119,8 +126,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig readOnly() {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change readonly property after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change readonly property after database" +
+                " initialization");
         }
         this.readOnly = true;
         return this;
@@ -140,8 +147,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig compressed() {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change compression property after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change compression property after database" +
+                " initialization");
         }
         this.compressed = true;
         return this;
@@ -157,8 +164,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig disableAutoCommit() {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change the auto commit property after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change the auto commit property after database" +
+                " initialization");
         }
         this.autoCommit = false;
         return this;
@@ -174,8 +181,8 @@ public class MVStoreConfig implements StoreConfig {
      */
     public MVStoreConfig disableAutoCompact() {
         if (configured) {
-            throw new InvalidOperationException(errorMessage("cannot change auto compact property after database" +
-                " initialization", IOE_DATABASE_ALREADY_INITIALIZED));
+            throw new InvalidOperationException("cannot change auto compact property after database" +
+                " initialization");
         }
         this.autoCompact = false;
         return this;
@@ -183,10 +190,5 @@ public class MVStoreConfig implements StoreConfig {
 
     void configured() {
         this.configured = true;
-    }
-
-    @Override
-    public void initialize(NitriteConfig nitriteConfig) {
-
     }
 }

@@ -24,9 +24,6 @@ import org.dizitart.no2.exceptions.ValidationException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import static org.dizitart.no2.exceptions.ErrorCodes.VE_BIG_DECIMAL_INVALID_FORMAT;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
-
 /**
  * A utility class for {@link Number}s.
  *
@@ -73,9 +70,8 @@ public class NumberUtils {
         try {
             return new BigDecimal(number.toString());
         } catch(NumberFormatException e) {
-            throw new ValidationException(errorMessage("The given number (\"" + number + "\" of class "
-                    + number.getClass().getName() + ") does not have a parsable string representation",
-                    VE_BIG_DECIMAL_INVALID_FORMAT), e);
+            throw new ValidationException("the given number (\"" + number + "\" of class "
+                    + number.getClass().getName() + ") does not have a parsable string representation", e);
         }
     }
 }

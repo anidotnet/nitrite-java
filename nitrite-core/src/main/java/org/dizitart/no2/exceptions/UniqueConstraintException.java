@@ -31,7 +31,7 @@ public class UniqueConstraintException extends NitriteException {
      *
      * @param message the message
      */
-    public UniqueConstraintException(ErrorMessage message) {
+    public UniqueConstraintException(String message) {
         super(message);
     }
 }

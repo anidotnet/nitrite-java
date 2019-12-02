@@ -4,8 +4,8 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.collection.index.IndexEntry;
-import org.dizitart.no2.collection.index.Indexer;
+import org.dizitart.no2.index.IndexEntry;
+import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.store.IndexCatalog;
@@ -21,8 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.dizitart.no2.collection.Field.of;
 import static org.dizitart.no2.common.util.ValidationUtils.validateDocumentIndexField;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee
@@ -60,8 +58,7 @@ class IndexOperations {
             indexEntry = indexCatalog.createIndexEntry(collectionName, field, indexType);
         } else {
             // if index already there throw
-            throw new IndexingException(errorMessage(
-                "index already exists on " + field, IE_INDEX_EXISTS));
+            throw new IndexingException("index already exists on " + field);
         }
 
         rebuildIndex(indexEntry, isAsync);
@@ -152,9 +149,7 @@ class IndexOperations {
     void dropIndex(Field field) {
         if (indexBuildRegistry.get(field) != null
             && indexBuildRegistry.get(field).get()) {
-            throw new IndexingException(errorMessage(
-                "cannot drop index as indexing is running on " + field,
-                IE_CAN_NOT_DROP_RUNNING_INDEX));
+            throw new IndexingException("cannot drop index as indexing is running on " + field);
         }
 
         IndexEntry indexEntry = findIndexEntry(field);
@@ -165,17 +160,14 @@ class IndexOperations {
             indexCatalog.dropIndexEntry(collectionName, field);
             indexBuildRegistry.remove(field);
         } else {
-            throw new IndexingException(errorMessage(
-                field + " is not indexed", IE_DROP_NON_EXISTING_INDEX));
+            throw new IndexingException(field + " is not indexed");
         }
     }
 
     void dropAllIndices() {
         for (Map.Entry<Field, AtomicBoolean> entry :indexBuildRegistry.entrySet()) {
             if (entry.getValue() != null && entry.getValue().get()) {
-                throw new IndexingException(errorMessage(
-                    "cannot drop index as indexing is running on " + entry.getKey(),
-                    IE_CAN_NOT_DROP_ALL_RUNNING_INDEX));
+                throw new IndexingException("cannot drop index as indexing is running on " + entry.getKey());
             }
         }
 
@@ -197,9 +189,7 @@ class IndexOperations {
             }
             return;
         }
-        throw new IndexingException(errorMessage(
-            "indexing is already running on " + indexEntry.getField(),
-            IE_REBUILD_INDEX_RUNNING));
+        throw new IndexingException("indexing is already running on " + indexEntry.getField());
     }
 
     Collection<IndexEntry> listIndexes() {
@@ -215,8 +205,7 @@ class IndexOperations {
         if (indexer != null) {
             return indexer;
         }
-        throw new IndexingException(errorMessage("no indexer found for index type " + indexType,
-            IE_INVALID_INDEX_TYPE));
+        throw new IndexingException("no indexer found for index type " + indexType);
     }
 
     private void init() {

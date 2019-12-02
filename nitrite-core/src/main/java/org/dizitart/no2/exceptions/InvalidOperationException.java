@@ -31,7 +31,7 @@ public class InvalidOperationException extends NitriteException {
      *
      * @param message the message
      */
-    public InvalidOperationException(ErrorMessage message) {
+    public InvalidOperationException(String message) {
         super(message);
     }
 }

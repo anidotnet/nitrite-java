@@ -23,27 +23,27 @@ import org.dizitart.no2.common.KeyValuePair;
  * |Filter  |Method   |Description
  *
  * |Equals
- * |{@link Filter#eq(String, Object)}
+ * |{@link FluentFilter#eq(Object)}
  * |Matches values that are equal to a specified value.
  *
  * |Greater
- * |{@link Filter#gt(String, Comparable)}
+ * |{@link FluentFilter#gt(Comparable)}
  * |Matches values that are greater than a specified value.
  *
  * |GreaterEquals
- * |{@link Filter#gte(String, Comparable)}
+ * |{@link FluentFilter#gte(Comparable)}
  * |Matches values that are greater than or equal to a specified value.
  *
  * |Lesser
- * |{@link Filter#lt(String, Comparable)}
+ * |{@link FluentFilter#lt(Comparable)}
  * |Matches values that are less than a specified value.
  *
  * |LesserEquals
- * |{@link Filter#lte(String, Comparable)}
+ * |{@link FluentFilter#lte(Comparable)}
  * |Matches values that are less than or equal to a specified value.
  *
  * |In
- * |{@link Filter#in(String, Comparable[])}
+ * |{@link FluentFilter#in(Comparable[])}
  * |Matches any of the values specified in an array.
  * |===
  *
@@ -54,16 +54,16 @@ import org.dizitart.no2.common.KeyValuePair;
  * |Filter  |Method   |Description
  *
  * |Not
- * |{@link Filter#not(Filter)}
+ * |{@link Filter#not()}
  * |Inverts the effect of a filter and returns results that do not match the filter.
  *
  * |Or
- * |{@link Filter#or(Filter[])}
+ * |{@link Filter#or(Filter)}
  * |Joins filters with a logical OR returns all ids of the documents that match the conditions
  * of either filter.
  *
  * |And
- * |{@link Filter#and(Filter[])}
+ * |{@link Filter#and(Filter)}
  * |Joins filters with a logical AND returns all ids of the documents that match the conditions
  * of both filters.
  * |===
@@ -75,7 +75,7 @@ import org.dizitart.no2.common.KeyValuePair;
  * |Filter  |Method   |Description
  *
  * |Element Match
- * |{@link Filter#elemMatch(String, Filter)}
+ * |{@link FluentFilter#elemMatch(Filter)}
  * |Matches documents that contain an array field with at least one element that matches
  * the specified filter.
  * |===
@@ -87,11 +87,11 @@ import org.dizitart.no2.common.KeyValuePair;
  * |Filter  |Method   |Description
  *
  * |Text
- * |{@link Filter#text(String, String)}
+ * |{@link FluentFilter#text(String)}
  * |Performs full-text search.
  *
  * |Regex
- * |{@link Filter#regex(String, String)}
+ * |{@link FluentFilter#regex(String)}
  * |Selects documents where values match a specified regular expression.
  * |===
  *
@@ -102,22 +102,22 @@ import org.dizitart.no2.common.KeyValuePair;
  * --
  *
  * // returns the ids of the documents whose age field value is 30
- * collection.find(eq("age", 30));
+ * collection.find(when("age").eq(30));
  *
  * // age field value is greater than 30
- * collection.find(gt("age", 30));
+ * collection.find(when("age").gt(30));
  *
  * // age field value is not 30
- * collection.find(not(eq("age", 30)));
+ * collection.find(when("age").eq(30).not()));
  *
  * // age field value is 30 and salary greater than 10K
- * collection.find(and(eq("age", 30), gt("salary", 10000)));
+ * collection.find(when("age").eq(30).and(when("salary").gt(10000)));
  *
  * // note field contains the string 'hello'
- * collection.find(regex("note", "hello"));
+ * collection.find(when("note").regex("hello"));
  *
  * // prices field contains price value between 10 to 20
- * collection.find(elemMatch("prices", and(gt("$", 10), lt("$", 20))));
+ * collection.find(when("prices").elemMatch($.gt(10).and($.lt(20))));
  *
  * --
  *
@@ -152,13 +152,13 @@ import org.dizitart.no2.common.KeyValuePair;
  * collection.insert(doc);
  *
  * // filter on nested document
- * collection.find(eq("location.address.line1", "40"));
+ * collection.find(when("location.address.line1").eq("40"));
  *
  * // filter on array using array index
- * collection.find(eq("location.address.house.2", "3"));
+ * collection.find(when("location.address.house.2").eq("3"));
  *
  * // filter on object array
- * collection.find(eq("objArray.0.field", 1));
+ * collection.find(when("objArray.0.field").eq(1));
  *
  *
  * --
@@ -168,6 +168,10 @@ import org.dizitart.no2.common.KeyValuePair;
  * @since 1.0
  */
 public interface Filter {
+    /**
+     * A filter to select all elements.
+     */
+    Filter ALL = null;
 
     /**
      * Filters a document map and returns the set of {@link NitriteId}s of
@@ -178,7 +182,62 @@ public interface Filter {
      */
     boolean apply(KeyValuePair<NitriteId, Document> element);
 
+    /**
+     * Creates an and filter which performs a logical AND operation on two filters and selects
+     * the documents that satisfy both filters.
+     *
+     * [[app-listing]]
+     * [source,java]
+     * .Example
+     * --
+     * // matches all documents where 'age' field has value as 30 and
+     * // 'name' field has value as John Doe
+     * collection.find(when("age").eq(30).and(when("name").eq("John Doe")));
+     * --
+     *
+     * @param filter other filter
+     * @return the and filter
+     */
     default Filter and(Filter filter) {
         return new AndFilter(this, filter);
+    }
+
+    /**
+     * Creates an or filter which performs a logical OR operation on two filters and selects
+     * the documents that satisfy at least one of the filter.
+     *
+     * [[app-listing]]
+     * [source,java]
+     * .Example
+     * --
+     * // matches all documents where 'age' field has value as 30 or
+     * // 'name' field has value as John Doe
+     * collection.find(when("age").eq(30).or(when("name").eq("John Doe")));
+     * --
+     *
+     * @param filter other filter
+     * @return the or filter
+     */
+    default Filter or(Filter filter) {
+        return new OrFilter(this, filter);
+    }
+
+    /**
+     * Creates a not filter which performs a logical NOT operation on a `filter` and selects
+     * the documents that *_do not_* satisfy the `filter`. This also includes documents
+     * that do not contain the value.
+     *
+     * [[app-listing]]
+     * [source,java]
+     * .Example
+     * --
+     * // matches all documents where 'age' field has value not equals to 30
+     * collection.find(when("age").eq("age").not());
+     * --
+     *
+     * @return the not filter
+     */
+    default Filter not() {
+        return new NotFilter(this);
     }
 }

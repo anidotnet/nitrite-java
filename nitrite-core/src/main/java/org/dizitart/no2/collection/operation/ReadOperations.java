@@ -9,9 +9,9 @@ import org.dizitart.no2.collection.filters.Filter;
 import org.dizitart.no2.collection.filters.IndexAwareFilter;
 import org.dizitart.no2.collection.filters.LogicalFilter;
 import org.dizitart.no2.collection.filters.NitriteFilter;
-import org.dizitart.no2.collection.index.IndexEntry;
-import org.dizitart.no2.collection.index.Indexer;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.index.IndexEntry;
+import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.store.IndexCatalog;
 import org.dizitart.no2.store.NitriteMap;
 

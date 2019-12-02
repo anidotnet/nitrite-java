@@ -34,8 +34,6 @@ import java.util.Random;
 
 import static org.dizitart.no2.common.Constants.*;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
-import static org.dizitart.no2.exceptions.ErrorCodes.SE_HASHING_FAILED;
-import static org.dizitart.no2.exceptions.ErrorMessage.*;
 
 /**
  * Provides functionality to secure nitrite database using username and password.
@@ -78,7 +76,7 @@ class Security {
         try {
             if (!isNullOrEmpty(password) && !isNullOrEmpty(userId)) {
                 if (!store.hasMap(USER_MAP)) {
-                    throw new SecurityException(NO_USER_MAP_FOUND);
+                    throw new SecurityException("no user map found in the database");
                 }
                 MVMap<String, UserCredential> userMap = store.openMap(USER_MAP);
                 UserCredential userCredential = userMap.get(userId);
@@ -88,14 +86,14 @@ class Security {
                     byte[] expectedHash = userCredential.getPasswordHash();
 
                     if (!isExpectedPassword(password.toCharArray(), salt, expectedHash)) {
-                        throw new SecurityException(INVALID_USER_PASSWORD);
+                        throw new SecurityException("username or password is invalid");
                     }
                 } else {
-                    throw new SecurityException(NULL_USER_CREDENTIAL);
+                    throw new SecurityException("no username or password is stored in the database");
                 }
             } else {
                 if (store.hasMap(USER_MAP)) {
-                    throw new SecurityException(USER_MAP_SHOULD_NOT_EXISTS);
+                    throw new SecurityException("user map found unexpectedly");
                 }
             }
 
@@ -148,8 +146,8 @@ class Security {
             return skf.generateSecret(spec).getEncoded();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Error while hashing password", e);
-            throw new SecurityException(errorMessage("Error while hashing a password: "
-                            + e.getMessage(), SE_HASHING_FAILED));
+            throw new SecurityException("error while hashing a password: "
+                            + e.getMessage());
         } finally {
             spec.clearPassword();
         }

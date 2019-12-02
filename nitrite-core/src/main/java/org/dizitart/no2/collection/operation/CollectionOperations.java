@@ -9,7 +9,7 @@ import org.dizitart.no2.collection.*;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
 import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.index.IndexEntry;
+import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.store.NitriteMap;
@@ -137,10 +137,10 @@ public class CollectionOperations {
         }
     }
 
-    public WriteResult remove(Filter filter, RemoveOptions removeOptions) {
+    public WriteResult remove(Filter filter, boolean justOne) {
         try {
             writeLock.lock();
-            return writeOperations.remove(filter, removeOptions);
+            return writeOperations.remove(filter, justOne);
         } finally {
             writeLock.unlock();
         }

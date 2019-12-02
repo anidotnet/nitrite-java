@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.RemoveOptions;
 import org.dizitart.no2.collection.UpdateOptions;
 import org.dizitart.no2.collection.WriteResult;
 import org.dizitart.no2.collection.events.ChangeListener;
@@ -20,9 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.dizitart.no2.common.Constants.*;
-import static org.dizitart.no2.exceptions.ErrorCodes.UCE_CONSTRAINT_VIOLATED;
-import static org.dizitart.no2.exceptions.ErrorMessage.OBJ_MULTI_UPDATE_WITH_JUST_ONCE;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee
@@ -71,8 +67,8 @@ class WriteOperations {
                 // rollback changes
                 nitriteMap.put(nitriteId, already);
                 log.debug("Another document already exists with id {}", nitriteId);
-                throw new UniqueConstraintException(errorMessage("id constraint violation, " +
-                    "entry with same id already exists in " + nitriteMap.getName(), UCE_CONSTRAINT_VIOLATED));
+                throw new UniqueConstraintException("id constraint violation, " +
+                    "entry with same id already exists in " + nitriteMap.getName());
             } else {
                 try {
                     indexOperations.updateIndexEntry(item, nitriteId);
@@ -117,7 +113,7 @@ class WriteOperations {
             }
         } else {
             if (cursor.size() > 1 && updateOptions.isJustOnce()) {
-                throw new InvalidOperationException(OBJ_MULTI_UPDATE_WITH_JUST_ONCE);
+                throw new InvalidOperationException("cannot update multiple items as justOnce is set to true");
             }
 
             update = update.clone();
@@ -176,7 +172,7 @@ class WriteOperations {
         return writeResult;
     }
 
-    WriteResult remove(Filter filter, RemoveOptions removeOptions) {
+    WriteResult remove(Filter filter, boolean justOne) {
         DocumentCursor cursor;
         if (filter == null) {
             cursor = readOperations.find();
@@ -191,7 +187,7 @@ class WriteOperations {
         }
 
         log.debug("Filter {} found total {} document(s) to remove with options {} from {}",
-            filter, cursor.size(), removeOptions, nitriteMap.getName());
+            filter, cursor.size(), justOne, nitriteMap.getName());
 
         for (Document document : cursor) {
             NitriteId nitriteId = document.getId();
@@ -211,7 +207,7 @@ class WriteOperations {
             changedItem.setChangeTimestamp(removed.getLastModifiedSinceEpoch());
             alert(ChangeType.Remove, changedItem);
 
-            if (removeOptions.isJustOne()) {
+            if (justOne) {
                 return result;
             }
         }

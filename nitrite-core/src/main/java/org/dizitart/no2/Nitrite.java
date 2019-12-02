@@ -30,8 +30,6 @@ import java.util.Set;
 import static org.dizitart.no2.common.Constants.RESERVED_NAMES;
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * = Nitrite
@@ -53,65 +51,6 @@ import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
  * @since 1.0
  */
 public interface Nitrite extends Closeable {
-
-    /**
-     * Opens or creates a new database. If it is an in-memory store, then it
-     * will create a new one. If it is a file based store, and if the file does not
-     * exists, then it will create a new file store and open; otherwise it will
-     * open the existing file store.
-     *
-     * [icon="{@docRoot}/note.png"]
-     * [NOTE]
-     * --
-     * If the database is corrupted somehow then at the time of opening, it will
-     * try to repair it using the last known good version. If still it fails to
-     * recover, then it will throw a {@link NitriteIOException}.
-     *
-     * It also adds a JVM shutdown hook to the database instance. If JVM exists
-     * before closing the database properly by calling {@link Nitrite#close()},
-     * then the shutdown hook will try to close the database as soon as possible
-     * by discarding any unsaved changes to avoid database corruption.
-     *
-     * --
-     *
-     * @return the nitrite database instance.
-     * @throws NitriteIOException if unable to create a new in-memory database.
-     * @throws NitriteIOException if the database is corrupt and recovery fails.
-     * @throws IllegalArgumentException if the directory does not exist.
-     */
-    static Nitrite openOrCreate() {
-        return openOrCreate(NitriteConfig.create().autoConfigure());
-    }
-
-    /**
-     * Opens or creates a new database. If it is an in-memory store, then it
-     * will create a new one. If it is a file based store, and if the file does not
-     * exists, then it will create a new file store and open; otherwise it will
-     * open the existing file store.
-     *
-     * [icon="{@docRoot}/note.png"]
-     * [NOTE]
-     * --
-     * If the database is corrupted somehow then at the time of opening, it will
-     * try to repair it using the last known good version. If still it fails to
-     * recover, then it will throw a {@link NitriteIOException}.
-     *
-     * It also adds a JVM shutdown hook to the database instance. If JVM exists
-     * before closing the database properly by calling {@link Nitrite#close()},
-     * then the shutdown hook will try to close the database as soon as possible
-     * by discarding any unsaved changes to avoid database corruption.
-     *
-     * --
-     * @param username   the user id
-     * @param password the password
-     * @return the nitrite database instance.
-     * @throws NitriteIOException if unable to create a new in-memory database.
-     * @throws NitriteIOException if the database is corrupt and recovery fails.
-     * @throws IllegalArgumentException if the directory does not exist.
-     */
-    static Nitrite openOrCreate(String username, String password) {
-        return openOrCreate(username, password, NitriteConfig.create().autoConfigure());
-    }
 
     /**
      * Opens or creates a new database. If it is an in-memory store, then it
@@ -327,13 +266,12 @@ public interface Nitrite extends Closeable {
     }
 
     default void validateCollectionName(String name) {
-        notNull(name, errorMessage("name cannot be null", VE_COLLECTION_NULL_NAME));
-        notEmpty(name, errorMessage("name cannot be empty", VE_COLLECTION_EMPTY_NAME));
+        notNull(name, "name cannot be null");
+        notEmpty(name, "name cannot be empty");
 
         for (String reservedName : RESERVED_NAMES) {
             if (name.contains(reservedName)) {
-                throw new ValidationException(errorMessage(
-                    "name cannot contain " + reservedName, VE_COLLECTION_NAME_RESERVED));
+                throw new ValidationException("name cannot contain " + reservedName);
             }
         }
     }

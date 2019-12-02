@@ -9,8 +9,6 @@ import org.dizitart.no2.store.NitriteMap;
 
 import java.util.Iterator;
 
-import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED;
-
 /**
  * @author Anindya Chatterjee.
  */
@@ -76,7 +74,7 @@ class ProjectedDocumentIterable implements ReadableStream<Document> {
 
         @Override
         public void remove() {
-            throw new InvalidOperationException(REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED);
+            throw new InvalidOperationException("remove on cursor is not supported");
         }
 
         private Document project(Document original) {

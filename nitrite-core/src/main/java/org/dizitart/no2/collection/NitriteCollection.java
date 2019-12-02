@@ -9,9 +9,6 @@ import java.util.List;
 
 import static org.dizitart.no2.common.util.ValidationUtils.containsNull;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.exceptions.ErrorCodes.VE_INSERT_NULL_DOCUMENT;
-import static org.dizitart.no2.exceptions.ErrorCodes.VE_INSERT_OTHERS_CONTAINS_NULL;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * Represents a named document collection stored in nitrite database.
@@ -73,10 +70,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @see WriteResult
      */
     default WriteResult insert(Document document, Document... documents) {
-        notNull(document, errorMessage("a null document cannot be inserted", VE_INSERT_NULL_DOCUMENT));
+        notNull(document, "a null document cannot be inserted");
         if (documents != null) {
-            containsNull(documents, errorMessage("a null document cannot be inserted",
-                VE_INSERT_OTHERS_CONTAINS_NULL));
+            containsNull(documents, "a null document cannot be inserted");
         }
 
         List<Document> documentList = new ArrayList<>();
@@ -144,7 +140,7 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @return the result of the remove operation.
      */
     default WriteResult remove(Filter filter) {
-        return remove(filter, new RemoveOptions());
+        return remove(filter, false);
     }
 
     /**
@@ -160,10 +156,10 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * {@link org.dizitart.no2.collection.events.ChangeType#Remove}.
      *
      * @param filter the filter to apply to select documents from collection.
-     * @param removeOptions the remove options to customize the operations.
+     * @param justOne indicates if only one element will be removed or all of them.
      * @return the result of the remove operation.
      */
-    WriteResult remove(Filter filter, RemoveOptions removeOptions);
+    WriteResult remove(Filter filter, boolean justOne);
 
     /**
      * Returns a cursor to all documents in the collection.

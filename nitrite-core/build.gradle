@@ -31,18 +31,18 @@ jar {
 }
 
 dependencies {
-    compile "org.slf4j:slf4j-api:$slf4jVersion"
-    compile "org.objenesis:objenesis:$objenesisVersion"
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.objenesis:objenesis:$objenesisVersion"
 //    compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion") {
 //        exclude module: 'jackson-annotations'
 //    }
 //    compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
-    compile "org.jasypt:jasypt:$jasyptVersion"
+    implementation "org.jasypt:jasypt:$jasyptVersion"
 //    compile "com.squareup.okhttp3:okhttp:$okhttpVersion"
 //    compile "org.locationtech.jts:jts-core:$jtsVersion"
 
 
-    testCompile "junit:junit:$junitVersion"
+    testImplementation "junit:junit:$junitVersion"
 }
 
 gradle.buildFinished { BuildResult result ->

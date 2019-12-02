@@ -20,14 +20,11 @@ package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
 import org.dizitart.no2.Document;
-import org.dizitart.no2.exceptions.ErrorMessage;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * A validation utility class.
@@ -43,7 +40,7 @@ public class ValidationUtils {
      * @param value   the string value
      * @param message the error message
      */
-    public static void notEmpty(String value, ErrorMessage message) {
+    public static void notEmpty(String value, String message) {
         if (isNullOrEmpty(value)) {
             throw new ValidationException(message);
         }
@@ -55,7 +52,7 @@ public class ValidationUtils {
      * @param value   the value
      * @param message the message
      */
-    public static void notEmpty(CharSequence value, ErrorMessage message) {
+    public static void notEmpty(CharSequence value, String message) {
         if (isNullOrEmpty(value)) {
             throw new ValidationException(message);
         }
@@ -67,7 +64,7 @@ public class ValidationUtils {
      * @param value   the object
      * @param message the message
      */
-    public static void notNull(Object value, ErrorMessage message) {
+    public static void notNull(Object value, String message) {
         if (value == null) {
             throw new ValidationException(message);
         }
@@ -79,7 +76,7 @@ public class ValidationUtils {
      * @param array   the array to check for `null` object
      * @param message the message
      * */
-    public static <T> void containsNull(T[] array, ErrorMessage message) {
+    public static <T> void containsNull(T[] array, String message) {
         for (T element : array) {
             if (element == null) {
                 throw new ValidationException(message);
@@ -95,19 +92,16 @@ public class ValidationUtils {
      */
     public static void validateDocumentIndexField(Object fieldValue, String field) {
         if (fieldValue instanceof Document) {
-            throw new InvalidOperationException(errorMessage(
-                    "compound index on field " + field + " is not supported",
-                    IOE_COMPOUND_INDEX));
+            throw new InvalidOperationException("compound index on field " + field + " is not supported");
         }
 
         if (fieldValue instanceof Iterable || fieldValue.getClass().isArray()) {
-            throw new IndexingException(errorMessage("indexing on arrays or collections " +
-                    "are not supported for field " + field, IE_INDEX_ON_ARRAY_NOT_SUPPORTED));
+            throw new IndexingException("indexing on arrays or collections " +
+                    "are not supported for field " + field);
         }
 
         if (!(fieldValue instanceof Comparable)) {
-            throw new IndexingException(errorMessage("cannot index on non comparable field " + field,
-                    IE_INDEX_ON_NON_COMPARABLE_FIELD));
+            throw new IndexingException("cannot index on non comparable field " + field);
         }
     }
 

@@ -9,7 +9,7 @@ import org.dizitart.no2.collection.Field;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-abstract class FieldBasedFilter extends NitriteFilter {
+public abstract class FieldBasedFilter extends NitriteFilter {
     private Field field;
     private Object value;
 

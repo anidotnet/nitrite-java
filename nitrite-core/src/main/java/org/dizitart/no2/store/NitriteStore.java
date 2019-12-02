@@ -9,8 +9,6 @@ import java.util.Set;
 import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * Represents a persistent storage for Nitrite database.
@@ -131,14 +129,14 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     void addStoreEventListener(StoreEventListener listener);
 
     default <T> String findRepositoryName(String key, Class<T> type) {
-        notNull(key, errorMessage("key cannot be null", VE_OBJ_STORE_NULL_KEY));
-        notEmpty(key, errorMessage("key cannot be empty", VE_OBJ_STORE_EMPTY_KEY));
-        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
+        notNull(key, "key cannot be null");
+        notEmpty(key, "key cannot be empty");
+        notNull(type, "type cannot be null");
         return type.getName() + KEY_OBJ_SEPARATOR + key;
     }
 
     default <T> String findRepositoryName(Class<T> type) {
-        notNull(type, errorMessage("type cannot be null", VE_OBJ_STORE_NULL_TYPE));
+        notNull(type, "type cannot be null");
         return type.getName();
     }
 }

@@ -30,7 +30,7 @@ public class NitriteIOException extends NitriteException {
      *
      * @param errorMessage the error message
      */
-    public NitriteIOException(ErrorMessage errorMessage) {
+    public NitriteIOException(String errorMessage) {
         super(errorMessage);
     }
 
@@ -40,7 +40,7 @@ public class NitriteIOException extends NitriteException {
      * @param message the message
      * @param cause   the cause
      */
-    public NitriteIOException(ErrorMessage message, Throwable cause) {
+    public NitriteIOException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -2,8 +2,9 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeAware;
-import org.dizitart.no2.collection.index.IndexEntry;
+import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.collection.meta.MetadataAware;
+import org.dizitart.no2.index.IndexType;
 
 import java.io.Closeable;
 import java.util.Collection;
@@ -41,7 +42,7 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * @param indexOptions index options.
      * @throws org.dizitart.no2.exceptions.IndexingException if an index already exists on `value`.
      * @see IndexOptions
-     * @see org.dizitart.no2.collection.index.IndexType
+     * @see IndexType
      */
     void createIndex(Field field, IndexOptions indexOptions);
 

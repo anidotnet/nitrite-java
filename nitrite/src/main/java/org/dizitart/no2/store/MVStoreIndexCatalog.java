@@ -1,7 +1,7 @@
 package org.dizitart.no2.store;
 
 import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.collection.index.IndexEntry;
+import org.dizitart.no2.index.IndexEntry;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -102,7 +102,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
             INTERNAL_NAME_SEPARATOR +
             index.getCollectionName() +
             INTERNAL_NAME_SEPARATOR +
-            index.getField() +
+            index.getField().getName() +
             INTERNAL_NAME_SEPARATOR +
             index.getIndexType();
     }

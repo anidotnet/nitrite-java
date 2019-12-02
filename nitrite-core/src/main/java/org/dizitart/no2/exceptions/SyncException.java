@@ -31,7 +31,7 @@ public class SyncException extends NitriteException {
      *
      * @param errorMessage the error message
      */
-    public SyncException(ErrorMessage errorMessage) {
+    public SyncException(String errorMessage) {
         super(errorMessage);
     }
 
@@ -41,7 +41,7 @@ public class SyncException extends NitriteException {
      * @param errorMessage the error message
      * @param cause        the cause
      */
-    public SyncException(ErrorMessage errorMessage, Throwable cause) {
+    public SyncException(String errorMessage, Throwable cause) {
         super(errorMessage, cause);
     }
 }

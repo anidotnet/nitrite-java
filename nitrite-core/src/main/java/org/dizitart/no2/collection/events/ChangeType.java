@@ -29,7 +29,7 @@ public enum ChangeType {
     /**
      * Insert action.
      *
-     * @see NitriteCollection#insert(Object[])
+     * @see org.dizitart.no2.collection.NitriteCollection#insert(Object[])
      * @see org.dizitart.no2.collection.objects.ObjectRepository#insert(Object, Object[])
      * @see org.dizitart.no2.collection.objects.ObjectRepository#insert(Object[])
      */
@@ -38,8 +38,8 @@ public enum ChangeType {
     /**
      * Update action.
      *
-     * @see NitriteCollection#update(Filter, Document)
-     * @see NitriteCollection#update(Filter, Document, UpdateOptions)
+     * @see org.dizitart.no2.collection.NitriteCollection#update(Filter, Document)
+     * @see org.dizitart.no2.collection.NitriteCollection#update(Filter, Document, UpdateOptions)
      * @see org.dizitart.no2.collection.objects.ObjectRepository#update(Filter, Object)
      */
     Update,
@@ -47,8 +47,8 @@ public enum ChangeType {
     /**
      * Remove action.
      *
-     * @see NitriteCollection#remove(Filter)
-     * @see NitriteCollection#remove(Filter, RemoveOptions)
+     * @see org.dizitart.no2.collection.NitriteCollection#remove(Filter)
+     * @see org.dizitart.no2.collection.NitriteCollection#remove(Filter, RemoveOptions)
      * @see org.dizitart.no2.collection.objects.ObjectRepository#remove(Filter, RemoveOptions)
      */
     Remove,

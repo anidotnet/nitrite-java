@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import static org.dizitart.no2.common.util.ObjectUtils.deepEquals;
-import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED;
 
 /**
  * @author Anindya Chatterjee.
@@ -69,7 +68,7 @@ class JoinedDocumentIterable implements ReadableStream<Document> {
 
         @Override
         public void remove() {
-            throw new InvalidOperationException(REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED);
+            throw new InvalidOperationException("remove on cursor is not supported");
         }
 
         private Document join(Document localDocument, DocumentCursor foreignCursor, Lookup lookup) {

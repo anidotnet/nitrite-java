@@ -31,7 +31,7 @@ public class NotIdentifiableException extends NitriteException {
      *
      * @param message the message
      */
-    public NotIdentifiableException(ErrorMessage message) {
+    public NotIdentifiableException(String message) {
         super(message);
     }
 }

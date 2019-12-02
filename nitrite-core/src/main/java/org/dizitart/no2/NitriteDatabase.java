@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.dizitart.no2.common.util.ObjectUtils.*;
-import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_CLOSED_NON_W_CHANNEL;
-import static org.dizitart.no2.exceptions.ErrorMessage.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -119,8 +117,7 @@ class NitriteDatabase implements Nitrite {
             store.close();
         } catch (Throwable error) {
             if (!nitriteConfig.getStoreConfig().isReadOnly()) {
-                throw new NitriteIOException(errorMessage("error while shutting down nitrite",
-                    NIOE_CLOSED_NON_W_CHANNEL), error);
+                throw new NitriteIOException("error while shutting down nitrite", error);
             }
         } finally {
             shutdown();
@@ -139,10 +136,10 @@ class NitriteDatabase implements Nitrite {
 
     private void validateUserCredentials(String username, String password) {
         if (StringUtils.isNullOrEmpty(username)) {
-            throw new SecurityException(USER_ID_IS_EMPTY);
+            throw new SecurityException("username cannot be empty");
         }
         if (StringUtils.isNullOrEmpty(password)) {
-            throw new SecurityException(PASSWORD_IS_EMPTY);
+            throw new SecurityException("password cannot be empty");
         }
     }
 
@@ -178,7 +175,7 @@ class NitriteDatabase implements Nitrite {
 
     private void checkOpened() {
         if (store == null || store.isClosed()) {
-            throw new NitriteIOException(NITRITE_STORE_IS_CLOSED);
+            throw new NitriteIOException("store is closed");
         }
     }
 

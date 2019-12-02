@@ -37,8 +37,6 @@ import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.util.Iterables.toArray;
 import static org.dizitart.no2.common.util.NumberUtils.compare;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * A utility class.
@@ -102,8 +100,7 @@ public class ObjectUtils {
             String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
             return split[1];
         }
-        throw new ValidationException(errorMessage(collectionName + " is not a valid keyed object repository",
-                VE_INVALID_KEYED_OBJ_STORE_KEY));
+        throw new ValidationException(collectionName + " is not a valid keyed object repository");
     }
 
     /**
@@ -117,8 +114,7 @@ public class ObjectUtils {
             String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
             return split[0];
         }
-        throw new ValidationException(errorMessage(collectionName + " is not a valid keyed object repository",
-                VE_INVALID_KEYED_OBJ_STORE_TYPE));
+        throw new ValidationException(collectionName + " is not a valid keyed object repository");
     }
 
     /**
@@ -218,8 +214,7 @@ public class ObjectUtils {
 
             return item;
         } catch (Throwable e) {
-            throw new ObjectMappingException(errorMessage("failed to instantiate type " + type.getName(),
-                    OME_INSTANTIATE_FAILED), e);
+            throw new ObjectMappingException("failed to instantiate type " + type.getName(), e);
         }
     }
 

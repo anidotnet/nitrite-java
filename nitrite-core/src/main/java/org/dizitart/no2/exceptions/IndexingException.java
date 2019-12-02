@@ -30,7 +30,7 @@ public class IndexingException extends NitriteException {
      *
      * @param message the message
      */
-    public IndexingException(ErrorMessage message) {
+    public IndexingException(String message) {
         super(message);
     }
 
@@ -40,7 +40,7 @@ public class IndexingException extends NitriteException {
      * @param message the message
      * @param cause   the cause
      */
-    public IndexingException(ErrorMessage message, Throwable cause) {
+    public IndexingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -15,9 +15,6 @@ import static org.dizitart.no2.NitriteId.newId;
 import static org.dizitart.no2.common.Constants.*;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.DOC_GET_TYPE_NULL;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee
@@ -32,15 +29,12 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
     @Override
     public Document put(String key, Object value) {
         if (DOC_ID.contentEquals(key) && !validId(value)) {
-            throw new InvalidOperationException(
-                errorMessage("_id is an auto generated value and cannot be set",
-                    IOE_DOC_ID_AUTO_GENERATED));
+            throw new InvalidOperationException("_id is an auto generated value and cannot be set");
         }
 
         if (value != null && !Serializable.class.isAssignableFrom(value.getClass())) {
-            throw new ValidationException(
-                errorMessage("type " + value.getClass().getName() + " does not implement java.io.Serializable",
-                    VE_TYPE_NOT_SERIALIZABLE));
+            throw new ValidationException("type " + value.getClass().getName()
+                + " does not implement java.io.Serializable");
         }
 
         super.put(key, value);
@@ -57,7 +51,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     @Override
     public <T> T get(String key, Class<T> type) {
-        notNull(type, DOC_GET_TYPE_NULL);
+        notNull(type, "type cannot be null");
         return type.cast(super.get(key));
     }
 
@@ -73,8 +67,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
             }
             return createId(id);
         } catch (ClassCastException cce) {
-            throw new InvalidIdException(errorMessage("invalid _id found " + get(DOC_ID),
-                IIE_INVALID_ID_FOUND));
+            throw new InvalidIdException("invalid _id found " + get(DOC_ID));
         }
     }
 
@@ -196,16 +189,13 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
             String indexString = remainingPath[0];
             int index = asInteger(indexString);
             if (index < 0) {
-                throw new ValidationException(errorMessage(
-                    "invalid index " + indexString + " for array",
-                    VE_NEGATIVE_ARRAY_INDEX_FIELD));
+                throw new ValidationException("invalid index " + indexString + " for array");
             }
 
             Object[] array = getArray(object);
             if (index >= array.length) {
-                throw new ValidationException(errorMessage("index " + indexString +
-                        " is not less than the size of the array " + array.length,
-                    VE_INVALID_ARRAY_INDEX_FIELD));
+                throw new ValidationException("index " + indexString +
+                        " is not less than the size of the array " + array.length);
             }
 
             return recursiveGet(array[index], Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
@@ -215,15 +205,13 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
             String indexString = remainingPath[0];
             int index = asInteger(indexString);
             if (index < 0) {
-                throw new ValidationException(errorMessage(
-                    "invalid index " + indexString + " for list",
-                    VE_NEGATIVE_LIST_INDEX_FIELD));
+                throw new ValidationException("invalid index " + indexString + " for list");
             }
 
             List collection = (List) object;
             if (index >= collection.size()) {
-                throw new ValidationException(errorMessage("index " + indexString +
-                    " is not less than the size of the list " + collection.size(), VE_INVALID_LIST_INDEX_FIELD));
+                throw new ValidationException("index " + indexString +
+                    " is not less than the size of the list " + collection.size());
             }
 
             return recursiveGet(collection.get(index), Arrays.copyOfRange(remainingPath, 1, remainingPath.length));

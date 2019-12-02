@@ -19,23 +19,23 @@ repositories {
 }
 
 dependencies {
-    compile project(path: ':nitrite-core', configuration: 'default')
-    compile "org.slf4j:slf4j-api:$slf4jVersion"
-    compile "com.h2database:h2-mvstore:$h2Version"
+    implementation project(path: ':nitrite-core', configuration: 'default')
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "com.h2database:h2-mvstore:$h2Version"
 
     testAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion"
-    testCompile "uk.co.jemos.podam:podam:$podamVersion"
-    testCompile "junit:junit:$junitVersion"
-    testCompile "org.openjdk.jmh:jmh-core:$jmhVersion"
-    testCompile "org.apache.lucene:lucene-core:$luceneVersion"
-    testCompile "org.apache.lucene:lucene-analyzers-common:$luceneVersion"
-    testCompile "org.apache.lucene:lucene-queryparser:$luceneVersion"
-    testCompile "org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version"
-    testCompile "org.apache.logging.log4j:log4j-core:$log4j2Version"
-    testCompile "org.awaitility:awaitility:$awaitilityVersion"
-    testCompile "joda-time:joda-time:$jodaTimeVersion"
-    testCompile "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
-    testCompile "org.meanbean:meanbean:$meanbeanVersion"
+    testImplementation "uk.co.jemos.podam:podam:$podamVersion"
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.openjdk.jmh:jmh-core:$jmhVersion"
+    testImplementation "org.apache.lucene:lucene-core:$luceneVersion"
+    testImplementation "org.apache.lucene:lucene-analyzers-common:$luceneVersion"
+    testImplementation "org.apache.lucene:lucene-queryparser:$luceneVersion"
+    testImplementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version"
+    testImplementation "org.apache.logging.log4j:log4j-core:$log4j2Version"
+    testImplementation "org.awaitility:awaitility:$awaitilityVersion"
+    testImplementation "joda-time:joda-time:$jodaTimeVersion"
+    testImplementation "com.squareup.okhttp3:mockwebserver:$okhttpVersion"
+    testImplementation "org.meanbean:meanbean:$meanbeanVersion"
 }
 
 

@@ -7,8 +7,8 @@ import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
 import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.index.IndexEntry;
-import org.dizitart.no2.collection.index.IndexType;
+import org.dizitart.no2.index.IndexEntry;
+import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperations;
 import org.dizitart.no2.common.event.EventBus;
@@ -24,8 +24,6 @@ import java.util.Collection;
 import static org.dizitart.no2.common.util.DocumentUtils.createUniqueFilter;
 import static org.dizitart.no2.common.util.ValidationUtils.containsNull;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -51,9 +49,8 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public WriteResult insert(Document[] documents) {
         checkOpened();
-        notNull(documents, errorMessage("a null document cannot be inserted", VE_INSERT_NULL_DOCUMENT_ARRAY));
-        containsNull(documents, errorMessage("a null document cannot be inserted",
-            VE_INSERT_DOCUMENTS_CONTAINS_NULL));
+        notNull(documents, "a null document cannot be inserted");
+        containsNull(documents, "a null document cannot be inserted");
 
         return collectionOperations.insert(documents);
     }
@@ -61,20 +58,20 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public WriteResult update(Document document, boolean insertIfAbsent) {
         checkOpened();
-        notNull(document, errorMessage("a null document cannot be used for update", VE_UPDATE_NULL_DOCUMENT_OPTION));
+        notNull(document, "a null document cannot be used for update");
 
         if (document.hasId()) {
             return update(createUniqueFilter(document), document, UpdateOptions.updateOptions(insertIfAbsent));
         } else {
-            throw new NotIdentifiableException(UPDATE_FAILED_AS_NO_ID_FOUND);
+            throw new NotIdentifiableException("update operation failed as no id value found for the document");
         }
     }
 
     @Override
     public WriteResult update(Filter filter, Document update, UpdateOptions updateOptions) {
         checkOpened();
-        notNull(update, errorMessage("a null document cannot be used for update", VE_UPDATE_OPTIONS_NULL_DOCUMENT));
-        notNull(updateOptions, errorMessage("updateOptions cannot be null", VE_UPDATE_NULL_UPDATE_OPTIONS));
+        notNull(update, "a null document cannot be used for update");
+        notNull(updateOptions, "updateOptions cannot be null");
 
         return collectionOperations.update(filter, update, updateOptions);
     }
@@ -82,21 +79,20 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public WriteResult remove(Document document) {
         checkOpened();
-        notNull(document, errorMessage("a null document cannot be removed", VE_REMOVE_NULL_DOCUMENT));
+        notNull(document, "a null document cannot be removed");
 
         if (document.hasId()) {
             return remove(createUniqueFilter(document));
         } else {
-            throw new NotIdentifiableException(REMOVE_FAILED_AS_NO_ID_FOUND);
+            throw new NotIdentifiableException("remove operation failed as no id value found for the document");
         }
     }
 
     @Override
-    public WriteResult remove(Filter filter, RemoveOptions removeOptions) {
+    public WriteResult remove(Filter filter, boolean justOne) {
         checkOpened();
-        notNull(removeOptions, errorMessage("removeOptions cannot be null", VE_REMOVE_NULL_DOCUMENT));
 
-        return collectionOperations.remove(filter, removeOptions);
+        return collectionOperations.remove(filter, justOne);
     }
 
     @Override
@@ -114,7 +110,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void createIndex(Field field, IndexOptions indexOptions) {
         checkOpened();
-        notNull(field, errorMessage("field cannot be null", VE_CREATE_INDEX_NULL_FIELD));
+        notNull(field, "field cannot be null");
 
         // by default async is false while creating index
         if (indexOptions == null) {
@@ -128,15 +124,14 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void rebuildIndex(Field field, boolean isAsync) {
         checkOpened();
-        notNull(field, errorMessage("field cannot be null", VE_REBUILD_INDEX_NULL_FIELD));
+        notNull(field, "field cannot be null");
 
         IndexEntry indexEntry = collectionOperations.findIndex(field);
         if (indexEntry != null) {
             validateRebuildIndex(indexEntry);
             collectionOperations.rebuildIndex(indexEntry, isAsync);
         } else {
-            throw new IndexingException(errorMessage(field + " is not indexed",
-                IE_REBUILD_INDEX_FIELD_NOT_INDEXED));
+            throw new IndexingException(field + " is not indexed");
         }
     }
 
@@ -149,7 +144,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public boolean hasIndex(Field field) {
         checkOpened();
-        notNull(field, errorMessage("field cannot be null", VE_HAS_INDEX_NULL_FIELD));
+        notNull(field, "field cannot be null");
 
         return collectionOperations.hasIndex(field);
     }
@@ -157,14 +152,14 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public boolean isIndexing(Field field) {
         checkOpened();
-        notNull(field, errorMessage("field cannot be null", VE_IS_INDEXING_NULL_FIELD));
+        notNull(field, "field cannot be null");
         return collectionOperations.isIndexing(field);
     }
 
     @Override
     public void dropIndex(Field field) {
         checkOpened();
-        notNull(field, errorMessage("field cannot be null", VE_DROP_INDEX_NULL_FIELD));
+        notNull(field, "field cannot be null");
         collectionOperations.dropIndex(field);
     }
 
@@ -178,7 +173,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public Document getById(NitriteId nitriteId) {
         checkOpened();
-        notNull(nitriteId, errorMessage("nitriteId cannot be null", VE_GET_BY_ID_NULL_ID));
+        notNull(nitriteId, "nitriteId cannot be null");
         return collectionOperations.getById(nitriteId);
     }
 
@@ -221,7 +216,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void register(ChangeListener listener) {
         checkOpened();
-        notNull(listener, errorMessage("listener cannot be null", VE_LISTENER_NULL));
+        notNull(listener, "listener cannot be null");
 
         eventBus.register(listener);
     }
@@ -229,7 +224,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void deregister(ChangeListener listener) {
         checkOpened();
-        notNull(listener, errorMessage("listener cannot be null", VE_LISTENER_DEREGISTER_NULL));
+        notNull(listener, "listener cannot be null");
 
         if (eventBus != null) {
             eventBus.deregister(listener);
@@ -245,7 +240,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void setAttributes(Attributes attributes) {
         checkOpened();
-        notNull(attributes, errorMessage("attributes cannot be null", VE_ATTRIBUTE_NULL));
+        notNull(attributes, "attributes cannot be null");
         collectionOperations.setAttributes(attributes);
     }
 
@@ -266,20 +261,19 @@ class NitriteCollectionImpl implements NitriteCollection {
         if (isOpen()) return;
 
         if (isDropped) {
-            throw new NitriteIOException(COLLECTION_IS_DROPPED);
+            throw new NitriteIOException("collection has been dropped");
         }
 
         if (nitriteStore == null || nitriteStore.isClosed()) {
-            throw new NitriteIOException(STORE_IS_CLOSED);
+            throw new NitriteIOException("store is closed");
         }
     }
 
     private void validateRebuildIndex(IndexEntry indexEntry) {
-        notNull(indexEntry, errorMessage("index cannot be null", VE_NC_REBUILD_INDEX_NULL_INDEX));
+        notNull(indexEntry, "index cannot be null");
 
         if (isIndexing(indexEntry.getField())) {
-            throw new IndexingException(errorMessage("indexing on value " + indexEntry.getField() +
-                " is currently running", IE_VALIDATE_REBUILD_INDEX_RUNNING));
+            throw new IndexingException("indexing on value " + indexEntry.getField() + " is currently running");
         }
     }
 

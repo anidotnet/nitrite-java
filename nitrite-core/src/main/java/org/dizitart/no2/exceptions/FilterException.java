@@ -31,7 +31,7 @@ public class FilterException extends NitriteException {
      *
      * @param message the message
      */
-    public FilterException(ErrorMessage message) {
+    public FilterException(String message) {
         super(message);
     }
 
@@ -41,7 +41,7 @@ public class FilterException extends NitriteException {
      * @param message the message
      * @param cause   the cause
      */
-    public FilterException(ErrorMessage message, Throwable cause) {
+    public FilterException(String message, Throwable cause) {
         super(message, cause);
     }
 }

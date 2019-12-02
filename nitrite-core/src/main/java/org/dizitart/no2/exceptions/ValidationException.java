@@ -31,7 +31,7 @@ public class ValidationException extends NitriteException {
      *
      * @param errorMessage the error message
      */
-    public ValidationException(ErrorMessage errorMessage) {
+    public ValidationException(String errorMessage) {
         super(errorMessage);
     }
 
@@ -41,7 +41,7 @@ public class ValidationException extends NitriteException {
      * @param errorMessage the error message
      * @param cause        the cause
      */
-    public ValidationException(ErrorMessage errorMessage, Throwable cause) {
+    public ValidationException(String errorMessage, Throwable cause) {
         super(errorMessage, cause);
     }
 }

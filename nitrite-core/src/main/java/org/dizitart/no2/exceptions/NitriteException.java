@@ -30,20 +30,12 @@ import lombok.Getter;
 public class NitriteException extends RuntimeException {
 
     /**
-     * Gets the {@link ErrorMessage} corresponds to this exception.
-     *
-     * @return the {@link ErrorMessage}.
-     * */
-    private ErrorMessage errorMessage;
-
-    /**
      * Instantiates a new Nitrite exception.
      *
      * @param errorMessage the error message
      */
-    public NitriteException(ErrorMessage errorMessage) {
-        super(errorMessage.getErrorCode() + ": " + errorMessage.getMessage());
-        this.errorMessage = errorMessage;
+    public NitriteException(String errorMessage) {
+        super(errorMessage);
     }
 
     /**
@@ -52,8 +44,7 @@ public class NitriteException extends RuntimeException {
      * @param errorMessage the error message
      * @param cause   the cause
      */
-    public NitriteException(ErrorMessage errorMessage, Throwable cause) {
-        super(errorMessage.getErrorCode() + ": " + errorMessage.getMessage(), cause);
-        this.errorMessage = errorMessage;
+    public NitriteException(String errorMessage, Throwable cause) {
+        super(errorMessage, cause);
     }
 }

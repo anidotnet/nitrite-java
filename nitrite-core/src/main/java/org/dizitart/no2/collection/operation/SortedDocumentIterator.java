@@ -2,6 +2,7 @@ package org.dizitart.no2.collection.operation;
 
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.NullOrder;
 import org.dizitart.no2.collection.SortOrder;
 import org.dizitart.no2.exceptions.InvalidOperationException;
@@ -10,13 +11,11 @@ import org.dizitart.no2.store.NitriteMap;
 import java.text.Collator;
 import java.util.*;
 
-import static org.dizitart.no2.exceptions.ErrorMessage.UNABLE_TO_SORT_ON_ARRAY;
-
 /**
  * @author Anindya Chatterjee.
  */
 public class SortedDocumentIterator implements Iterator<NitriteId> {
-    private final String field;
+    private final Field field;
     private final SortOrder sortOrder;
     private final Collator collator;
     private final NullOrder nullOrder;
@@ -24,7 +23,7 @@ public class SortedDocumentIterator implements Iterator<NitriteId> {
     private final NitriteMap<NitriteId, Document> nitriteMap;
     private Iterator<NitriteId> sortedIterator;
 
-    public SortedDocumentIterator(String field,
+    public SortedDocumentIterator(Field field,
                                   SortOrder sortOrder,
                                   Collator collator,
                                   NullOrder nullOrder,
@@ -63,10 +62,10 @@ public class SortedDocumentIterator implements Iterator<NitriteId> {
             Document document = nitriteMap.get(id);
             if (document == null) continue;
 
-            Object value = document.get(field);
+            Object value = document.get(field.getName());
             if (value != null) {
                 if (value.getClass().isArray() || value instanceof Iterable) {
-                    throw new InvalidOperationException(UNABLE_TO_SORT_ON_ARRAY);
+                    throw new InvalidOperationException("cannot sort on array or collection objects");
                 }
             } else {
                 nullValueIds.add(id);

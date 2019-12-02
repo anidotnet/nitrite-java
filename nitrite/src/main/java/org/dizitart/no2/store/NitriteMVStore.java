@@ -17,11 +17,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.dizitart.no2.ErrorCodes.VE_INVALID_STORE_CONFIG;
 import static org.dizitart.no2.common.Constants.RESERVED_NAMES;
 import static org.dizitart.no2.common.util.ObjectUtils.*;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 
 /**
  * @author Anindya Chatterjee
@@ -133,7 +131,7 @@ public class NitriteMVStore implements NitriteStore {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <Key, Value> NitriteRTree<Key, Value> openRTree(String name) {
         MVRTreeMap<Value> map = mvStore.openMap(name, new MVRTreeMap.Builder<>());
         return new NitriteMVRTreeMap(map, this);
@@ -161,8 +159,7 @@ public class NitriteMVStore implements NitriteStore {
 
     private void validateStoreConfig(StoreConfig storeConfig) {
         if (!(storeConfig instanceof MVStoreConfig)) {
-            throw new ValidationException(errorMessage("store config is not valid mv store config",
-                VE_INVALID_STORE_CONFIG));
+            throw new ValidationException("store config is not valid mv store config");
         }
     }
 

@@ -2,10 +2,7 @@ package org.dizitart.no2.collection.operation;
 
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.Lookup;
-import org.dizitart.no2.collection.NullOrder;
-import org.dizitart.no2.collection.SortOrder;
+import org.dizitart.no2.collection.*;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.LimitedIterator;
 import org.dizitart.no2.common.ReadableStream;
@@ -15,9 +12,6 @@ import org.dizitart.no2.store.NitriteMap;
 
 import java.text.Collator;
 import java.util.Iterator;
-
-import static org.dizitart.no2.exceptions.ErrorMessage.PROJECTION_WITH_NOT_NULL_VALUES;
-import static org.dizitart.no2.exceptions.ErrorMessage.REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED;
 
 /**
  * @author Anindya Chatterjee.
@@ -32,7 +26,7 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     @Override
-    public DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
+    public DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
         return new DocumentCursorImpl(new SortedDocumentIterator(field, sortOrder, collator,
             nullOrder, iterator, nitriteMap), nitriteMap);
     }
@@ -82,7 +76,7 @@ class DocumentCursorImpl implements DocumentCursor {
 
         @Override
         public void remove() {
-            throw new InvalidOperationException(REMOVE_ON_DOCUMENT_ITERATOR_NOT_SUPPORTED);
+            throw new InvalidOperationException("remove on cursor is not supported");
         }
     }
 
@@ -95,7 +89,7 @@ class DocumentCursorImpl implements DocumentCursor {
     private void validateKeyValuePair(KeyValuePair<String, Object> kvp) {
         if (kvp.getValue() != null) {
             if (!(kvp.getValue() instanceof Document)) {
-                throw new ValidationException(PROJECTION_WITH_NOT_NULL_VALUES);
+                throw new ValidationException("projection contains non-null values");
             } else {
                 validateProjection((Document) kvp.getValue());
             }

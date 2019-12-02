@@ -32,7 +32,7 @@ public class ObjectMappingException extends NitriteException {
      *
      * @param message the message
      */
-    public ObjectMappingException(ErrorMessage message) {
+    public ObjectMappingException(String message) {
         super(message);
     }
 
@@ -42,7 +42,7 @@ public class ObjectMappingException extends NitriteException {
      * @param message the message
      * @param cause the inner cause
      */
-    public ObjectMappingException(ErrorMessage message, Throwable cause) {
+    public ObjectMappingException(String message, Throwable cause) {
         super(message, cause);
     }
 }

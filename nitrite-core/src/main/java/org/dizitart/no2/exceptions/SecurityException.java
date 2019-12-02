@@ -30,7 +30,7 @@ public class SecurityException extends NitriteException {
      *
      * @param errorMessage the error message
      */
-    public SecurityException(ErrorMessage errorMessage) {
+    public SecurityException(String errorMessage) {
         super(errorMessage);
     }
 }

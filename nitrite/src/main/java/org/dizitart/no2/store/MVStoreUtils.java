@@ -9,9 +9,6 @@ import org.h2.mvstore.MVStore;
 import java.io.File;
 
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
-import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_DIR_DOES_NOT_EXISTS;
-import static org.dizitart.no2.exceptions.ErrorCodes.NIOE_PATH_IS_DIRECTORY;
-import static org.dizitart.no2.exceptions.ErrorMessage.*;
 import static org.dizitart.no2.store.Recovery.recover;
 import static org.dizitart.no2.store.Security.createSecurely;
 import static org.dizitart.no2.store.Security.openSecurely;
@@ -36,7 +33,7 @@ class MVStoreUtils {
 
             if (mvStoreConfig.isReadOnly()) {
                 if (isNullOrEmpty(mvStoreConfig.getFilePath())) {
-                    throw new InvalidOperationException(UNABLE_TO_CREATE_IN_MEMORY_READONLY_DB);
+                    throw new InvalidOperationException("unable create readonly in-memory database");
                 }
                 builder = builder.readOnly();
             }
@@ -68,15 +65,15 @@ class MVStoreUtils {
                 }
             } catch (IllegalStateException ise) {
                 if (ise.getMessage().contains("file is locked")) {
-                    throw new NitriteIOException(DATABASE_OPENED_IN_OTHER_PROCESS);
+                    throw new NitriteIOException("database is already opened in other process");
                 }
 
                 if (!isNullOrEmpty(mvStoreConfig.getFilePath())) {
                     try {
                         File file = new File(mvStoreConfig.getFilePath());
                         if (file.isDirectory()) {
-                            throw new NitriteIOException(errorMessage(mvStoreConfig.getFilePath()
-                                + " is a directory, must be a file", NIOE_PATH_IS_DIRECTORY));
+                            throw new NitriteIOException(mvStoreConfig.getFilePath()
+                                + " is a directory, must be a file");
                         }
 
                         if (file.exists() && file.isFile()) {
@@ -85,25 +82,24 @@ class MVStoreUtils {
                             store = builder.open();
                         } else {
                             if (mvStoreConfig.isReadOnly()) {
-                                throw new NitriteIOException(FAILED_TO_CREATE_READONLY_DB, ise);
+                                throw new NitriteIOException("cannot create readonly database", ise);
                             }
                         }
                     } catch (InvalidOperationException | NitriteIOException ex) {
                         throw ex;
                     } catch (Exception e) {
-                        throw new NitriteIOException(DB_FILE_CORRUPTED, e);
+                        throw new NitriteIOException("database file is corrupted", e);
                     }
                 } else {
-                    throw new NitriteIOException(UNABLE_TO_CREATE_IN_MEMORY_DB, ise);
+                    throw new NitriteIOException("unable to create in-memory database", ise);
                 }
             } catch (IllegalArgumentException iae) {
                 if (dbFile != null) {
                     if (!dbFile.getParentFile().exists()) {
-                        throw new NitriteIOException(errorMessage("Directory " + dbFile.getParent() + " does not exists",
-                            NIOE_DIR_DOES_NOT_EXISTS), iae);
+                        throw new NitriteIOException("directory " + dbFile.getParent() + " does not exists", iae);
                     }
                 }
-                throw new NitriteIOException(UNABLE_TO_CREATE_DB_FILE, iae);
+                throw new NitriteIOException("unable to create database file", iae);
             } finally {
                 if (store != null) {
                     store.setRetentionTime(-1);

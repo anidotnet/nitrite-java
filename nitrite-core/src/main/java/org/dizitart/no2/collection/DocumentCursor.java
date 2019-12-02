@@ -36,7 +36,7 @@ import java.text.Collator;
  */
 public interface DocumentCursor extends ReadableStream<Document> {
 
-    DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder);
+    DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator, NullOrder nullOrder);
 
     DocumentCursor limit(int offset, int size);
 
@@ -63,19 +63,19 @@ public interface DocumentCursor extends ReadableStream<Document> {
      */
     ReadableStream<Document> join(DocumentCursor foreignCursor, Lookup lookup);
 
-    default DocumentCursor sort(String field) {
+    default DocumentCursor sort(Field field) {
         return sort(field, SortOrder.Ascending);
     }
 
-    default DocumentCursor sort(String field, SortOrder sortOrder) {
+    default DocumentCursor sort(Field field, SortOrder sortOrder) {
         return sort(field, sortOrder, NullOrder.Default);
     }
 
-    default DocumentCursor sort(String field, SortOrder sortOrder, Collator collator) {
+    default DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator) {
         return sort(field, sortOrder, collator, NullOrder.Default);
     }
 
-    default DocumentCursor sort(String field, SortOrder sortOrder, NullOrder nullOrder) {
+    default DocumentCursor sort(Field field, SortOrder sortOrder, NullOrder nullOrder) {
         return sort(field, sortOrder, null, nullOrder);
     }
 }

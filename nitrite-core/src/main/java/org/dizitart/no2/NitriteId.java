@@ -8,8 +8,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.dizitart.no2.common.Constants.ID_PREFIX;
 import static org.dizitart.no2.common.Constants.ID_SUFFIX;
-import static org.dizitart.no2.exceptions.ErrorMessage.CAN_NOT_COMPARE_WITH_NULL_ID;
-import static org.dizitart.no2.exceptions.ErrorMessage.ID_VALUE_CAN_NOT_BE_NULL;
 
 /**
  * An unique identifier across the Nitrite database. Each document in
@@ -22,7 +20,7 @@ import static org.dizitart.no2.exceptions.ErrorMessage.ID_VALUE_CAN_NOT_BE_NULL;
  *
  *
  * @author Anindya Chatterjee
- * @see NitriteCollection#getById(NitriteId)
+ * @see org.dizitart.no2.collection.NitriteCollection#getById(NitriteId)
  * @since 1.0
  */
 @EqualsAndHashCode
@@ -57,7 +55,7 @@ public final class NitriteId implements Comparable<NitriteId>, Serializable {
      */
     public static NitriteId createId(Long value) {
         if (value == null) {
-            throw new InvalidIdException(ID_VALUE_CAN_NOT_BE_NULL);
+            throw new InvalidIdException("id cannot be null");
         }
 
         return new NitriteId(value);
@@ -66,7 +64,7 @@ public final class NitriteId implements Comparable<NitriteId>, Serializable {
     @Override
     public int compareTo(NitriteId other) {
         if (other.idValue == null) {
-            throw new InvalidIdException(CAN_NOT_COMPARE_WITH_NULL_ID);
+            throw new InvalidIdException("cannot compare with null id");
         }
 
         return Long.compare(idValue, other.idValue);

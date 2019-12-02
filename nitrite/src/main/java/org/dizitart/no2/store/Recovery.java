@@ -38,8 +38,6 @@ import java.util.TreeMap;
 
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.exceptions.ErrorCodes.*;
-import static org.dizitart.no2.exceptions.ErrorMessage.errorMessage;
 import static org.h2.mvstore.Chunk.fromString;
 
 /**
@@ -81,9 +79,9 @@ public class Recovery {
      * @return `true` if repair successful; otherwise `false`
      */
     public static boolean recover(String fileName, PrintWriter writer) {
-        notNull(fileName, errorMessage("fileName cannot be null", VE_RECOVER_NULL_FILE_NAME));
-        notEmpty(fileName, errorMessage("fileName cannot be empty", VE_RECOVER_EMPTY_FILE_NAME));
-        notNull(writer, errorMessage("writer cannot be null", VE_RECOVER_NULL_WRITER));
+        notNull(fileName, "fileName cannot be null");
+        notEmpty(fileName, "fileName cannot be empty");
+        notNull(writer, "writer cannot be null");
         return repair(fileName, writer);
     }
 
