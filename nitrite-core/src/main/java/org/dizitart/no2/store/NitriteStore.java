@@ -1,14 +1,11 @@
 package org.dizitart.no2.store;
 
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.plugin.NitritePlugin;
 import org.dizitart.no2.store.events.StoreEventListener;
 
 import java.util.Map;
 import java.util.Set;
-
-import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
-import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
-import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 
 /**
  * Represents a persistent storage for Nitrite database.
@@ -35,9 +32,9 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     Set<String> getCollectionNames();
 
     /**
-     * Gets the set of all {@link org.dizitart.no2.collection.objects.ObjectRepository} details in store.
+     * Gets the set of all {@link ObjectRepository} details in store.
      *
-     * @return the details of all {@link org.dizitart.no2.collection.objects.ObjectRepository}.
+     * @return the details of all {@link ObjectRepository}.
      */
     Map<String, Class<?>> getRepositoryRegistry();
 
@@ -127,16 +124,4 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      * @param listener the listener instances.
      * */
     void addStoreEventListener(StoreEventListener listener);
-
-    default <T> String findRepositoryName(String key, Class<T> type) {
-        notNull(key, "key cannot be null");
-        notEmpty(key, "key cannot be empty");
-        notNull(type, "type cannot be null");
-        return type.getName() + KEY_OBJ_SEPARATOR + key;
-    }
-
-    default <T> String findRepositoryName(Class<T> type) {
-        notNull(type, "type cannot be null");
-        return type.getName();
-    }
 }

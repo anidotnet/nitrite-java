@@ -17,7 +17,7 @@
  */
 
 /**
- * Index annotations for {@link org.dizitart.no2.collection.objects.ObjectRepository}.
+ * Index annotations for {@link org.dizitart.no2.repository.ObjectRepository}.
  *
  * @since 1.0
  * @author Anindya Chatterjee.

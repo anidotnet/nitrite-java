@@ -19,7 +19,7 @@
 package org.dizitart.no2.index.annotations;
 
 import org.dizitart.no2.collection.IndexOptions;
-import org.dizitart.no2.collection.objects.ObjectRepository;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.index.IndexType;
 
 import java.lang.annotation.*;

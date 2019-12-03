@@ -2,6 +2,7 @@ package org.dizitart.no2.collection;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.repository.Cursor;
 
 /**
  * Represents lookup parameters in join operation of two collections.
@@ -9,7 +10,7 @@ import lombok.Setter;
  * @author Anindya Chatterjee.
  * @since 2.1.0
  * @see DocumentCursor#join(DocumentCursor, Lookup)
- * @see org.dizitart.no2.collection.objects.Cursor#join(org.dizitart.no2.collection.objects.Cursor, Lookup, Class)
+ * @see Cursor#join(Cursor, Lookup, Class)
  */
 public class Lookup {
 

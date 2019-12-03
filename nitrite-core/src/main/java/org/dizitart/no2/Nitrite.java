@@ -17,7 +17,7 @@
 package org.dizitart.no2;
 
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.objects.ObjectRepository;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.common.Constants;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.ValidationException;
@@ -27,6 +27,7 @@ import java.io.Closeable;
 import java.util.Map;
 import java.util.Set;
 
+import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.Constants.RESERVED_NAMES;
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -274,5 +275,17 @@ public interface Nitrite extends Closeable {
                 throw new ValidationException("name cannot contain " + reservedName);
             }
         }
+    }
+
+    default <T> String findRepositoryName(String key, Class<T> type) {
+        notNull(key, "key cannot be null");
+        notEmpty(key, "key cannot be empty");
+        notNull(type, "type cannot be null");
+        return type.getName() + KEY_OBJ_SEPARATOR + key;
+    }
+
+    default <T> String findRepositoryName(Class<T> type) {
+        notNull(type, "type cannot be null");
+        return type.getName();
     }
 }

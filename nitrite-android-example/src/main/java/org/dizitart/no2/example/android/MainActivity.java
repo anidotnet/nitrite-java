@@ -24,7 +24,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.objects.ObjectRepository;
+import org.dizitart.no2.repository.ObjectRepository;
 
 public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;

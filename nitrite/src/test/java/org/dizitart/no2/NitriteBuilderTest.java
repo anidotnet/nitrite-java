@@ -18,19 +18,14 @@
 
 package org.dizitart.no2;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.Module;
 import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.objects.ObjectRepository;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.index.Indexer;
-import org.dizitart.no2.index.TextIndexer;
 import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.fulltext.EnglishTextTokenizer;
-import org.dizitart.no2.index.fulltext.TextTokenizer;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.MVStoreConfig;
 import org.dizitart.no2.store.NitriteMap;
@@ -197,24 +192,15 @@ public class NitriteBuilderTest {
         assertNotNull(config.nitriteMapper());
     }
 
-    @Test
-    public void testDisableShutdownHook() {
-        NitriteBuilder builder = Nitrite.builder()
-                .disableShutdownHook()
-                .nitriteMapper(new JacksonMapper());
-        Nitrite db = builder.openOrCreate();
-        assertNotNull(db);
-    }
-
     @Test(expected = SecurityException.class)
     public void testOpenOrCreateNullUserId() {
-        NitriteBuilder builder = new NitriteBuilder();
+        NitriteBuilder builder = NitriteBuilder.get();
         builder.openOrCreate(null, "abcd");
     }
 
     @Test(expected = SecurityException.class)
     public void testOpenOrCreateNullPassword() {
-        NitriteBuilder builder = new NitriteBuilder();
+        NitriteBuilder builder = NitriteBuilder.get();
         builder.openOrCreate("abcd", null);
     }
 
@@ -236,13 +222,13 @@ public class NitriteBuilderTest {
         // Close the stream
         writer.close();
 
-        Nitrite fakeDb = Nitrite.builder().filePath(fakeFile).openOrCreate();
+        Nitrite fakeDb = NitriteBuilder.get().filePath(fakeFile).openOrCreate();
         assertNull(fakeDb);
     }
 
     @Test(expected = InvalidOperationException.class)
     public void testDbInMemoryReadonly() {
-        Nitrite fakeDb = Nitrite.builder()
+        Nitrite fakeDb = NitriteBuilder.get()
                 .readOnly()
                 .openOrCreate();
         assertNull(fakeDb);
@@ -251,13 +237,13 @@ public class NitriteBuilderTest {
     @Test(expected = NitriteIOException.class)
     public void testDbInvalidDirectory() {
         fakeFile = "/tmp/fake/fake.db";
-        Nitrite db = Nitrite.builder().filePath(fakeFile).openOrCreate("test", "test");
+        Nitrite db = NitriteBuilder.get().filePath(fakeFile).openOrCreate("test", "test");
         assertNull(db);
     }
 
     @Test(expected = NitriteIOException.class)
     public void testInvalidPath() {
-        Nitrite db = Nitrite.builder()
+        Nitrite db = NitriteBuilder.get()
                 .filePath("http://www.localhost.com")
                 .openOrCreate("test", "test");
         assertNull(db);
@@ -286,24 +272,6 @@ public class NitriteBuilderTest {
         public TestObject2(String stringValue, Long longValue) {
             this.longValue = longValue;
             this.stringValue = stringValue;
-        }
-    }
-
-    private class TestModule extends Module {
-
-        @Override
-        public String getModuleName() {
-            return "TestModule";
-        }
-
-        @Override
-        public Version version() {
-            return Version.unknownVersion();
-        }
-
-        @Override
-        public void setupModule(SetupContext context) {
-
         }
     }
 

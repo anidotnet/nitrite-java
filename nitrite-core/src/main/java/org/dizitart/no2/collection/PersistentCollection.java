@@ -2,6 +2,7 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeAware;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.collection.meta.MetadataAware;
 import org.dizitart.no2.index.IndexType;
@@ -16,7 +17,7 @@ import java.util.Collection;
  * @since 1.0
  * @author Anindya Chatterjee.
  * @see NitriteCollection
- * @see org.dizitart.no2.collection.objects.ObjectRepository
+ * @see ObjectRepository
  */
 public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Closeable {
     /**

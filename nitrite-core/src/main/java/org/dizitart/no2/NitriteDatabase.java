@@ -3,8 +3,8 @@ package org.dizitart.no2;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.CollectionFactory;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.objects.ObjectRepository;
-import org.dizitart.no2.collection.objects.RepositoryFactory;
+import org.dizitart.no2.repository.ObjectRepository;
+import org.dizitart.no2.repository.RepositoryFactory;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.exceptions.NitriteIOException;
@@ -48,13 +48,15 @@ class NitriteDatabase implements Nitrite {
     @Override
     public <T> ObjectRepository<T> getRepository(Class<T> type) {
         checkOpened();
-        return RepositoryFactory.getRepository(type);
+        String name = findRepositoryName(type);
+        return getRepositoryByName(name, type);
     }
 
     @Override
     public <T> ObjectRepository<T> getRepository(String key, Class<T> type) {
         checkOpened();
-        return RepositoryFactory.getRepository(key, type);
+        String name = findRepositoryName(key, type);
+        return getRepositoryByName(name, type);
     }
 
     @Override
@@ -132,6 +134,11 @@ class NitriteDatabase implements Nitrite {
             store.commit();
             log.debug("Unsaved changes committed successfully.");
         }
+    }
+
+    private <T> ObjectRepository<T> getRepositoryByName(String name, Class<T> type) {
+        NitriteCollection collection = getCollection(name);
+        return RepositoryFactory.getRepository(type, collection, nitriteConfig);
     }
 
     private void validateUserCredentials(String username, String password) {

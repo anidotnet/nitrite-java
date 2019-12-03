@@ -20,6 +20,7 @@ package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.objenesis.Objenesis;
@@ -90,7 +91,7 @@ public class ObjectUtils {
     }
 
     /**
-     * Gets the key name of a keyed-{@link org.dizitart.no2.collection.objects.ObjectRepository}
+     * Gets the key name of a keyed-{@link ObjectRepository}
      *
      * @param collectionName name of the collection
      * @return the key
@@ -104,7 +105,7 @@ public class ObjectUtils {
     }
 
     /**
-     * Gets the type name of a keyed-{@link org.dizitart.no2.collection.objects.ObjectRepository}
+     * Gets the type name of a keyed-{@link ObjectRepository}
      *
      * @param collectionName name of the collection
      * @return the type name
