@@ -3,8 +3,11 @@ package org.dizitart.no2.repository;
 import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.*;
+import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
@@ -16,7 +19,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static org.dizitart.no2.collection.Field.of;
+import static org.dizitart.no2.collection.IndexOptions.indexOptions;
 import static org.dizitart.no2.collection.filters.FluentFilter.when;
+import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.DocumentUtils.skeletonDocument;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -25,8 +31,71 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * @author Anindya Chatterjee
  */
 class RepositoryOperations {
-    <T> Document toDocument(T object, NitriteMapper nitriteMapper,
-                            Field idField, boolean update) {
+    private NitriteMapper nitriteMapper;
+    private Class<?> type;
+    private NitriteCollection collection;
+    private Field idField;
+
+    RepositoryOperations(Class<?> type, NitriteMapper nitriteMapper, NitriteCollection collection) {
+        this.type = type;
+        this.nitriteMapper = nitriteMapper;
+        this.collection = collection;
+        validateCollection();
+    }
+
+    private static void filterSynthetics(List<Field> fields) {
+        if (fields == null || fields.isEmpty()) return;
+        Iterator<Field> iterator = fields.iterator();
+        while (iterator.hasNext()) {
+            Field f = iterator.next();
+            if (f.isSynthetic()) iterator.remove();
+        }
+    }
+
+    void createIndexes() {
+        Set<Index> indexes = extractIndices(nitriteMapper, type);
+        for (Index idx : indexes) {
+            org.dizitart.no2.collection.Field field = of(idx.value());
+            if (!collection.hasIndex(field)) {
+                collection.createIndex(of(idx.value()), indexOptions(idx.type(), false));
+            }
+        }
+
+        idField = getIdField(nitriteMapper, type);
+        if (idField != null) {
+            org.dizitart.no2.collection.Field field = of(idField.getName());
+            if (!collection.hasIndex(field)) {
+                collection.createIndex(field, indexOptions(IndexType.Unique));
+            }
+        }
+    }
+
+    void serializeFields(Document document) {
+        if (document != null) {
+            for (KeyValuePair<String, Object> keyValuePair : document) {
+                String key = keyValuePair.getKey();
+                Object value = keyValuePair.getValue();
+                Object serializedValue;
+                if (nitriteMapper.isValueType(value)) {
+                    serializedValue = nitriteMapper.convertValue(value);
+                } else {
+                    serializedValue = nitriteMapper.asDocument(value);
+                }
+                document.put(key, serializedValue);
+            }
+        }
+    }
+
+    <T> Document[] toDocuments(T[] others) {
+        if (others == null || others.length == 0) return null;
+        Document[] documents = new Document[others.length];
+        for (int i = 0; i < others.length; i++) {
+            documents[i] = toDocument(others[i], false);
+        }
+        return documents;
+    }
+
+    <T> Document toDocument(T object, boolean update) {
         Document document = nitriteMapper.asDocument(object);
         if (idField != null) {
             if (idField.getType() == NitriteId.class) {
@@ -54,14 +123,11 @@ class RepositoryOperations {
         return document;
     }
 
-    /**
-     * Creates unique filter from the object.
-     *
-     * @param object  the object
-     * @param idField the id field
-     * @return the equals filter
-     */
-    Filter createUniqueFilter(Object object, Field idField) {
+    Filter createUniqueFilter(Object object) {
+        if (idField == null) {
+            throw new NotIdentifiableException("update operation failed as no id value found for the object");
+        }
+
         idField.setAccessible(true);
         try {
             Object value = idField.get(object);
@@ -111,11 +177,9 @@ class RepositoryOperations {
         }
 
         Set<Index> indexSet = new LinkedHashSet<>();
-        if (indicesList != null) {
-            for (Indices indices : indicesList) {
-                Index[] indexList = indices.value();
-                populateIndex(nitriteMapper, type, Arrays.asList(indexList), indexSet);
-            }
+        for (Indices indices : indicesList) {
+            Index[] indexList = indices.value();
+            populateIndex(nitriteMapper, type, Arrays.asList(indexList), indexSet);
         }
 
         List<Index> indexList;
@@ -127,13 +191,11 @@ class RepositoryOperations {
             if (index != null) indexList.add(index);
         }
 
-        if (indexList != null) {
-            populateIndex(nitriteMapper, type, indexList, indexSet);
-        }
+        populateIndex(nitriteMapper, type, indexList, indexSet);
         return indexSet;
     }
 
-    <T> Field getField(Class<T> type, String name, boolean recursive) {
+    <T> Field getField(Class<T> type, String name) {
         if (name.contains(NitriteConfig.getFieldSeparator())) {
             return getEmbeddedField(type, name);
         } else {
@@ -148,7 +210,7 @@ class RepositoryOperations {
                 }
             }
 
-            if (field == null && recursive) {
+            if (field == null) {
                 List<Field> fields = getFieldsUpto(type, Object.class);
                 for (Field recursiveField : fields) {
                     if (recursiveField.getName().equals(name)) {
@@ -158,9 +220,15 @@ class RepositoryOperations {
                 }
             }
             if (field == null) {
-                throw new ValidationException("no such field \'" + name + "\' for type " + type.getName());
+                throw new ValidationException("no such field '" + name + "' for type " + type.getName());
             }
             return field;
+        }
+    }
+
+    private void validateCollection() {
+        if (collection == null) {
+            throw new ValidationException("repository has not been initialized properly");
         }
     }
 
@@ -177,8 +245,8 @@ class RepositoryOperations {
         Field field;
         try {
             field = startingClass.getDeclaredField(key);
-        } catch (NoSuchFieldException nsfe) {
-            throw new ValidationException("no such field \'" + key + "\' for type " + startingClass.getName());
+        } catch (NoSuchFieldException e) {
+            throw new ValidationException("no such field '" + key + "' for type " + startingClass.getName(), e);
         }
 
         if (!isNullOrEmpty(remaining) || remaining.contains(NitriteConfig.getFieldSeparator())) {
@@ -192,7 +260,7 @@ class RepositoryOperations {
                                    List<Index> indexList, Set<Index> indexSet) {
         for (Index index : indexList) {
             String name = index.value();
-            Field field = getField(type, name, true);
+            Field field = getField(type, name);
             if (field != null) {
                 validateObjectIndexField(nitriteMapper, field.getType(), field.getName());
                 indexSet.add(index);
@@ -244,15 +312,6 @@ class RepositoryOperations {
         return currentClassFields;
     }
 
-    private static void filterSynthetics(List<Field> fields) {
-        if (fields == null || fields.isEmpty()) return;
-        Iterator<Field> iterator = fields.iterator();
-        while (iterator.hasNext()) {
-            Field f = iterator.next();
-            if (f.isSynthetic()) iterator.remove();
-        }
-    }
-
     private <T extends Annotation> List<T> findAnnotations(Class<T> annotation, Class<?> type) {
         notNull(type, "type cannot be null");
         notNull(annotation, "annotationClass cannot be null");
@@ -274,5 +333,12 @@ class RepositoryOperations {
         }
 
         return annotations;
+    }
+
+    void removeNitriteId(Document document) {
+        document.remove(DOC_ID);
+        if (idField != null && idField.getType() == NitriteId.class) {
+            document.remove(idField.getName());
+        }
     }
 }

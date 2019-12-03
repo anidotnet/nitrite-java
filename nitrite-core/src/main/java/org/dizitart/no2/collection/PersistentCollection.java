@@ -219,13 +219,6 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
     void close();
 
     /**
-     * Returns the name of the {@link PersistentCollection}.
-     *
-     * @return the name.
-     */
-    String getName();
-
-    /**
      * Returns the size of the {@link PersistentCollection}.
      *
      * @return the size.

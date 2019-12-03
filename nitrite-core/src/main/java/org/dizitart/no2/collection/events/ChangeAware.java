@@ -39,7 +39,7 @@ public interface ChangeAware {
      * De-registers an already registered {@link ChangeListener} instance
      * to listen to any changes.
      *
-     * @param listener the listener
+     * @param listener the listener.
      */
     void deregister(ChangeListener listener);
 }

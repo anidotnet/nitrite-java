@@ -20,19 +20,19 @@ package org.dizitart.no2;
 
 import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.index.annotations.Index;
+import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.store.MVStoreConfig;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.StoreConfig;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedWriter;
@@ -147,7 +147,6 @@ public class NitriteBuilderTest {
     }
 
     @Test
-    @Ignore
     public void testPopulateRepositories() {
         File file = new File(filePath);
         NitriteBuilder builder = NitriteBuilder.get();
@@ -175,6 +174,8 @@ public class NitriteBuilderTest {
         db.commit();
         db.close();
 
+        builder = NitriteBuilder.get();
+        builder.filePath(file);
         db = builder.openOrCreate();
         assertTrue(db.hasCollection("test"));
         assertTrue(db.hasRepository(TestObject.class));
@@ -250,7 +251,7 @@ public class NitriteBuilderTest {
     }
 
     @Index(value = "longValue")
-    private class TestObject {
+    private class TestObject implements Mappable {
         private String stringValue;
         private Long longValue;
 
@@ -260,10 +261,24 @@ public class NitriteBuilderTest {
             this.longValue = longValue;
             this.stringValue = stringValue;
         }
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument("stringValue", stringValue)
+                .put("longValue",longValue);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            if (document != null) {
+                this.stringValue = document.get("stringValue", String.class);
+                this.longValue = document.get("longValue", Long.class);
+            }
+        }
     }
 
     @Index(value = "longValue")
-    private class TestObject2 {
+    private class TestObject2 implements Mappable {
         private String stringValue;
         private Long longValue;
 
@@ -272,6 +287,20 @@ public class NitriteBuilderTest {
         public TestObject2(String stringValue, Long longValue) {
             this.longValue = longValue;
             this.stringValue = stringValue;
+        }
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument("stringValue", stringValue)
+                .put("longValue",longValue);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            if (document != null) {
+                this.stringValue = document.get("stringValue", String.class);
+                this.longValue = document.get("longValue", Long.class);
+            }
         }
     }
 
@@ -314,9 +343,13 @@ public class NitriteBuilderTest {
     }
 
     public static class CustomNitriteMapper implements NitriteMapper {
+        @Override
+        public <T> Document toDocument(T object) {
+            return null;
+        }
 
         @Override
-        public <T> Document asDocument(T object) {
+        public <T> T toObject(Document document, Class<T> type) {
             return null;
         }
 

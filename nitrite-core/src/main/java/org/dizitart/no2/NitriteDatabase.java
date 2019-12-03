@@ -3,19 +3,16 @@ package org.dizitart.no2;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.CollectionFactory;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.repository.ObjectRepository;
-import org.dizitart.no2.repository.RepositoryFactory;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.SecurityException;
+import org.dizitart.no2.repository.ObjectRepository;
+import org.dizitart.no2.repository.RepositoryFactory;
 import org.dizitart.no2.store.NitriteStore;
 import org.dizitart.no2.store.events.StoreEventListener;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.dizitart.no2.common.util.ObjectUtils.*;
 
@@ -77,14 +74,22 @@ class NitriteDatabase implements Nitrite {
     }
 
     @Override
-    public Map<String, String> listKeyedRepository() {
-        Map<String, String> resultMap = new HashMap<>();
+    public Map<String, Set<String>> listKeyedRepository() {
+        Map<String, Set<String>> resultMap = new HashMap<>();
         Set<String> repository = store.getRepositoryRegistry().keySet();
         for (String name : repository) {
             if (isKeyedRepository(name)) {
                 String key = getKeyName(name);
                 String type = getKeyedRepositoryType(name);
-                resultMap.put(key, type);
+
+                Set<String> types;
+                if (resultMap.containsKey(key)) {
+                    types = resultMap.get(key);
+                } else {
+                    types = new HashSet<>();
+                }
+                types.add(type);
+                resultMap.put(key, types);
             }
         }
         return resultMap;

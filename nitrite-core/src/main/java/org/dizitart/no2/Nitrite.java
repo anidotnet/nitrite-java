@@ -208,7 +208,7 @@ public interface Nitrite extends Closeable {
      *
      * @return the set of all registered classes' names.
      */
-    Map<String, String> listKeyedRepository();
+    Map<String, Set<String>> listKeyedRepository();
 
     /**
      * Checks whether the store has any unsaved changes.
@@ -263,7 +263,7 @@ public interface Nitrite extends Closeable {
      */
     default <T> boolean hasRepository(String key, Class<T> type) {
         return listKeyedRepository().containsKey(key)
-            && listKeyedRepository().get(key).equals(type.getName());
+            && listKeyedRepository().get(key).contains(type.getName());
     }
 
     default void validateCollectionName(String name) {

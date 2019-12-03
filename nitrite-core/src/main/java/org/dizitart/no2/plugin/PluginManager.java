@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.exceptions.PluginException;
+import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.NitriteStore;
@@ -120,8 +121,20 @@ public class PluginManager {
 
     @SuppressWarnings("unchecked")
     private void loadInternalPlugins() throws Exception {
-        load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.UniqueIndexer"));
-        load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NonUniqueIndexer"));
-        load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NitriteTextIndexer"));
+        if (!indexerMap.containsKey(IndexType.Unique)) {
+            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.UniqueIndexer"));
+        }
+
+        if (!indexerMap.containsKey(IndexType.NonUnique)) {
+            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NonUniqueIndexer"));
+        }
+
+        if (!indexerMap.containsKey(IndexType.Fulltext)) {
+            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NitriteTextIndexer"));
+        }
+
+        if (nitriteMapper == null) {
+            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.mapper.MappableMapper"));
+        }
     }
 }

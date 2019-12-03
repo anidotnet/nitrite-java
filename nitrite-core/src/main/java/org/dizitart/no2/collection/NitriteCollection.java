@@ -105,7 +105,7 @@ public interface NitriteCollection extends PersistentCollection<Document> {
     }
 
     /**
-     * Updates documents in the collection. Update operation can be customized
+     * Updates document in the collection. Update operation can be customized
      * with the help of `updateOptions`.
      *
      * If the `filter` is `null`, it will update all documents in the collection unless
@@ -185,4 +185,11 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * @see DocumentCursor#project(Document)
      */
     DocumentCursor find(Filter filter);
+
+    /**
+     * Returns the name of the {@link NitriteCollection}.
+     *
+     * @return the name.
+     */
+    String getName();
 }
