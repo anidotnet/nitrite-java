@@ -1,21 +1,21 @@
 package org.dizitart.no2.collection;
 
 import lombok.Getter;
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
-import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.index.IndexEntry;
-import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperations;
+import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.NotIdentifiableException;
+import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.index.IndexEntry;
+import org.dizitart.no2.index.IndexOptions;
+import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
@@ -108,7 +108,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void createIndex(Field field, IndexOptions indexOptions) {
+    public void createIndex(String field, IndexOptions indexOptions) {
         checkOpened();
         notNull(field, "field cannot be null");
 
@@ -122,7 +122,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void rebuildIndex(Field field, boolean isAsync) {
+    public void rebuildIndex(String field, boolean isAsync) {
         checkOpened();
         notNull(field, "field cannot be null");
 
@@ -142,7 +142,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public boolean hasIndex(Field field) {
+    public boolean hasIndex(String field) {
         checkOpened();
         notNull(field, "field cannot be null");
 
@@ -150,14 +150,14 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public boolean isIndexing(Field field) {
+    public boolean isIndexing(String field) {
         checkOpened();
         notNull(field, "field cannot be null");
         return collectionOperations.isIndexing(field);
     }
 
     @Override
-    public void dropIndex(Field field) {
+    public void dropIndex(String field) {
         checkOpened();
         notNull(field, "field cannot be null");
         collectionOperations.dropIndex(field);

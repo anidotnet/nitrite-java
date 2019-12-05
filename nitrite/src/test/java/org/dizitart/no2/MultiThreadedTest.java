@@ -18,10 +18,11 @@
 
 package org.dizitart.no2;
 
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.IndexOptions;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.index.IndexOptions;
+import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexType;
 import org.junit.After;
 import org.junit.Test;
@@ -37,9 +38,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
-import static org.dizitart.no2.Document.createDocument;
-import static org.dizitart.no2.collection.Field.of;
-import static org.dizitart.no2.collection.filters.FluentFilter.when;
+import static org.dizitart.no2.collection.Document.createDocument;
+import static org.dizitart.no2.filters.FluentFilter.when;
 import static org.dizitart.no2.common.concurrent.ExecutorServiceManager.shutdownExecutors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -95,7 +95,7 @@ public class MultiThreadedTest {
 
         collection = db.getCollection("test");
         collection.remove(Filter.ALL);
-        collection.createIndex(of("unixTime"), IndexOptions.indexOptions(IndexType.Unique));
+        collection.createIndex("unixTime", IndexOptions.indexOptions(IndexType.Unique));
         db.commit();
 
         for (int i = 0; i < threadCount; i++) {
@@ -106,23 +106,23 @@ public class MultiThreadedTest {
                         collection.insert(document);
 
                         if (j == iterationCount / 2
-                                && !collection.hasIndex(of("text"))
-                                && !collection.hasIndex(of("date"))) {
-                            collection.createIndex(of("text"), IndexOptions.indexOptions(IndexType.Fulltext));
-                            collection.createIndex(of("date"), IndexOptions.indexOptions(IndexType.NonUnique));
+                                && !collection.hasIndex("text")
+                                && !collection.hasIndex("date")) {
+                            collection.createIndex("text", IndexOptions.indexOptions(IndexType.Fulltext));
+                            collection.createIndex("date", IndexOptions.indexOptions(IndexType.NonUnique));
                         }
 
                         long unixTime = (long) document.get("unixTime");
                         DocumentCursor cursor = collection.find(when("unixTime").eq(unixTime));
                         assertTrue(cursor.size() >= 0);
 
-                        if (collection.hasIndex(of("text")) && !collection.isIndexing(of("text"))) {
+                        if (collection.hasIndex("text") && !collection.isIndexing("text")) {
                             String textData = (String) document.get("text");
                             cursor = collection.find(when("text").text(textData));
                             assertTrue(cursor.size() >= 0);
                         }
 
-                        assertTrue(collection.hasIndex(of("unixTime")));
+                        assertTrue(collection.hasIndex("unixTime"));
                     } catch (Throwable e) {
                         System.out.println("Exception at thread " +
                                 Thread.currentThread().getName() + " with iteration " + j);
@@ -137,8 +137,8 @@ public class MultiThreadedTest {
 
         db.commit();
 
-        assertTrue(collection.hasIndex(of("text")));
-        assertTrue(collection.hasIndex(of("date")));
+        assertTrue(collection.hasIndex("text"));
+        assertTrue(collection.hasIndex("date"));
 
         DocumentCursor cursor = collection.find();
         assertEquals(cursor.size(), docCounter.get());

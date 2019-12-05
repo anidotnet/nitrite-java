@@ -17,10 +17,10 @@
 package org.dizitart.no2;
 
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.common.Constants;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.store.events.StoreEventListener;
 
 import java.io.Closeable;
@@ -231,6 +231,13 @@ public interface Nitrite extends Closeable {
      * @see org.dizitart.no2.store.events.StoreEvents
      * */
     void addEventListener(StoreEventListener listener);
+
+    /**
+     * Gets the {@link NitriteConfig} instance to configure the database.
+     *
+     * @return the {@link NitriteConfig} instance to configure the database.
+     * */
+    NitriteConfig getConfig();
 
     /**
      * Checks whether a particular {@link NitriteCollection} exists in the store.

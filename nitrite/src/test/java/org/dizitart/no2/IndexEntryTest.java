@@ -22,7 +22,6 @@ import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexType;
 import org.junit.Test;
 
-import static org.dizitart.no2.collection.Field.of;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,15 +31,15 @@ public class IndexEntryTest {
 
     @Test
     public void testIndexEquals() {
-        IndexEntry index = new IndexEntry(IndexType.Fulltext, of("test"), "testColl");
-        IndexEntry index2 = new IndexEntry(IndexType.Fulltext, of("test"), "testColl");
+        IndexEntry index = new IndexEntry(IndexType.Fulltext, "test", "testColl");
+        IndexEntry index2 = new IndexEntry(IndexType.Fulltext, "test", "testColl");
         assertEquals(index, index2);
     }
 
     @Test
     public void testIndexCompare() {
-        IndexEntry index = new IndexEntry(IndexType.Fulltext, of("test"), "testColl");
-        IndexEntry index2 = new IndexEntry(IndexType.Fulltext, of("test"), "testColl");
+        IndexEntry index = new IndexEntry(IndexType.Fulltext, "test", "testColl");
+        IndexEntry index2 = new IndexEntry(IndexType.Fulltext, "test", "testColl");
 
         assertEquals(index.toString(), "IndexEntry(indexType=Fulltext, field=test, collectionName=testColl)");
         assertEquals(index.compareTo(index2), 0);

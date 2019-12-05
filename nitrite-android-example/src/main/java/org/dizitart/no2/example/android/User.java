@@ -16,7 +16,7 @@
 
 package org.dizitart.no2.example.android;
 
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 

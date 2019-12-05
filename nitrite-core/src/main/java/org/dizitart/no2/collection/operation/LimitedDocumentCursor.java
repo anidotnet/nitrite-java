@@ -1,6 +1,6 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.LimitedIterator;
 import org.dizitart.no2.common.ReadableStream;
 

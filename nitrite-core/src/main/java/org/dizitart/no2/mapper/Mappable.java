@@ -1,6 +1,6 @@
 package org.dizitart.no2.mapper;
 
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
 
 /**
  * An object that serializes itself to a {@link Document}

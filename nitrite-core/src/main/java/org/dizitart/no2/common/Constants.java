@@ -19,7 +19,7 @@
 package org.dizitart.no2.common;
 
 import lombok.experimental.UtilityClass;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.NitriteId;
 
 /**
  * Constants used in Nitrite.

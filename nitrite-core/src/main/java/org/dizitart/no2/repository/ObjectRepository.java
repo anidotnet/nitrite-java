@@ -1,10 +1,17 @@
 package org.dizitart.no2.repository;
 
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.PersistentCollection;
-import org.dizitart.no2.collection.WriteResult;
-import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.collection.events.ChangeListener;
+import org.dizitart.no2.collection.events.ChangeType;
+import org.dizitart.no2.common.PersistentCollection;
+import org.dizitart.no2.common.WriteResult;
+import org.dizitart.no2.exceptions.InvalidIdException;
+import org.dizitart.no2.exceptions.UniqueConstraintException;
+import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.index.annotations.Id;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -16,10 +23,10 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 
 /**
  * Represents a type-safe persistent java object collection. An object repository
- * is backed by a {@link org.dizitart.no2.collection.NitriteCollection}, where all objects are converted
+ * is backed by a {@link NitriteCollection}, where all objects are converted
  * into a {@link Document} and saved into the database.
  * <p>
- * An object repository is observable like its underlying {@link org.dizitart.no2.collection.NitriteCollection}.
+ * An object repository is observable like its underlying {@link NitriteCollection}.
  * <p>
  * [[app-listing]]
  * [source,java]
@@ -52,38 +59,38 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * --
  * @see org.dizitart.no2.collection.events.ChangeAware
  * @see Document
- * @see org.dizitart.no2.NitriteId
- * @see org.dizitart.no2.collection.events.ChangeListener
+ * @see NitriteId
+ * @see ChangeListener
  * @see org.dizitart.no2.common.event.EventBus
- * @see org.dizitart.no2.collection.NitriteCollection
+ * @see NitriteCollection
  * @since 1.0
  */
 public interface ObjectRepository<T> extends PersistentCollection<T> {
     /**
      * Inserts object into this repository. If the object contains a value marked with
-     * {@link org.dizitart.no2.index.annotations.Id}, then the value will be used as a unique key to identify the object
-     * in the repository. If the object does not contain any value marked with {@link org.dizitart.no2.index.annotations.Id},
-     * then nitrite will generate a new {@link org.dizitart.no2.NitriteId} and will add it to the document
+     * {@link Id}, then the value will be used as a unique key to identify the object
+     * in the repository. If the object does not contain any value marked with {@link Id},
+     * then nitrite will generate a new {@link NitriteId} and will add it to the document
      * generated from the object.
      * <p>
      * If any of the value is already indexed in the repository, then after insertion the
      * index will also be updated.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Insert}.
+     * {@link ChangeType#Insert}.
      *
      * @param object the object to insert
      * @param others other objects to insert in a batch.
      * @return the result of the write operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException       if `object` is `null`.
-     * @throws org.dizitart.no2.exceptions.InvalidIdException        if the id value contains `null` value.
-     * @throws org.dizitart.no2.exceptions.InvalidIdException        if the id value contains non comparable type, i.e. type that does not implement {@link Comparable}.
-     * @throws org.dizitart.no2.exceptions.InvalidIdException        if the id contains value which is not of the same java type as of other objects' id in the collection.
-     * @throws org.dizitart.no2.exceptions.UniqueConstraintException if the value of id value clashes with the id of another object in the collection.
-     * @throws org.dizitart.no2.exceptions.UniqueConstraintException if a value of the object is indexed, and it violates the unique constraint in the collection(if any).
-     * @see org.dizitart.no2.NitriteId
+     * @throws ValidationException       if `object` is `null`.
+     * @throws InvalidIdException        if the id value contains `null` value.
+     * @throws InvalidIdException        if the id value contains non comparable type, i.e. type that does not implement {@link Comparable}.
+     * @throws InvalidIdException        if the id contains value which is not of the same java type as of other objects' id in the collection.
+     * @throws UniqueConstraintException if the value of id value clashes with the id of another object in the collection.
+     * @throws UniqueConstraintException if a value of the object is indexed, and it violates the unique constraint in the collection(if any).
+     * @see NitriteId
      * @see WriteResult
      */
     @SuppressWarnings("unchecked")
@@ -117,14 +124,14 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Update}.
+     * {@link ChangeType#Update}.
      *
      * @param filter the filter to apply to select objects from the collection.
      * @param update the modifications to apply.
      * @return the result of the update operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException if the `update` object is `null`.
+     * @throws ValidationException if the `update` object is `null`.
      */
     default WriteResult update(Filter filter, T update) {
         return update(filter, update, false);
@@ -145,17 +152,17 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Update} or
-     * {@link org.dizitart.no2.collection.events.ChangeType#Insert}.
+     * {@link ChangeType#Update} or
+     * {@link ChangeType#Insert}.
      *
      * @param filter         the filter to apply to select objects from the collection.
      * @param update         the modifications to apply.
      * @param insertIfAbsent if set to `true`, `update` object will be inserted if not found.
      * @return the result of the update operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException if the `update` object is `null`.
-     * @throws org.dizitart.no2.exceptions.ValidationException if `updateOptions` is `null`.
+     * @throws ValidationException if the `update` object is `null`.
+     * @throws ValidationException if `updateOptions` is `null`.
      */
     WriteResult update(Filter filter, T update, boolean insertIfAbsent);
 
@@ -171,14 +178,14 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Update}.
+     * {@link ChangeType#Update}.
      *
      * @param filter the filter to apply to select objects from the collection.
      * @param update the modifications to apply.
      * @return the result of the update operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException if the `update` object is `null`.
+     * @throws ValidationException if the `update` object is `null`.
      */
     default WriteResult update(Filter filter, Document update) {
         return update(filter, update, false);
@@ -199,15 +206,15 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Update}.
+     * {@link ChangeType#Update}.
      *
      * @param filter   the filter to apply to select objects from the collection.
      * @param update   the modifications to apply.
      * @param justOnce indicates if update should be applied on first matching object or all.
      * @return the result of the update operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException if the `update` object is `null`.
+     * @throws ValidationException if the `update` object is `null`.
      */
     WriteResult update(Filter filter, Document update, boolean justOnce);
 
@@ -217,9 +224,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * If the `filter` is `null`, it will remove all objects from the collection.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Remove}.
+     * {@link ChangeType#Remove}.
      *
      * @param filter the filter to apply to select elements from collection.
      * @return the result of the remove operation.
@@ -236,9 +243,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * `justOnce` is set to `true` in `removeOptions`.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link ChangeListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Remove}.
+     * {@link ChangeType#Remove}.
      *
      * @param filter  the filter to apply to select objects from collection.
      * @param justOne indicates if only one element will be removed or all of them.
@@ -265,11 +272,23 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      *
      * @param filter the filter to apply to select objects from collection.
      * @return a cursor to all selected objects.
-     * @throws org.dizitart.no2.exceptions.ValidationException if `filter` is null.
+     * @throws ValidationException if `filter` is null.
      * @see Filter
      * @see Cursor#project(Class)
      */
     Cursor<T> find(Filter filter);
+
+    /**
+     * Gets a single element from the repository by its id. If no element
+     * is found, it will return `null`. The object must have a field annotated with {@link Id},
+     * otherwise this call will throw {@link InvalidIdException}.
+     *
+     * @param id the id value
+     * @return the unique object associated with the id.
+     * @throws ValidationException if `id` is `null`.
+     * @throws InvalidIdException if the object has no field marked with {@link Id}.
+     */
+    <I> T getById(I id);
 
     /**
      * Returns the type associated with the {@link ObjectRepository}.

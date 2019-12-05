@@ -1,7 +1,7 @@
 package org.dizitart.no2.index;
 
 import lombok.*;
-import org.dizitart.no2.collection.Field;
+import org.dizitart.no2.collection.NitriteCollection;
 
 import java.io.Serializable;
 
@@ -13,7 +13,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  *
  * @author Anindya Chatterjee
  * @since 1.0
- * @see org.dizitart.no2.collection.NitriteCollection#createIndex(org.dizitart.no2.collection.Field, org.dizitart.no2.collection.IndexOptions)
+ * @see NitriteCollection#createIndex(org.dizitart.no2.collection.Field, IndexOptions)
  */
 @ToString
 @EqualsAndHashCode
@@ -35,7 +35,7 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
      * @return the target field.
      * */
     @Getter
-    private Field field;
+    private String field;
 
     /**
      * Gets the collection name.
@@ -52,7 +52,7 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
      * @param field          the value
      * @param collectionName the collection name
      */
-    public IndexEntry(String indexType, Field field, String collectionName) {
+    public IndexEntry(String indexType, String field, String collectionName) {
         notNull(indexType, "indexType cannot be null");
         notNull(field, "field cannot be null");
         notNull(collectionName, "collectionName cannot be null");

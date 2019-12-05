@@ -1,8 +1,8 @@
 package org.dizitart.no2.collection.operation;
 
 import lombok.ToString;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.WriteResult;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.WriteResult;
 
 import java.util.ArrayList;
 import java.util.Iterator;

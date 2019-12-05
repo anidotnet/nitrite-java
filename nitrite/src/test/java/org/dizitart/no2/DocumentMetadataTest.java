@@ -18,12 +18,13 @@
 
 package org.dizitart.no2;
 
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.events.ChangeType;
 import org.junit.Test;
 
-import static org.dizitart.no2.Document.createDocument;
-import static org.dizitart.no2.collection.filters.FluentFilter.when;
+import static org.dizitart.no2.collection.Document.createDocument;
+import static org.dizitart.no2.filters.FluentFilter.when;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

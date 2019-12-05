@@ -19,8 +19,9 @@
 package org.dizitart.no2;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.WriteResult;
+import org.dizitart.no2.common.WriteResult;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -34,8 +35,8 @@ import java.util.Collection;
 import java.util.Locale;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
-import static org.dizitart.no2.Document.createDocument;
-import static org.dizitart.no2.collection.filters.Filter.ALL;
+import static org.dizitart.no2.collection.Document.createDocument;
+import static org.dizitart.no2.filters.Filter.ALL;
 
 @Slf4j
 @RunWith(value = Parameterized.class)

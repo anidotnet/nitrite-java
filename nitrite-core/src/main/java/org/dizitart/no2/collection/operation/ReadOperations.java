@@ -1,16 +1,15 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.collection.filters.IndexAwareFilter;
-import org.dizitart.no2.collection.filters.LogicalFilter;
-import org.dizitart.no2.collection.filters.NitriteFilter;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.filters.IndexAwareFilter;
+import org.dizitart.no2.filters.LogicalFilter;
+import org.dizitart.no2.filters.NitriteFilter;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.store.IndexCatalog;
@@ -85,7 +84,7 @@ class ReadOperations {
     }
 
     private void prepareIndexedFilter(IndexAwareFilter indexAwareFilter) {
-        Field field = indexAwareFilter.getField();
+        String field = indexAwareFilter.getField();
 
         IndexCatalog indexCatalog = nitriteConfig.getNitriteStore().getIndexCatalog();
         IndexEntry indexEntry = indexCatalog.findIndexEntry(collectionName, field);

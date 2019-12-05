@@ -1,7 +1,7 @@
 package org.dizitart.no2.index;
 
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.Field;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.filters.FluentFilter;
 
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
  *
  * @since 1.0
  * @author Anindya Chatterjee
- * @see org.dizitart.no2.collection.filters.FluentFilter#text(String)
+ * @see FluentFilter#text(String)
  */
 public interface TextIndexer extends Indexer {
     /**
@@ -24,5 +24,5 @@ public interface TextIndexer extends Indexer {
      * @param value the value
      * @return the result set
      */
-    Set<NitriteId> findText(String collectionName, Field field, String value);
+    Set<NitriteId> findText(String collectionName, String field, String value);
 }

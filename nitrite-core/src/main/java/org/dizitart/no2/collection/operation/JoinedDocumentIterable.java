@@ -1,9 +1,9 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.Lookup;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.Lookup;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.store.NitriteMap;

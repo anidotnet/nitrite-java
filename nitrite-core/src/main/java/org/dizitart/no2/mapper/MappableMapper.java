@@ -1,7 +1,7 @@
 package org.dizitart.no2.mapper;
 
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 
 /**

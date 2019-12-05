@@ -1,10 +1,10 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.filters.Filter;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

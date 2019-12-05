@@ -3,12 +3,12 @@ package org.dizitart.no2.collection;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.dizitart.no2.Document;
+import org.dizitart.no2.filters.Filter;
 
 /**
  * Settings to control update operation in {@link NitriteCollection}.
  *
- * @see NitriteCollection#update(org.dizitart.no2.collection.filters.Filter, Document, UpdateOptions)
+ * @see NitriteCollection#update(Filter, Document, UpdateOptions)
  * @author Anindya Chatterjee
  * @since 1.0
  */
@@ -22,7 +22,7 @@ public class UpdateOptions {
      * @param insertIfAbsent a value indicating, if a new document to insert in case the
      *               filter fails to find a document to update.
      * @return `true` if a new document to insert; otherwise, `false`.
-     * @see NitriteCollection#update(org.dizitart.no2.collection.filters.Filter, Document, UpdateOptions)
+     * @see NitriteCollection#update(Filter, Document, UpdateOptions)
      * */
     @Getter
     @Setter

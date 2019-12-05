@@ -18,10 +18,11 @@
 
 package org.dizitart.no2;
 
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.SortOrder;
-import org.dizitart.no2.collection.WriteResult;
+import org.dizitart.no2.common.SortOrder;
+import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.index.IndexType;
 
 import java.io.File;
@@ -32,11 +33,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static org.dizitart.no2.Document.createDocument;
-import static org.dizitart.no2.collection.Field.of;
-import static org.dizitart.no2.collection.IndexOptions.indexOptions;
-import static org.dizitart.no2.collection.filters.Filter.ALL;
-import static org.dizitart.no2.collection.filters.FluentFilter.when;
+import static org.dizitart.no2.collection.Document.createDocument;
+import static org.dizitart.no2.index.IndexOptions.indexOptions;
+import static org.dizitart.no2.filters.Filter.ALL;
+import static org.dizitart.no2.filters.FluentFilter.when;
 import static org.dizitart.no2.common.util.TestUtil.isSorted;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -80,9 +80,9 @@ public class DbTestOperations {
 
         collection = db.getCollection("test");
         collection.remove(ALL);
-        collection.createIndex(of("body"), indexOptions(IndexType.Fulltext));
-        collection.createIndex(of("firstName"), indexOptions(IndexType.Unique));
-        collection.createIndex(of("lastName"), indexOptions(IndexType.NonUnique));
+        collection.createIndex("body", indexOptions(IndexType.Fulltext));
+        collection.createIndex("firstName", indexOptions(IndexType.Unique));
+        collection.createIndex("lastName", indexOptions(IndexType.NonUnique));
         db.close();
     }
 
@@ -191,8 +191,8 @@ public class DbTestOperations {
         cursor = collection.find(when("firstName").notIn("fn1", "fn2"));
         assertEquals(cursor.size(), 1);
 
-        collection.createIndex(of("birthDay"), indexOptions(IndexType.Unique));
-        cursor = collection.find().sort(of("birthDay"), SortOrder.Descending).limit(1, 2);
+        collection.createIndex("birthDay", indexOptions(IndexType.Unique));
+        cursor = collection.find().sort("birthDay", SortOrder.Descending).limit(1, 2);
         assertEquals(cursor.size(), 2);
         List<Date> dateList = new ArrayList<>();
         for (Document document : cursor) {

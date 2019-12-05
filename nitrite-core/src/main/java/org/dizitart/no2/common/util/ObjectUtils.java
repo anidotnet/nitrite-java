@@ -20,9 +20,9 @@ package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisSerializer;
 import org.objenesis.ObjenesisStd;

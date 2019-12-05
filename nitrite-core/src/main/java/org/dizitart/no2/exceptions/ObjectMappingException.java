@@ -18,8 +18,10 @@
 
 package org.dizitart.no2.exceptions;
 
+import org.dizitart.no2.collection.Document;
+
 /**
- * Exception thrown while mapping of {@link org.dizitart.no2.Document} from
+ * Exception thrown while mapping of {@link Document} from
  * objects fails or vice versa.
  *
  * @since 1.0

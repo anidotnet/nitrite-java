@@ -1,7 +1,8 @@
 package org.dizitart.no2.store;
 
-import org.dizitart.no2.repository.ObjectRepository;
+import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.plugin.NitritePlugin;
+import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.store.events.StoreEventListener;
 
 import java.util.Map;
@@ -25,7 +26,7 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
     boolean isClosed();
 
     /**
-     * Gets the set of all {@link org.dizitart.no2.collection.NitriteCollection} names in store.
+     * Gets the set of all {@link NitriteCollection} names in store.
      *
      * @return the set of names.
      */

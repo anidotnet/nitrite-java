@@ -1,8 +1,11 @@
 package org.dizitart.no2.repository;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.collection.*;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.DocumentCursor;
+import org.dizitart.no2.common.Lookup;
+import org.dizitart.no2.common.NullOrder;
 import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.mapper.NitriteMapper;
@@ -42,7 +45,7 @@ class ObjectCursor<T> implements Cursor<T> {
     }
 
     @Override
-    public Cursor<T> sort(Field field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
+    public Cursor<T> sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
         return new ObjectCursor<>(nitriteMapper, cursor.sort(field, sortOrder, collator, nullOrder), type);
     }
 

@@ -1,6 +1,6 @@
 package org.dizitart.no2.repository;
 
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.mapper.NitriteMapper;

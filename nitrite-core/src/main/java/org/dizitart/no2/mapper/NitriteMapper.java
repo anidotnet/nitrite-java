@@ -1,6 +1,6 @@
 package org.dizitart.no2.mapper;
 
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.plugin.NitritePlugin;
 
 import static org.dizitart.no2.common.util.ObjectUtils.newInstance;

@@ -16,7 +16,8 @@
 
 package org.dizitart.no2.collection.events;
 
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.repository.ObjectRepository;
 
 /**
@@ -30,7 +31,7 @@ public enum ChangeType {
     /**
      * Insert action.
      *
-     * @see org.dizitart.no2.collection.NitriteCollection#insert(Object[])
+     * @see NitriteCollection#insert(Object[])
      * @see ObjectRepository#insert(Object, Object[])
      * @see ObjectRepository#insert(Object[])
      */
@@ -39,8 +40,8 @@ public enum ChangeType {
     /**
      * Update action.
      *
-     * @see org.dizitart.no2.collection.NitriteCollection#update(Filter, Document)
-     * @see org.dizitart.no2.collection.NitriteCollection#update(Filter, Document, UpdateOptions)
+     * @see NitriteCollection#update(Filter, Document)
+     * @see NitriteCollection#update(Filter, Document, UpdateOptions)
      * @see ObjectRepository#update(Filter, Object)
      */
     Update,
@@ -48,8 +49,8 @@ public enum ChangeType {
     /**
      * Remove action.
      *
-     * @see org.dizitart.no2.collection.NitriteCollection#remove(Filter)
-     * @see org.dizitart.no2.collection.NitriteCollection#remove(Filter, RemoveOptions)
+     * @see NitriteCollection#remove(Filter)
+     * @see NitriteCollection#remove(Filter, RemoveOptions)
      * @see ObjectRepository#remove(Filter, RemoveOptions)
      */
     Remove,

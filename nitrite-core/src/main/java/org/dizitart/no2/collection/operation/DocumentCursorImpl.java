@@ -1,10 +1,9 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.*;
-import org.dizitart.no2.common.KeyValuePair;
-import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.DocumentCursor;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.*;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.store.NitriteMap;
@@ -25,7 +24,7 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     @Override
-    public DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
+    public DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder) {
         return new DocumentCursorImpl(new SortedDocumentCursor(field, sortOrder, collator,
             nullOrder, readableStream, nitriteMap), nitriteMap);
     }

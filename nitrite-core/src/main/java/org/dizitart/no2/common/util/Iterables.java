@@ -21,7 +21,10 @@ package org.dizitart.no2.common.util;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A utility class for {@link Iterable}.

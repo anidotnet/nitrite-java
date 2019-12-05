@@ -111,6 +111,11 @@ class NitriteDatabase implements Nitrite {
     }
 
     @Override
+    public NitriteConfig getConfig() {
+        return nitriteConfig;
+    }
+
+    @Override
     public synchronized void close() {
         checkOpened();
         try {

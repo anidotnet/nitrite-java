@@ -18,10 +18,13 @@
 
 package org.dizitart.no2.exceptions;
 
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
+
 /**
- * Exception thrown when a {@link org.dizitart.no2.Document}
- * does not have any {@link org.dizitart.no2.NitriteId} associated
- * with it or it has invalid/incompatible {@link org.dizitart.no2.NitriteId}.
+ * Exception thrown when a {@link Document}
+ * does not have any {@link NitriteId} associated
+ * with it or it has invalid/incompatible {@link NitriteId}.
  *
  * @author Anindya Chatterjee
  * @since 1.0

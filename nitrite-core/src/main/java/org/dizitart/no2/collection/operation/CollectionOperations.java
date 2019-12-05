@@ -2,16 +2,18 @@ package org.dizitart.no2.collection.operation;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.*;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.DocumentCursor;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.collection.UpdateOptions;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangedItem;
-import org.dizitart.no2.collection.filters.Filter;
-import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.collection.meta.Attributes;
+import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
+import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.store.NitriteMap;
 
 import java.util.Collection;
@@ -47,7 +49,7 @@ public class CollectionOperations {
         init();
     }
 
-    public void createIndex(Field field, String indexType, boolean async) {
+    public void createIndex(String field, String indexType, boolean async) {
         try {
             writeLock.lock();
             indexOperations.ensureIndex(field, indexType, async);
@@ -56,7 +58,7 @@ public class CollectionOperations {
         }
     }
 
-    public IndexEntry findIndex(Field field) {
+    public IndexEntry findIndex(String field) {
         try {
             readLock.lock();
             return indexOperations.findIndexEntry(field);
@@ -83,7 +85,7 @@ public class CollectionOperations {
         }
     }
 
-    public boolean hasIndex(Field field) {
+    public boolean hasIndex(String field) {
         try {
             readLock.lock();
             return indexOperations.hasIndexEntry(field);
@@ -92,7 +94,7 @@ public class CollectionOperations {
         }
     }
 
-    public boolean isIndexing(Field field) {
+    public boolean isIndexing(String field) {
         try {
             readLock.lock();
             return indexOperations.isIndexing(field);
@@ -101,7 +103,7 @@ public class CollectionOperations {
         }
     }
 
-    public void dropIndex(Field field) {
+    public void dropIndex(String field) {
         try {
             writeLock.lock();
             indexOperations.dropIndex(field);

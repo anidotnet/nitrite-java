@@ -1,8 +1,9 @@
 package org.dizitart.no2.collection;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.common.Lookup;
+import org.dizitart.no2.common.NullOrder;
 import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.common.SortOrder;
 
 import java.text.Collator;
 
@@ -36,7 +37,7 @@ import java.text.Collator;
  */
 public interface DocumentCursor extends ReadableStream<Document> {
 
-    DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator, NullOrder nullOrder);
+    DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder);
 
     DocumentCursor limit(int offset, int size);
 
@@ -51,8 +52,8 @@ public interface DocumentCursor extends ReadableStream<Document> {
     /**
      * Performs a left outer join with a foreign cursor with the specified lookup parameters.
      *
-     * It performs an equality match on the localField to the foreignField from the documents of the foreign cursor.
-     * If an input document does not contain the localField, the join treats the field as having a value of `null`
+     * It performs an equality match on the localString to the foreignString from the documents of the foreign cursor.
+     * If an input document does not contain the localString, the join treats the field as having a value of `null`
      * for matching purposes.
      *
      * @param foreignCursor the foreign cursor for the join.
@@ -63,19 +64,19 @@ public interface DocumentCursor extends ReadableStream<Document> {
      */
     ReadableStream<Document> join(DocumentCursor foreignCursor, Lookup lookup);
 
-    default DocumentCursor sort(Field field) {
+    default DocumentCursor sort(String field) {
         return sort(field, SortOrder.Ascending);
     }
 
-    default DocumentCursor sort(Field field, SortOrder sortOrder) {
+    default DocumentCursor sort(String field, SortOrder sortOrder) {
         return sort(field, sortOrder, NullOrder.Default);
     }
 
-    default DocumentCursor sort(Field field, SortOrder sortOrder, Collator collator) {
+    default DocumentCursor sort(String field, SortOrder sortOrder, Collator collator) {
         return sort(field, sortOrder, collator, NullOrder.Default);
     }
 
-    default DocumentCursor sort(Field field, SortOrder sortOrder, NullOrder nullOrder) {
+    default DocumentCursor sort(String field, SortOrder sortOrder, NullOrder nullOrder) {
         return sort(field, sortOrder, null, nullOrder);
     }
 }

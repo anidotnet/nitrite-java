@@ -1,7 +1,7 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;

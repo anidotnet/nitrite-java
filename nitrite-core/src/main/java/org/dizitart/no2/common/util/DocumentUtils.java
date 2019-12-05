@@ -19,17 +19,17 @@
 package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
-import org.dizitart.no2.Document;
-import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.Map;
 import java.util.Objects;
 
-import static org.dizitart.no2.collection.filters.FluentFilter.when;
 import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
+import static org.dizitart.no2.filters.FluentFilter.when;
 
 /**
  * A utility class for {@link Document}.

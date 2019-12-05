@@ -1,11 +1,10 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.Field;
-import org.dizitart.no2.collection.NullOrder;
-import org.dizitart.no2.collection.SortOrder;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.NullOrder;
 import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.store.NitriteMap;
 
@@ -16,14 +15,14 @@ import java.util.*;
  * @author Anindya Chatterjee.
  */
 class SortedDocumentCursor implements ReadableStream<NitriteId> {
-    private final Field field;
+    private final String field;
     private final SortOrder sortOrder;
     private final Collator collator;
     private final NullOrder nullOrder;
     private final ReadableStream<NitriteId> readableStream;
     private final NitriteMap<NitriteId, Document> nitriteMap;
 
-    public SortedDocumentCursor(Field field,
+    public SortedDocumentCursor(String field,
                                 SortOrder sortOrder,
                                 Collator collator,
                                 NullOrder nullOrder,
@@ -43,7 +42,7 @@ class SortedDocumentCursor implements ReadableStream<NitriteId> {
     }
 
     static class SortedDocumentIterator implements Iterator<NitriteId> {
-        private final Field field;
+        private final String field;
         private final SortOrder sortOrder;
         private final Collator collator;
         private final NullOrder nullOrder;
@@ -51,7 +50,7 @@ class SortedDocumentCursor implements ReadableStream<NitriteId> {
         private final NitriteMap<NitriteId, Document> nitriteMap;
         private Iterator<NitriteId> sortedIterator;
 
-        public SortedDocumentIterator(Field field,
+        public SortedDocumentIterator(String field,
                                       SortOrder sortOrder,
                                       Collator collator,
                                       NullOrder nullOrder,
@@ -90,7 +89,7 @@ class SortedDocumentCursor implements ReadableStream<NitriteId> {
                 Document document = nitriteMap.get(id);
                 if (document == null) continue;
 
-                Object value = document.get(field.getName());
+                Object value = document.get(field);
                 if (value != null) {
                     if (value.getClass().isArray() || value instanceof Iterable) {
                         throw new InvalidOperationException("cannot sort on array or collection objects");

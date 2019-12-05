@@ -1,18 +1,18 @@
 package org.dizitart.no2.collection.operation;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.Document;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.collection.WriteResult;
 import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangeType;
 import org.dizitart.no2.collection.events.ChangedItem;
-import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
+import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.store.NitriteMap;
 
 import java.util.ArrayList;

@@ -1,12 +1,12 @@
 package org.dizitart.no2.repository;
 
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.NitriteId;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.filters.Filter;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.*;
+import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
@@ -19,13 +19,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static org.dizitart.no2.collection.Field.of;
-import static org.dizitart.no2.collection.IndexOptions.indexOptions;
-import static org.dizitart.no2.collection.filters.FluentFilter.when;
 import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.DocumentUtils.skeletonDocument;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
+import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.index.IndexOptions.indexOptions;
 
 /**
  * @author Anindya Chatterjee
@@ -53,17 +52,17 @@ class RepositoryOperations {
     }
 
     void createIndexes() {
-        Set<Index> indexes = extractIndices(nitriteMapper, type);
+        Set<Index> indexes = extractIndices(type);
         for (Index idx : indexes) {
-            org.dizitart.no2.collection.Field field = of(idx.value());
+            String field = idx.value();
             if (!collection.hasIndex(field)) {
-                collection.createIndex(of(idx.value()), indexOptions(idx.type(), false));
+                collection.createIndex(idx.value(), indexOptions(idx.type(), false));
             }
         }
 
-        idField = getIdField(nitriteMapper, type);
+        idField = getIdField(type);
         if (idField != null) {
-            org.dizitart.no2.collection.Field field = of(idField.getName());
+            String field = idField.getName();
             if (!collection.hasIndex(field)) {
                 collection.createIndex(field, indexOptions(IndexType.Unique));
             }
@@ -140,7 +139,7 @@ class RepositoryOperations {
         }
     }
 
-    <T> Field getIdField(NitriteMapper nitriteMapper, Class<T> type) {
+    <T> Field getIdField(Class<T> type) {
         List<Field> fields;
         if (type.isAnnotationPresent(InheritIndices.class)) {
             fields = getFieldsUpto(type, Object.class);
@@ -164,7 +163,7 @@ class RepositoryOperations {
         return idField;
     }
 
-    <T> Set<Index> extractIndices(NitriteMapper nitriteMapper, Class<T> type) {
+    <T> Set<Index> extractIndices(Class<T> type) {
         notNull(type, "type cannot be null");
 
         List<Indices> indicesList;
@@ -223,6 +222,40 @@ class RepositoryOperations {
                 throw new ValidationException("no such field '" + name + "' for type " + type.getName());
             }
             return field;
+        }
+    }
+
+    List<Field> getFieldsUpto(Class<?> startClass, Class<?> exclusiveParent) {
+        notNull(startClass, "startClass cannot be null");
+        List<Field> currentClassFields = new ArrayList<>(Arrays.asList(startClass.getDeclaredFields()));
+        filterSynthetics(currentClassFields);
+        Class<?> parentClass = startClass.getSuperclass();
+
+        if (parentClass != null && !(parentClass.equals(exclusiveParent))) {
+            List<Field> parentClassFields = getFieldsUpto(parentClass, exclusiveParent);
+            currentClassFields.addAll(parentClassFields);
+        }
+
+        return currentClassFields;
+    }
+
+    void removeNitriteId(Document document) {
+        document.remove(DOC_ID);
+        if (idField != null && idField.getType() == NitriteId.class) {
+            document.remove(idField.getName());
+        }
+    }
+
+    <I> Filter createIdFilter(I id) {
+        if (idField != null) {
+            if (idField.getType().isAssignableFrom(id.getClass())) {
+                return when(idField.getName()).eq(id);
+            } else {
+                throw new InvalidIdException(id.getClass().getName() + " is not assignable to id type "
+                    + idField.getType().getName());
+            }
+        } else {
+            throw new InvalidIdException(type.getName() + " does not have any id field");
         }
     }
 
@@ -298,20 +331,7 @@ class RepositoryOperations {
         }
     }
 
-    List<Field> getFieldsUpto(Class<?> startClass, Class<?> exclusiveParent) {
-        notNull(startClass, "startClass cannot be null");
-        List<Field> currentClassFields = new ArrayList<>(Arrays.asList(startClass.getDeclaredFields()));
-        filterSynthetics(currentClassFields);
-        Class<?> parentClass = startClass.getSuperclass();
-
-        if (parentClass != null && !(parentClass.equals(exclusiveParent))) {
-            List<Field> parentClassFields = getFieldsUpto(parentClass, exclusiveParent);
-            currentClassFields.addAll(parentClassFields);
-        }
-
-        return currentClassFields;
-    }
-
+    @SuppressWarnings("rawtypes")
     private <T extends Annotation> List<T> findAnnotations(Class<T> annotation, Class<?> type) {
         notNull(type, "type cannot be null");
         notNull(annotation, "annotationClass cannot be null");
@@ -333,12 +353,5 @@ class RepositoryOperations {
         }
 
         return annotations;
-    }
-
-    void removeNitriteId(Document document) {
-        document.remove(DOC_ID);
-        if (idField != null && idField.getType() == NitriteId.class) {
-            document.remove(idField.getName());
-        }
     }
 }

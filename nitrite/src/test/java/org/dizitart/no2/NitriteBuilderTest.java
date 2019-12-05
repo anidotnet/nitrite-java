@@ -18,8 +18,9 @@
 
 package org.dizitart.no2;
 
-import org.dizitart.no2.collection.Field;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.SecurityException;
@@ -312,27 +313,27 @@ public class NitriteBuilderTest {
         }
 
         @Override
-        public void writeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, Field field, Object fieldValue) {
+        public void writeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
 
         }
 
         @Override
-        public void removeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, Field field, Object fieldValue) {
+        public void removeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
 
         }
 
         @Override
-        public void updateIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, Field field, Object newValue, Object oldValue) {
+        public void updateIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object newValue, Object oldValue) {
 
         }
 
         @Override
-        public void dropIndex(NitriteMap<NitriteId, Document> collection, Field field) {
+        public void dropIndex(NitriteMap<NitriteId, Document> collection, String field) {
 
         }
 
         @Override
-        public void rebuildIndex(NitriteMap<NitriteId, Document> collection, Field field) {
+        public void rebuildIndex(NitriteMap<NitriteId, Document> collection, String field) {
 
         }
 

@@ -1,9 +1,8 @@
 package org.dizitart.no2.index;
 
-import org.dizitart.no2.Document;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.collection.Field;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.FilterException;
 import org.dizitart.no2.exceptions.IndexingException;
@@ -46,7 +45,7 @@ public class NitriteTextIndexer implements TextIndexer {
     }
 
     @Override
-    public Set<NitriteId> findText(String collectionName, Field field, String searchString) {
+    public Set<NitriteId> findText(String collectionName, String field, String searchString) {
         notNull(field, "field cannot be null");
         notNull(searchString, "searchString cannot be null");
 
@@ -62,14 +61,14 @@ public class NitriteTextIndexer implements TextIndexer {
     }
 
     @Override
-    public void writeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, Field field, Object fieldValue) {
+    public void writeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
         createOrUpdate(collection, nitriteId, field, fieldValue);
     }
 
     @Override
-    public void removeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, Field field, Object fieldValue) {
+    public void removeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
         try {
-            validateFieldValue(fieldValue);
+            validateStringValue(fieldValue);
 
             String text = (String) fieldValue;
             Set<String> words = textTokenizer.tokenize(text);
@@ -95,23 +94,23 @@ public class NitriteTextIndexer implements TextIndexer {
     }
 
     @Override
-    public void updateIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, Field field, Object newValue, Object oldValue) {
+    public void updateIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object newValue, Object oldValue) {
         createOrUpdate(collection, nitriteId, field, newValue);
     }
 
     @Override
-    public void dropIndex(NitriteMap<NitriteId, Document> collection, Field field) {
+    public void dropIndex(NitriteMap<NitriteId, Document> collection, String field) {
         indexCatalog.dropIndexEntry(collection.getName(), field);
     }
 
     @Override
-    public void rebuildIndex(NitriteMap<NitriteId, Document> collection, Field field) {
+    public void rebuildIndex(NitriteMap<NitriteId, Document> collection, String field) {
         for (KeyValuePair<NitriteId, Document> entry : collection.entries()) {
             // create the document
             Document object = entry.getValue();
 
             // retrieve the value from document
-            Object fieldValue = object.get(field.getName());
+            Object fieldValue = object.get(field);
 
             if (fieldValue == null) continue;
             if (!(fieldValue instanceof String)) {
@@ -129,20 +128,20 @@ public class NitriteTextIndexer implements TextIndexer {
     }
 
     @SuppressWarnings("rawtypes")
-    private NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> getIndexMap(String collectionName, Field field) {
+    private NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> getIndexMap(String collectionName, String field) {
         String mapName = getIndexMapName(collectionName, field);
         return nitriteStore.openMap(mapName);
     }
 
-    private void validateFieldValue(Object value) {
+    private void validateStringValue(Object value) {
         if (value != null && !(value instanceof String)) {
             throw new IndexingException("string data is expected");
         }
     }
 
-    private void createOrUpdate(NitriteMap<NitriteId, Document> collection, NitriteId id, Field field, Object fieldValue) {
+    private void createOrUpdate(NitriteMap<NitriteId, Document> collection, NitriteId id, String field, Object fieldValue) {
         try {
-            validateFieldValue(fieldValue);
+            validateStringValue(fieldValue);
 
             String text = (String) fieldValue;
             Set<String> words = textTokenizer.tokenize(text);
@@ -164,7 +163,7 @@ public class NitriteTextIndexer implements TextIndexer {
         }
     }
 
-    private Set<NitriteId> searchByWildCard(String collectionName, Field field, String searchString) {
+    private Set<NitriteId> searchByWildCard(String collectionName, String field, String searchString) {
         if (searchString.contentEquals("*")) {
             throw new FilterException("* is not a valid search string");
         }
@@ -184,7 +183,7 @@ public class NitriteTextIndexer implements TextIndexer {
         }
     }
 
-    private Set<NitriteId> searchByTrailingWildCard(String collectionName, Field field, String searchString) {
+    private Set<NitriteId> searchByTrailingWildCard(String collectionName, String field, String searchString) {
         if (searchString.equalsIgnoreCase("*")) {
             throw new FilterException("invalid search term '*'");
         }
@@ -203,7 +202,7 @@ public class NitriteTextIndexer implements TextIndexer {
         return idSet;
     }
 
-    private Set<NitriteId> searchContains(String collectionName, Field field, String term) {
+    private Set<NitriteId> searchContains(String collectionName, String field, String term) {
         NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> indexMap
             = getIndexMap(collectionName, field);
         Set<NitriteId> idSet = new LinkedHashSet<>();
@@ -217,7 +216,7 @@ public class NitriteTextIndexer implements TextIndexer {
         return idSet;
     }
 
-    private Set<NitriteId> searchByLeadingWildCard(String collectionName, Field field, String searchString) {
+    private Set<NitriteId> searchByLeadingWildCard(String collectionName, String field, String searchString) {
         if (searchString.equalsIgnoreCase("*")) {
             throw new FilterException("invalid search term '*'");
         }
@@ -236,7 +235,7 @@ public class NitriteTextIndexer implements TextIndexer {
         return idSet;
     }
 
-    private Set<NitriteId> searchExactByIndex(String collectionName, Field field, String searchString) throws IOException {
+    private Set<NitriteId> searchExactByIndex(String collectionName, String field, String searchString) throws IOException {
         NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> indexMap
             = getIndexMap(collectionName, field);
 

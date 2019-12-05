@@ -22,8 +22,7 @@ import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.index.IndexType;
 import org.junit.Test;
 
-import static org.dizitart.no2.collection.Field.of;
-import static org.dizitart.no2.collection.IndexOptions.indexOptions;
+import static org.dizitart.no2.index.IndexOptions.indexOptions;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -34,7 +33,7 @@ public class CustomFilterTest extends BaseCollectionTest {
     @Test
     public void testCustomFilter() {
         insert();
-        collection.createIndex(of("firstName"), indexOptions(IndexType.NonUnique));
+        collection.createIndex("firstName", indexOptions(IndexType.NonUnique));
         DocumentCursor cursor = collection.find(element -> element.getValue().get("firstName", String.class)
             .equalsIgnoreCase("FN1"));
 

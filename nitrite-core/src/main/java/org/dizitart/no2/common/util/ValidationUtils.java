@@ -19,7 +19,7 @@
 package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
-import org.dizitart.no2.Document;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
@@ -67,6 +67,10 @@ public class ValidationUtils {
     public static void notNull(Object value, String message) {
         if (value == null) {
             throw new ValidationException(message);
+        }
+
+        if (value instanceof String) {
+            notEmpty((String) value, message);
         }
     }
 

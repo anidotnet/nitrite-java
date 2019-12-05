@@ -1,6 +1,5 @@
 package org.dizitart.no2.store;
 
-import org.dizitart.no2.collection.Field;
 import org.dizitart.no2.index.IndexEntry;
 
 import java.util.Collection;
@@ -22,8 +21,8 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     @Override
-    public boolean hasIndexEntry(String collectionName, Field field) {
-        NitriteMap<Field, IndexMeta> indexMetaMap = getIndexMetaMap(collectionName);
+    public boolean hasIndexEntry(String collectionName, String field) {
+        NitriteMap<String, IndexMeta> indexMetaMap = getIndexMetaMap(collectionName);
         if (!indexMetaMap.containsKey(field)) return false;
 
         IndexMeta indexMeta = indexMetaMap.get(field);
@@ -31,7 +30,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     @Override
-    public IndexEntry createIndexEntry(String collectionName, Field field, String indexType) {
+    public IndexEntry createIndexEntry(String collectionName, String field, String indexType) {
         IndexEntry index = new IndexEntry(indexType, field, collectionName);
 
         IndexMeta indexMeta = new IndexMeta();
@@ -45,7 +44,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     @Override
-    public IndexEntry findIndexEntry(String collectionName, Field field) {
+    public IndexEntry findIndexEntry(String collectionName, String field) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
         if (meta != null) {
             return meta.getIndex();
@@ -54,7 +53,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     @Override
-    public boolean isDirtyIndex(String collectionName, Field field) {
+    public boolean isDirtyIndex(String collectionName, String field) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
         return meta != null && meta.getIsDirty().get();
     }
@@ -69,7 +68,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     @Override
-    public void dropIndexEntry(String collectionName, Field field) {
+    public void dropIndexEntry(String collectionName, String field) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
         if (meta != null && meta.getIndex() != null) {
             String indexMapName = meta.getIndexMap();
@@ -79,16 +78,16 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     @Override
-    public void beginIndexing(String collectionName, Field field) {
+    public void beginIndexing(String collectionName, String field) {
         markDirty(collectionName, field, true);
     }
 
     @Override
-    public void endIndexing(String collectionName, Field field) {
+    public void endIndexing(String collectionName, String field) {
         markDirty(collectionName, field, false);
     }
 
-    private NitriteMap<Field, IndexMeta> getIndexMetaMap(String collectionName) {
+    private NitriteMap<String, IndexMeta> getIndexMetaMap(String collectionName) {
         String indexMetaName = getIndexMetaName(collectionName);
         return nitriteStore.openMap(indexMetaName);
     }
@@ -102,12 +101,12 @@ class MVStoreIndexCatalog implements IndexCatalog {
             INTERNAL_NAME_SEPARATOR +
             index.getCollectionName() +
             INTERNAL_NAME_SEPARATOR +
-            index.getField().getName() +
+            index.getField() +
             INTERNAL_NAME_SEPARATOR +
             index.getIndexType();
     }
 
-    private void markDirty(String collectionName, Field field, boolean dirty) {
+    private void markDirty(String collectionName, String field, boolean dirty) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
         if (meta != null && meta.getIndex() != null) {
             meta.getIsDirty().set(dirty);
