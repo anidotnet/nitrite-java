@@ -18,7 +18,6 @@
 
 package org.dizitart.no2.repository;
 
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.InvalidIdException;
@@ -29,9 +28,9 @@ import org.junit.Test;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static org.dizitart.no2.filters.Filter.ALL;
+import static org.dizitart.no2.filters.FluentFilter.$;
 import static org.dizitart.no2.filters.FluentFilter.when;
 import static org.junit.Assert.*;
 
@@ -374,82 +373,89 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
 
         repository.insert(e1, e2, e3);
 
-        List<ElemMatch> elements = repository.find(elemMatch("productScores",
-            and(eq("product", "xyz"), gte("score", 8)))).toList();
+        List<ElemMatch> elements = repository.find(
+            when("productScores").elemMatch(
+                when("product").eq("xyz")
+                    .and(when("score").gte(8)))).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("productScores",
-            not(lte("score", 8)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").lte(8).not())).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("productScores",
-            or(eq("product", "xyz"), gte("score", 8)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("product").eq("xyz")
+                    .or(when("score").gte(8)))).toList();
         assertEquals(elements.size(), 3);
 
-        elements = repository.find(elemMatch("productScores",
-            (eq("product", "xyz")))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("product").eq("xyz"))).toList();
         assertEquals(elements.size(), 3);
 
-        elements = repository.find(elemMatch("productScores",
-            (gte("score", 10)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").gte(10))).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("productScores",
-            (gt("score", 8)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").gt(8))).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("productScores",
-            (lt("score", 7)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").lt(7))).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("productScores",
-            (lte("score", 7)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").lte(7))).toList();
         assertEquals(elements.size(), 3);
 
-        elements = repository.find(elemMatch("productScores",
-            (in("score", 7, 8)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").in(7, 8))).toList();
         assertEquals(elements.size(), 2);
 
-        elements = repository.find(elemMatch("productScores",
-            (notIn("score", 7, 8)))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("score").notIn(7, 8))).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("productScores",
-            (regex("product", "xyz")))).toList();
+        elements = repository.find(
+            when("productScores").elemMatch(
+                when("product").regex("xyz"))).toList();
         assertEquals(elements.size(), 3);
 
-        elements = repository.find(elemMatch("strArray",
-            eq("$", "a"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.eq("a"))).toList();
         assertEquals(elements.size(), 2);
 
-        elements = repository.find(elemMatch("strArray",
-            not(or(eq("$", "a"),
-                eq("$", "f"),
-                eq("$", "b"))))).toList();
+        elements = repository.find(
+            when("strArray").elemMatch(
+                $.eq("a")
+                    .or($.eq("f")
+                        .or($.eq("b"))).not())).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("strArray",
-            gt("$", "e"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.gt("e"))).toList();
         assertEquals(elements.size(), 1);
 
-        elements = repository.find(elemMatch("strArray",
-            gte("$", "e"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.gte("e"))).toList();
         assertEquals(elements.size(), 2);
 
-        elements = repository.find(elemMatch("strArray",
-            lte("$", "b"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.lte("b"))).toList();
         assertEquals(elements.size(), 2);
 
-        elements = repository.find(elemMatch("strArray",
-            lt("$", "a"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.lt("a"))).toList();
         assertEquals(elements.size(), 0);
 
-        elements = repository.find(elemMatch("strArray",
-            in("$", "a", "f"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.in("a", "f"))).toList();
         assertEquals(elements.size(), 2);
 
-        elements = repository.find(elemMatch("strArray",
-            regex("$", "a"))).toList();
+        elements = repository.find(when("strArray").elemMatch($.regex("a"))).toList();
         assertEquals(elements.size(), 2);
     }
 
@@ -477,22 +483,22 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         repository.insert(p2);
         repository.insert(p3);
 
-        List<PersonEntity> sameNamePeople = repository.find(eq("name", "jhonny")).toList();
+        List<PersonEntity> sameNamePeople = repository.find(when("name").eq("jhonny")).toList();
         assertEquals(sameNamePeople.size(), 3);
 
-        sameNamePeople = repository.find(eq("name", "JHONNY")).toList();
+        sameNamePeople = repository.find(when("name").eq("JHONNY")).toList();
         assertEquals(sameNamePeople.size(), 0);
 
-        sameNamePeople = repository.find(text("name", "jhonny")).toList();
+        sameNamePeople = repository.find(when("name").text("jhonny")).toList();
         assertEquals(sameNamePeople.size(), 3);
 
-        sameNamePeople = repository.find(text("name", "JHONNY")).toList();
+        sameNamePeople = repository.find(when("name").text("JHONNY")).toList();
         assertEquals(sameNamePeople.size(), 3);
 
-        sameNamePeople = repository.find(eq("name", "jhon*")).toList();
+        sameNamePeople = repository.find(when("name").eq("jhon*")).toList();
         assertEquals(sameNamePeople.size(), 0);
 
-        sameNamePeople = repository.find(text("name", "jhon*")).toList();
+        sameNamePeople = repository.find(when("name").text("jhon*")).toList();
         assertEquals(sameNamePeople.size(), 3);
     }
 
@@ -512,17 +518,15 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         repository.insert(p2);
         repository.insert(p3);
 
-        Filter married = eq("status", "Married");
-        FindOptions sortBy = FindOptions.sort("status", SortOrder.Descending);
+        Filter married = when("status").eq("Married");
 
         assertEquals(repository.find(married).size(), 2);
-        assertEquals(repository.find(married, sortBy).size(), 2);
+        assertEquals(repository.find(married).sort("status", SortOrder.Descending).size(), 2);
 
-        assertEquals(repository.find(sortBy).firstOrNull().getStatus(), "Un-Married");
+        assertEquals(repository.find().sort("status", SortOrder.Descending).firstOrNull().getStatus(), "Un-Married");
 
-        sortBy = FindOptions.sort("status", SortOrder.Ascending);
-        assertEquals(repository.find(sortBy).size(), 3);
-        assertEquals(repository.find(sortBy).firstOrNull().getStatus(), "Married");
+        assertEquals(repository.find().sort("status", SortOrder.Ascending).size(), 3);
+        assertEquals(repository.find().sort("status", SortOrder.Ascending).firstOrNull().getStatus(), "Married");
     }
 
     @Test
@@ -538,13 +542,12 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         assertTrue(repo.hasIndex("age"));
         assertTrue(repo.hasIndex("lastName"));
 
-        assertEquals(repo.find(eq("age", 12)).firstOrNull(), first);
+        assertEquals(repo.find(when("age").eq(12)).firstOrNull(), first);
     }
 
     @Test
     public void testIdSet() {
-        Cursor<Employee> employees = employeeRepository.find(sort("empId", SortOrder.Ascending));
-        Set<NitriteId> nitriteIds = employees.idSet();
-        assertEquals(nitriteIds.size(), 10);
+        Cursor<Employee> employees = employeeRepository.find().sort("empId", SortOrder.Ascending);
+        assertEquals(employees.size(), 10);
     }
 }
