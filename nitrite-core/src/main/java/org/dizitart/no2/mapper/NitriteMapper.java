@@ -9,9 +9,9 @@ import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
  * @author Anindya Chatterjee.
  */
 public interface NitriteMapper extends NitritePlugin {
-    <T> Document toDocument(T object);
+    <T> Document writeObject(T object);
 
-    <T> T toObject(Document document, Class<T> type);
+    <T> T readObject(Document document, Class<T> type);
 
     boolean isValueType(Object object);
 
@@ -25,7 +25,7 @@ public interface NitriteMapper extends NitritePlugin {
             ((Mappable) item).read(this, document);
             return item;
         }
-        return toObject(document, type);
+        return readObject(document, type);
     }
 
     default <T> Document asDocument(T object) {
@@ -33,6 +33,6 @@ public interface NitriteMapper extends NitritePlugin {
             Mappable mappable = (Mappable) object;
             return mappable.write(this);
         }
-        return toDocument(object);
+        return writeObject(object);
     }
 }

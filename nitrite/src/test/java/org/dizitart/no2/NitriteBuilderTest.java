@@ -345,12 +345,12 @@ public class NitriteBuilderTest {
 
     public static class CustomNitriteMapper implements NitriteMapper {
         @Override
-        public <T> Document toDocument(T object) {
+        public <T> Document writeObject(T object) {
             return null;
         }
 
         @Override
-        public <T> T toObject(Document document, Class<T> type) {
+        public <T> T readObject(Document document, Class<T> type) {
             return null;
         }
 

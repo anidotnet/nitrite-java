@@ -19,13 +19,13 @@ class MappableMapper implements NitriteMapper {
     }
 
     @Override
-    public <T> Document toDocument(T object) {
+    public <T> Document writeObject(T object) {
         if (isValueType(object)) return Document.createDocument();
         throw new ObjectMappingException("object must implements Mappable");
     }
 
     @Override
-    public <T> T toObject(Document document, Class<T> type) {
+    public <T> T readObject(Document document, Class<T> type) {
         throw new ObjectMappingException("object must implements Mappable");
     }
 
