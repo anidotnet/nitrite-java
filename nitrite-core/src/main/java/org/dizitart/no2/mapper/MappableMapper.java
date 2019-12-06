@@ -2,7 +2,10 @@ package org.dizitart.no2.mapper;
 
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.exceptions.ObjectMappingException;
+
+import java.util.Date;
 
 /**
  * @author Anindya Chatterjee.
@@ -15,6 +18,8 @@ class MappableMapper implements NitriteMapper {
         if (Character.class == retType) return true;
         if (String.class == retType) return true;
         if (byte[].class.isAssignableFrom(retType)) return true;
+        if (Date.class == retType) return true;
+        if (NitriteId.class == retType) return true;
         return Enum.class.isAssignableFrom(retType);
     }
 
@@ -36,11 +41,16 @@ class MappableMapper implements NitriteMapper {
 
     @Override
     public Object convertValue(Object object) {
+        if (object instanceof NitriteId) return convertNitriteId(((NitriteId) object));
         return object;
     }
 
     @Override
     public void initialize(NitriteConfig nitriteConfig) {
 
+    }
+
+    private Object convertNitriteId(NitriteId nitriteId) {
+        return nitriteId.getIdValue();
     }
 }

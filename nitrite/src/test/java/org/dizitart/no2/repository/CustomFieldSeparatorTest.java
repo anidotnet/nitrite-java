@@ -7,10 +7,13 @@ import lombok.ToString;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.NitriteConfig;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.data.Company;
 import org.dizitart.no2.repository.data.Note;
 import org.junit.Before;
@@ -62,7 +65,7 @@ public class CustomFieldSeparatorTest {
         repository.insert(employee);
 
         assertEquals(repository.find(when("employeeNote.text").eq("Dummy Note")).size(), 0);
-        assertEquals(repository.find(when("employeeNote:text").eq("Dummy Note")).size(), 1);
+        assertEquals(repository.find(when("employeeNote:text").text("Dummy Note")).size(), 1);
 
         assertEquals(repository.find(when("company.companyName").eq("Dummy Company")).size(), 0);
         assertEquals(repository.find(when("company:companyName").eq("Dummy Company")).size(), 1);
@@ -75,7 +78,7 @@ public class CustomFieldSeparatorTest {
             @Index(value = "address", type = IndexType.Fulltext),
             @Index(value = "employeeNote:text", type = IndexType.Fulltext)
     })
-    public static class EmployeeForCustomSeparator implements Serializable {
+    public static class EmployeeForCustomSeparator implements Serializable, Mappable {
         @Id
         @Getter
         @Setter
@@ -110,6 +113,30 @@ public class CustomFieldSeparatorTest {
             company = copy.company;
             blob = copy.blob;
             employeeNote = copy.employeeNote;
+        }
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument().put("empId", empId)
+                .put("joinDate", joinDate.getTime())
+                .put("address", address)
+                .put("blob", blob)
+                .put("company", company.write(mapper))
+                .put("employeeNote", employeeNote.write(mapper));
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            empId = document.get("empId", Long.class);
+            joinDate = new Date(document.get("joinDate", Long.class));
+            address = document.get("address", String.class);
+            blob = document.get("blob", byte[].class);
+            employeeNote = new Note();
+            Document doc = document.get("employeeNote", Document.class);
+            employeeNote.read(mapper, doc);
+            company = new Company();
+            doc = document.get("company", Document.class);
+            company.read(mapper, doc);
         }
     }
 

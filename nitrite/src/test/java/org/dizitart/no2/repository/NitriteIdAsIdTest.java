@@ -21,11 +21,14 @@ package org.dizitart.no2.repository;
 import lombok.Data;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.util.Iterables;
 import org.dizitart.no2.exceptions.InvalidIdException;
 import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -109,9 +112,22 @@ public class NitriteIdAsIdTest {
     }
 
     @Data
-    private static class WithNitriteId {
+    private static class WithNitriteId implements Mappable {
         @Id
         private NitriteId idField;
         private String name;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument()
+                .put("idField", idField != null ? idField.getIdValue() : null)
+                .put("name", name);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            idField = NitriteId.createId(document.get("idField", Long.class));
+            name = document.get("name", String.class);
+        }
     }
 }

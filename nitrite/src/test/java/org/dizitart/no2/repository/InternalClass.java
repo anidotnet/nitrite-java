@@ -32,7 +32,7 @@ class InternalClass implements Mappable {
     private String name;
 
     @Override
-    public Document write(NitriteMapper mapper) {
+    public Document write(NitriteMapper mapperz) {
         return Document.createDocument("id", id)
             .put("name", name);
     }

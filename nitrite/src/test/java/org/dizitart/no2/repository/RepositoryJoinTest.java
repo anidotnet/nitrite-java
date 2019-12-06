@@ -21,11 +21,14 @@ package org.dizitart.no2.repository;
 import lombok.Data;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.Lookup;
-import org.dizitart.no2.collection.RecordIterable;
+import org.dizitart.no2.common.Lookup;
+import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
-import static org.dizitart.no2.collection.FindOptions.limit;
+import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.filters.Filter.ALL;
 import static org.junit.Assert.*;
 
@@ -121,7 +124,7 @@ public class RepositoryJoinTest {
     }
 
     private void openDb() {
-        NitriteBuilder builder = Nitrite.builder();
+        NitriteBuilder builder = NitriteBuilder.get();
 
         if (!isAutoCommit) {
             builder.disableAutoCommit();
@@ -173,7 +176,7 @@ public class RepositoryJoinTest {
         lookup.setForeignField("personId");
         lookup.setTargetField("addresses");
 
-        RecordIterable<PersonDetails> result
+        ReadableStream<PersonDetails> result
                 = personRepository.find().join(addressRepository.find(), lookup,
                 PersonDetails.class);
         assertEquals(result.size(), 10);
@@ -188,12 +191,12 @@ public class RepositoryJoinTest {
             }
         }
 
-        result = personRepository.find(limit(0, 5)).join(addressRepository.find(), lookup,
+        result = personRepository.find().limit(0, 5).join(addressRepository.find(), lookup,
                 PersonDetails.class);
 
         assertEquals(result.size(), 5);
-        assertEquals(result.totalCount(), 10);
-        assertTrue(result.hasMore());
+        assertEquals(result.size(), 10);
+        assertFalse(result.isEmpty());
         assertNotNull(result.toString());
     }
 
@@ -204,7 +207,7 @@ public class RepositoryJoinTest {
         lookup.setForeignField("personId");
         lookup.setTargetField("addresses");
 
-        RecordIterable<PersonDetails> result
+        ReadableStream<PersonDetails> result
                 = personRepository.find().join(addressRepository.find(), lookup,
                 PersonDetails.class);
         assertEquals(result.size(), 10);
@@ -217,27 +220,75 @@ public class RepositoryJoinTest {
     }
 
     @Data
-    public static class Person {
+    public static class Person implements Mappable {
         @Id
         private NitriteId nitriteId;
         private String id;
         private String name;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return createDocument()
+                .put("nitriteId", nitriteId.getIdValue())
+                .put("id", id)
+                .put("name", name);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
+            id = document.get("id", String.class);
+            name = document.get("name", String.class);
+        }
     }
 
     @Data
-    public static class Address {
+    public static class Address implements Mappable {
         @Id
         private NitriteId nitriteId;
         private String personId;
         private String street;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return createDocument()
+                .put("nitriteId", nitriteId.getIdValue())
+                .put("personId", personId)
+                .put("street", street);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
+            personId = document.get("personId", String.class);
+            street = document.get("street", String.class);
+        }
     }
 
     @Data
-    public static class PersonDetails {
+    public static class PersonDetails implements Mappable {
         @Id
         private NitriteId nitriteId;
         private String id;
         private String name;
         private List<Address> addresses;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return createDocument()
+                .put("nitriteId", nitriteId.getIdValue())
+                .put("personId", id)
+                .put("street", name)
+                .put("addresses", addresses);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void read(NitriteMapper mapper, Document document) {
+            nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
+            id = document.get("id", String.class);
+            name = document.get("name", String.class);
+            addresses = (List<Address>) document.get("addresses", List.class);
+        }
     }
 }

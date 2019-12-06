@@ -18,17 +18,16 @@
 
 package org.dizitart.no2.repository;
 
-import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.Nitrite;
-import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.common.event.ChangeListener;
+import org.dizitart.no2.NitriteBuilder;
+import org.dizitart.no2.collection.*;
+import org.dizitart.no2.collection.events.ChangeListener;
+import org.dizitart.no2.collection.meta.Attributes;
+import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.filters.Filter;
-import org.dizitart.no2.index.Index;
-import org.dizitart.no2.meta.Attributes;
+import org.dizitart.no2.index.IndexEntry;
+import org.dizitart.no2.index.IndexOptions;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -47,31 +46,22 @@ public class RepositoryFactoryTest {
 
     @Test(expected = ValidationException.class)
     public void testNullType() {
-        Nitrite db = Nitrite.builder().openOrCreate();
-        RepositoryFactory.open(null, new DummyCollection(), db.getContext());
+        Nitrite db = NitriteBuilder.get().openOrCreate();
+        RepositoryFactory.getRepository(null, new DummyCollection(), db.getConfig());
     }
 
     @Test(expected = ValidationException.class)
     public void testNullCollection() {
-        Nitrite db = Nitrite.builder().openOrCreate();
-        RepositoryFactory.open(DummyCollection.class, null, db.getContext());
+        Nitrite db = NitriteBuilder.get().openOrCreate();
+        RepositoryFactory.getRepository(DummyCollection.class, null, db.getConfig());
     }
 
     @Test(expected = ValidationException.class)
     public void testNullContext() {
-        RepositoryFactory.open(DummyCollection.class, new DummyCollection(), null);
+        RepositoryFactory.getRepository(DummyCollection.class, new DummyCollection(), null);
     }
 
     private static class DummyCollection implements NitriteCollection {
-        @Override
-        public WriteResult insert(Document document, Document... documents) {
-            return null;
-        }
-
-        @Override
-        public WriteResult update(Filter filter, Document update) {
-            return null;
-        }
 
         @Override
         public WriteResult update(Filter filter, Document update, UpdateOptions updateOptions) {
@@ -79,12 +69,7 @@ public class RepositoryFactoryTest {
         }
 
         @Override
-        public WriteResult remove(Filter filter) {
-            return null;
-        }
-
-        @Override
-        public WriteResult remove(Filter filter, RemoveOptions removeOptions) {
+        public WriteResult remove(Filter filter, boolean justOne) {
             return null;
         }
 
@@ -99,12 +84,12 @@ public class RepositoryFactoryTest {
         }
 
         @Override
-        public DocumentCursor find(FindOptions findOptions) {
+        public Document getById(NitriteId nitriteId) {
             return null;
         }
 
         @Override
-        public DocumentCursor find(Filter filter, FindOptions findOptions) {
+        public String getName() {
             return null;
         }
 
@@ -114,12 +99,12 @@ public class RepositoryFactoryTest {
         }
 
         @Override
-        public void rebuildIndex(String field, boolean async) {
+        public void rebuildIndex(String field, boolean isAsync) {
 
         }
 
         @Override
-        public Collection<Index> listIndices() {
+        public Collection<IndexEntry> listIndices() {
             return null;
         }
 
@@ -149,22 +134,12 @@ public class RepositoryFactoryTest {
         }
 
         @Override
-        public WriteResult update(Document element) {
-            return null;
-        }
-
-        @Override
-        public WriteResult update(Document element, boolean upsert) {
+        public WriteResult update(Document element, boolean insertIfAbsent) {
             return null;
         }
 
         @Override
         public WriteResult remove(Document element) {
-            return null;
-        }
-
-        @Override
-        public Document getById(NitriteId nitriteId) {
             return null;
         }
 
@@ -179,18 +154,13 @@ public class RepositoryFactoryTest {
         }
 
         @Override
-        public boolean isClosed() {
+        public boolean isOpen() {
             return false;
         }
 
         @Override
         public void close() {
 
-        }
-
-        @Override
-        public String getName() {
-            return null;
         }
 
         @Override

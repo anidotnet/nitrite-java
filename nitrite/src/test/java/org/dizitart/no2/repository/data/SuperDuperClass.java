@@ -20,8 +20,11 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dizitart.no2.collection.IndexType;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Index;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee
@@ -29,6 +32,16 @@ import org.dizitart.no2.index.annotations.Index;
 @Getter
 @Setter
 @Index(value = "text", type = IndexType.Fulltext)
-public class SuperDuperClass {
+public class SuperDuperClass implements Mappable {
     private String text;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("text", text);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        text = document.get("text", String.class);
+    }
 }

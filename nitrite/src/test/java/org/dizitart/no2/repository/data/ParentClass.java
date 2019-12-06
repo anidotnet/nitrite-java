@@ -20,10 +20,10 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dizitart.no2.collection.IndexType;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.Date;
 
@@ -32,11 +32,23 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@Indices(
-        @Index(value = "date", type = IndexType.Unique)
-)
+@Index(value = "date")
 public class ParentClass extends SuperDuperClass {
     @Id
     protected Long id;
     private Date date;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return super.write(mapper)
+            .put("id", id)
+            .put("date", date.getTime());
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        super.read(mapper, document);
+        id = document.get("id", Long.class);
+        date = new Date(document.get("date", Long.class));
+    }
 }

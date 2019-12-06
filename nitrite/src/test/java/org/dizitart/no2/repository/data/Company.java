@@ -22,9 +22,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -39,7 +42,7 @@ import java.util.Map;
 @Indices({
         @Index(value = "companyName")
 })
-public class Company implements Serializable {
+public class Company implements Serializable, Mappable {
     @Id
     @Getter
     @Setter
@@ -60,4 +63,22 @@ public class Company implements Serializable {
     @Getter
     @Setter
     private Map<String, List<Employee>> employeeRecord;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("companyId", companyId)
+            .put("companyName", companyName)
+            .put("dateCreated", dateCreated.getTime())
+            .put("departments", departments)
+            .put("employeeRecord", employeeRecord);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        companyId = document.get("companyId", Long.class);
+        companyName = document.get("companyName", String.class);
+        dateCreated = new Date(document.get("dateCreated", Long.class));
+        departments = document.get("departments", List.class);
+        employeeRecord = document.get("employeeRecord", Map.class);
+    }
 }
