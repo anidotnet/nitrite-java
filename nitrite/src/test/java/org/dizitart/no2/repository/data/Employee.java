@@ -84,21 +84,24 @@ public class Employee implements Serializable, Mappable {
     public Document write(NitriteMapper mapper) {
         return Document.createDocument()
             .put("empId", empId)
-            .put("joinDate", joinDate.getTime())
+            .put("joinDate", joinDate != null ? joinDate.getTime() : null)
             .put("address", address)
             .put("blob", blob)
-            .put("employeeNote", employeeNote.write(mapper))
-        ;
+            .put("employeeNote", employeeNote != null ? employeeNote.write(mapper) : null);
     }
 
     @Override
     public void read(NitriteMapper mapper, Document document) {
         empId = document.get("empId", Long.class);
-        joinDate = new Date(document.get("joinDate", Long.class));
+        if (document.get("joinDate") != null) {
+            joinDate = new Date(document.get("joinDate", Long.class));
+        }
         address = document.get("address", String.class);
         blob = document.get("blob", byte[].class);
 
-        employeeNote = new Note();
-        employeeNote.read(mapper, document.get("employeeNote", Document.class));
+        if (document.get("employeeNote") != null) {
+            employeeNote = new Note();
+            employeeNote.read(mapper, document.get("employeeNote", Document.class));
+        }
     }
 }

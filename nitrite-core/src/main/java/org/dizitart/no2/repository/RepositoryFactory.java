@@ -1,21 +1,25 @@
 package org.dizitart.no2.repository;
 
 import org.dizitart.no2.NitriteConfig;
+import org.dizitart.no2.collection.CollectionFactory;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.common.util.ObjectUtils;
 import org.dizitart.no2.exceptions.ValidationException;
+
+import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
  * @author Anindya Chatterjee
  */
 public class RepositoryFactory {
     public static <T> ObjectRepository<T> getRepository(Class<T> type,
-                                                        NitriteCollection nitriteCollection,
+                                                        String collectionName,
                                                         NitriteConfig nitriteConfig) {
         if (type == null) {
             throw new ValidationException("type cannot be null");
         }
 
-        if (nitriteCollection == null) {
+        if (isNullOrEmpty(collectionName)) {
             throw new ValidationException("nitriteCollection cannot be null");
         }
 
@@ -23,6 +27,11 @@ public class RepositoryFactory {
             throw new ValidationException("nitriteContext cannot be null");
         }
 
+        if (ObjectUtils.isValueType(type)) {
+            throw new ValidationException("a value type cannot be used to create repository");
+        }
+
+        NitriteCollection nitriteCollection = CollectionFactory.getCollection(collectionName, nitriteConfig);
         return new DefaultObjectRepository<>(type, nitriteCollection, nitriteConfig);
     }
 }

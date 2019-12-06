@@ -118,6 +118,12 @@ public class ObjectRepositoryNegativeTest {
         }
     }
 
+    @Test(expected = ValidationException.class)
+    public void testWithValueTypeRepository() {
+        ObjectRepository<String> repository = db.getRepository(String.class);
+        repository.insert("test");
+    }
+
     @Test(expected = InvalidOperationException.class)
     public void testFindResultRemove() {
         ObjectRepository<String> repository = db.getRepository(String.class);

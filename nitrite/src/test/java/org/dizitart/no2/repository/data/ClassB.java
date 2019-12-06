@@ -22,10 +22,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 @EqualsAndHashCode
 @ToString
-class ClassB implements Comparable<ClassB> {
+class ClassB implements Comparable<ClassB>, Mappable {
     @Getter @Setter private int number;
     @Getter @Setter private String text;
 
@@ -39,5 +42,18 @@ class ClassB implements Comparable<ClassB> {
     @Override
     public int compareTo(ClassB o) {
         return Integer.compare(number, o.number);
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument()
+            .put("number", number)
+            .put("text", text);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        number = document.get("number", Integer.class);
+        text = document.get("text", String.class);
     }
 }

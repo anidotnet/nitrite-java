@@ -74,6 +74,9 @@ public class DocumentUtils {
      */
     public static <T> Document skeletonDocument(NitriteMapper nitriteMapper, Class<T> type) {
         T dummy = newInstance(type, true);
+        if (nitriteMapper.isValueType(dummy)) {
+            return Document.createDocument();
+        }
         Document document = nitriteMapper.asDocument(dummy);
         return removeValues(document);
     }

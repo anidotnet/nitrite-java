@@ -20,6 +20,7 @@ package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.repository.ObjectRepository;
@@ -32,6 +33,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Date;
 import java.util.Map;
 
 import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
@@ -217,6 +219,18 @@ public class ObjectUtils {
         } catch (Throwable e) {
             throw new ObjectMappingException("failed to instantiate type " + type.getName(), e);
         }
+    }
+
+    public static boolean isValueType(Class<?> retType) {
+        if (retType.isPrimitive() && retType != void.class) return true;
+        if (Number.class.isAssignableFrom(retType)) return true;
+        if (Boolean.class == retType) return true;
+        if (Character.class == retType) return true;
+        if (String.class == retType) return true;
+        if (byte[].class.isAssignableFrom(retType)) return true;
+        if (Date.class == retType) return true;
+        if (NitriteId.class == retType) return true;
+        return Enum.class.isAssignableFrom(retType);
     }
 
     private static <T> ObjectInstantiator<T> getInstantiatorOf(Class<T> type) {

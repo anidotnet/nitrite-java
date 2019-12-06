@@ -22,12 +22,15 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.UUID;
 
 @EqualsAndHashCode
 @ToString
-public class ClassA {
+public class ClassA implements Mappable {
     @Getter @Setter private ClassB classB;
     @Getter @Setter private UUID uid;
     @Getter @Setter private String string;
@@ -41,5 +44,25 @@ public class ClassA {
         classA.string = Integer.toHexString(seed);
         classA.blob = new byte[] {(byte) seed};
         return classA;
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument()
+            .put("classB", classB != null ? classB.write(mapper) : null)
+            .put("uid", uid)
+            .put("string", string)
+            .put("blob", blob);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        if (document.get("classB") != null) {
+            classB = new ClassB();
+            classB.read(mapper, document.get("classB", Document.class));
+        }
+        uid = document.get("uid", UUID.class);
+        string = document.get("string", String.class);
+        blob = document.get("blob", byte[].class);
     }
 }

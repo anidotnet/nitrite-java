@@ -22,10 +22,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 @EqualsAndHashCode
 @ToString
-public class ClassC {
+public class ClassC implements Mappable {
     @Getter @Setter private long id;
     @Getter @Setter private double digit;
     @Getter @Setter private ClassA parent;
@@ -36,5 +39,23 @@ public class ClassC {
         classC.digit = seed * 69.65;
         classC.parent = ClassA.create(seed);
         return classC;
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument()
+            .put("id", id)
+            .put("digit", digit)
+            .put("parent", parent != null ? parent.write(mapper) : null);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        id = document.get("id", Long.class);
+        digit = document.get("digit", Double.class);
+        if (document.get("parent") != null) {
+            parent = new ClassA();
+            parent.read(mapper, document.get("parent", Document.class));
+        }
     }
 }

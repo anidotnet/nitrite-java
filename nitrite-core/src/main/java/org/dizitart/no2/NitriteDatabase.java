@@ -147,8 +147,7 @@ class NitriteDatabase implements Nitrite {
     }
 
     private <T> ObjectRepository<T> getRepositoryByName(String name, Class<T> type) {
-        NitriteCollection collection = getCollection(name);
-        return RepositoryFactory.getRepository(type, collection, nitriteConfig);
+        return RepositoryFactory.getRepository(type, name, nitriteConfig);
     }
 
     private void validateUserCredentials(String username, String password) {

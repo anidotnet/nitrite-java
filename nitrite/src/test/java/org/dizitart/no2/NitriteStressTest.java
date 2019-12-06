@@ -18,9 +18,13 @@
 
 package org.dizitart.no2;
 
+import lombok.Data;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.junit.Test;
 import uk.co.jemos.podam.api.PodamFactory;
@@ -70,7 +74,8 @@ public class NitriteStressTest {
         return testData;
     }
 
-    public class TestDto {
+    @Data
+    public static class TestDto implements Mappable {
 
         @XmlElement(
                 name = "StudentNumber",
@@ -118,74 +123,27 @@ public class NitriteStressTest {
         public TestDto() {
         }
 
-
-        public String getStudentNumber() {
-            return this.studentNumber;
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument()
+                .put("studentNumber", studentNumber)
+                .put("lastName", lastName)
+                .put("prefixes", prefixes)
+                .put("initials", initials)
+                .put("firstNames", firstNames)
+                .put("nickName", nickName)
+                .put("birthDate", birthDate);
         }
 
-
-        public void setStudentNumber(String value) {
-            this.studentNumber = value;
-        }
-
-
-        public String getLastName() {
-            return this.lastName;
-        }
-
-
-        public void setLastName(String value) {
-            this.lastName = value;
-        }
-
-
-        public String getPrefixes() {
-            return this.prefixes;
-        }
-
-
-        public void setPrefixes(String value) {
-            this.prefixes = value;
-        }
-
-
-        public String getInitials() {
-            return this.initials;
-        }
-
-
-        public void setInitials(String value) {
-            this.initials = value;
-        }
-
-
-        public String getFirstNames() {
-            return this.firstNames;
-        }
-
-
-        public void setFirstNames(String value) {
-            this.firstNames = value;
-        }
-
-
-        public String getNickName() {
-            return this.nickName;
-        }
-
-
-        public void setNickName(String value) {
-            this.nickName = value;
-        }
-
-
-        public String getBirthDate() {
-            return this.birthDate;
-        }
-
-
-        public void setBirthDate(String value) {
-            this.birthDate = value;
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            studentNumber = document.get("studentNumber", String.class);
+            lastName = document.get("lastName", String.class);
+            prefixes = document.get("prefixes", String.class);
+            initials = document.get("initials", String.class);
+            firstNames = document.get("firstNames", String.class);
+            nickName = document.get("nickName", String.class);
+            birthDate = document.get("birthDate", String.class);
         }
     }
 }

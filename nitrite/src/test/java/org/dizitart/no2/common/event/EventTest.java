@@ -149,7 +149,7 @@ public class EventTest {
         assertEquals(listener.getAction(), ChangeType.Update);
         assertNotNull(listener.getItem());
 
-        Employee byId = employeeRepository.getById(listener.getItem().getId());
+        Employee byId = employeeRepository.getById(1L);
         assertEquals(byId.getAddress(), "xyz");
     }
 

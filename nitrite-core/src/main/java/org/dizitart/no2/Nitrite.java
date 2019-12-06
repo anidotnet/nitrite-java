@@ -162,7 +162,7 @@ public interface Nitrite extends Closeable {
      * repository is already opened, it is returned as is.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: Returned repository is thread-safe for concurrent use.
+     * NOTE: The returned repository is thread-safe for concurrent use.
      *
      * @param <T>  the type parameter
      * @param type the type of the object

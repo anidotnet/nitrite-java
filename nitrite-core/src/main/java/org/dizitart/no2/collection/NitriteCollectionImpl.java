@@ -91,7 +91,6 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public WriteResult remove(Filter filter, boolean justOne) {
         checkOpened();
-
         return collectionOperations.remove(filter, justOne);
     }
 
@@ -180,7 +179,6 @@ class NitriteCollectionImpl implements NitriteCollection {
     @Override
     public void drop() {
         checkOpened();
-
         collectionOperations.dropCollection();
         isDropped = true;
         close();
@@ -200,6 +198,7 @@ class NitriteCollectionImpl implements NitriteCollection {
         this.nitriteMap = null;
         this.nitriteConfig = null;
         this.collectionOperations = null;
+        this.nitriteStore = null;
         closeEventBus();
     }
 
