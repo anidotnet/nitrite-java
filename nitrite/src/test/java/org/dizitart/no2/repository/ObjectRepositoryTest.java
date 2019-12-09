@@ -49,7 +49,7 @@ public class ObjectRepositoryTest {
 
     @Before
     public void setUp() {
-        TypeConverter<StressRecord, Document> converter = new TypeConverter<>(StressRecord.class, Document.class,
+        TypeConverter<StressRecord> converter = new TypeConverter<>(StressRecord.class,
             source -> Document.createDocument("firstName", source.getFirstName())
                 .put("lastName", source.getLastName())
                 .put("failed", source.isFailed())

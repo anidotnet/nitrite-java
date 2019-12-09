@@ -76,12 +76,7 @@ class RepositoryOperations {
                 String key = keyValuePair.getKey();
                 Object value = keyValuePair.getValue();
                 Object serializedValue;
-                serializedValue = nitriteMapper.convertType(value, Document.class);
-//                if (nitriteMapper.isValue(value)) {
-//                    serializedValue = nitriteMapper.convertValue(value);
-//                } else {
-//                    serializedValue = nitriteMapper.map(value, Document.class);
-//                }
+                serializedValue = nitriteMapper.convert(value, Document.class);
                 document.put(key, serializedValue);
             }
         }
@@ -97,7 +92,7 @@ class RepositoryOperations {
     }
 
     <T> Document toDocument(T object, boolean update) {
-        Document document = nitriteMapper.convertType(object, Document.class);
+        Document document = nitriteMapper.convert(object, Document.class);
         if (idField != null) {
             if (idField.getType() == NitriteId.class) {
                 try {

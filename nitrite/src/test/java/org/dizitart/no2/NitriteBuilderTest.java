@@ -344,8 +344,9 @@ public class NitriteBuilderTest {
     }
 
     public static class CustomNitriteMapper implements NitriteMapper {
+
         @Override
-        public <Source, Target> Target convertType(Source source, Class<Target> targetClass) {
+        public <Source, Target> Target convert(Source source, Class<Target> type) {
             return null;
         }
 

@@ -39,12 +39,12 @@ public class WithDateId implements Mappable {
     @Override
     public Document write(NitriteMapper mapper) {
         return Document.createDocument("name", name)
-            .put("id", mapper.convertType(id, Long.class));
+            .put("id", id);
     }
 
     @Override
     public void read(NitriteMapper mapper, Document document) {
         name = document.get("name", String.class);
-        id = new Date(document.get("id", Long.class));
+        id = document.get("id", Date.class);
     }
 }

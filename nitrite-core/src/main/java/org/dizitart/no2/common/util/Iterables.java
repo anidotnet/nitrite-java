@@ -21,10 +21,7 @@ package org.dizitart.no2.common.util;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * A utility class for {@link Iterable}.
@@ -97,7 +94,15 @@ public class Iterables {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    public static <T> List<T> asList(T... items) {
+        if (items != null) {
+            return Arrays.asList(items);
+        }
+        return Collections.emptyList();
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     static Object[] toArray(Iterable iterable) {
         if (iterable instanceof Collection) {
             return ((Collection) iterable).toArray();

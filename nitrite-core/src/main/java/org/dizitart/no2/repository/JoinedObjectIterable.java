@@ -50,7 +50,7 @@ class JoinedObjectIterable<T> implements ReadableStream<T> {
             if (item != null) {
                 Document record = item.clone();
                 record.remove(DOC_ID);
-                return objectMapper.convertType(record, joinType);
+                return objectMapper.convert(record, joinType);
             }
             return null;
         }

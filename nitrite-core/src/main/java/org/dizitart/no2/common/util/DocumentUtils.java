@@ -77,7 +77,7 @@ public class DocumentUtils {
             return Document.createDocument();
         }
         T dummy = newInstance(type, true);
-        Document document = nitriteMapper.convertType(dummy, Document.class);
+        Document document = nitriteMapper.convert(dummy, Document.class);
         return removeValues(document);
     }
 

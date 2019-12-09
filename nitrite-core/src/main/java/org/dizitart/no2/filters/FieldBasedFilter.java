@@ -44,7 +44,7 @@ public abstract class FieldBasedFilter extends NitriteFilter {
                 }
 
                 if (nitriteMapper.isValue(comparable)) {
-                    Comparable convertValue = nitriteMapper.convertType(comparable, Comparable.class);
+                    Comparable convertValue = nitriteMapper.convert(comparable, Comparable.class);
                     convertedValues.add(convertValue);
                 }
             }
@@ -59,7 +59,7 @@ public abstract class FieldBasedFilter extends NitriteFilter {
             NitriteMapper nitriteMapper = getNitriteConfig().nitriteMapper();
             validateSearchTerm(nitriteMapper, field, value);
             if (nitriteMapper.isValue(value)) {
-                value = nitriteMapper.convertType(value, Comparable.class);
+                value = nitriteMapper.convert(value, Comparable.class);
             }
         }
         return value;
