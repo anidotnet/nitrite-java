@@ -38,13 +38,13 @@ public abstract class FieldBasedFilter extends NitriteFilter {
 
             for (Comparable comparable : values) {
                 if (comparable == null
-                    || !nitriteMapper.isValueType(comparable)) {
+                    || !nitriteMapper.isValue(comparable)) {
                     throw new FilterException("search term " + comparable
                         + " is not a comparable");
                 }
 
-                if (nitriteMapper.isValueType(comparable)) {
-                    Comparable convertValue = (Comparable) nitriteMapper.convertValue(comparable);
+                if (nitriteMapper.isValue(comparable)) {
+                    Comparable convertValue = nitriteMapper.convertType(comparable, Comparable.class);
                     convertedValues.add(convertValue);
                 }
             }
@@ -58,8 +58,8 @@ public abstract class FieldBasedFilter extends NitriteFilter {
         if (getObjectFilter()) {
             NitriteMapper nitriteMapper = getNitriteConfig().nitriteMapper();
             validateSearchTerm(nitriteMapper, field, value);
-            if (nitriteMapper.isValueType(value)) {
-                value = nitriteMapper.convertValue(value);
+            if (nitriteMapper.isValue(value)) {
+                value = nitriteMapper.convertType(value, Comparable.class);
             }
         }
         return value;
@@ -70,7 +70,7 @@ public abstract class FieldBasedFilter extends NitriteFilter {
         notEmpty(field, "field cannot be empty");
 
         if (value != null) {
-            if (!nitriteMapper.isValueType(value) && !(value instanceof Comparable)) {
+            if (!nitriteMapper.isValue(value) && !(value instanceof Comparable)) {
                 throw new ValidationException("search term is not comparable " + value);
             }
         }

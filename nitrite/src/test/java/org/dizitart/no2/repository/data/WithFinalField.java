@@ -20,17 +20,32 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee.
  */
 @Getter
-public class WithFinalField {
+public class WithFinalField implements Mappable {
     @Setter
     private String name;
     private final long number;
 
     public WithFinalField() {
         number = 2;
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument()
+            .put("name", name)
+            .put("number", number);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        name = document.get("name", String.class);
     }
 }

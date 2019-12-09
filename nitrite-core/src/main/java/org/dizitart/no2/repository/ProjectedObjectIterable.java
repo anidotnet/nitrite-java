@@ -50,7 +50,7 @@ class ProjectedObjectIterable<T> implements ReadableStream<T> {
             if (item != null) {
                 Document record = item.clone();
                 record.remove(DOC_ID);
-                return objectMapper.asObject(record, projectionType);
+                return objectMapper.convertType(record, projectionType);
             }
             return null;
         }

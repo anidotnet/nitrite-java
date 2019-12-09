@@ -19,12 +19,15 @@
 package org.dizitart.no2.repository;
 
 import org.dizitart.no2.NitriteBuilder;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.NitriteTextIndexer;
 import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
 import org.dizitart.no2.index.fulltext.Languages;
 import org.dizitart.no2.index.fulltext.UniversalTextTokenizer;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -130,9 +133,21 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
     @Indices(
             @Index(value = "text", type = IndexType.Fulltext)
     )
-    public static class TextData {
+    public static class TextData implements Mappable {
         public int id;
         public String text;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument("id", id)
+                .put("text", text);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            id = document.get("id", Integer.class);
+            text = document.get("text", String.class);
+        }
     }
 
     @Test

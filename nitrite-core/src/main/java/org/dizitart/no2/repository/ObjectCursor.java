@@ -93,7 +93,7 @@ class ObjectCursor<T> implements Cursor<T> {
         @Override
         public T next() {
             Document document = documentIterator.next();
-            return nitriteMapper.asObject(document, type);
+            return nitriteMapper.convertType(document, type);
         }
 
         @Override

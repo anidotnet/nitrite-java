@@ -47,7 +47,7 @@ public class RepositoryFactoryTest {
     @Test(expected = ValidationException.class)
     public void testNullType() {
         Nitrite db = NitriteBuilder.get().openOrCreate();
-        RepositoryFactory.getRepository(null, new DummyCollection(), db.getConfig());
+        RepositoryFactory.getRepository(null, "dummy", db.getConfig());
     }
 
     @Test(expected = ValidationException.class)
@@ -58,7 +58,7 @@ public class RepositoryFactoryTest {
 
     @Test(expected = ValidationException.class)
     public void testNullContext() {
-        RepositoryFactory.getRepository(DummyCollection.class, new DummyCollection(), null);
+        RepositoryFactory.getRepository(DummyCollection.class, "dummy", null);
     }
 
     private static class DummyCollection implements NitriteCollection {

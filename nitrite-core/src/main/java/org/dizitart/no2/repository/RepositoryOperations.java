@@ -21,6 +21,7 @@ import java.util.*;
 
 import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.DocumentUtils.skeletonDocument;
+import static org.dizitart.no2.common.util.ObjectUtils.isCompatibleTypes;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 import static org.dizitart.no2.filters.FluentFilter.when;
@@ -75,11 +76,12 @@ class RepositoryOperations {
                 String key = keyValuePair.getKey();
                 Object value = keyValuePair.getValue();
                 Object serializedValue;
-                if (nitriteMapper.isValueType(value)) {
-                    serializedValue = nitriteMapper.convertValue(value);
-                } else {
-                    serializedValue = nitriteMapper.asDocument(value);
-                }
+                serializedValue = nitriteMapper.convertType(value, Document.class);
+//                if (nitriteMapper.isValue(value)) {
+//                    serializedValue = nitriteMapper.convertValue(value);
+//                } else {
+//                    serializedValue = nitriteMapper.map(value, Document.class);
+//                }
                 document.put(key, serializedValue);
             }
         }
@@ -95,7 +97,7 @@ class RepositoryOperations {
     }
 
     <T> Document toDocument(T object, boolean update) {
-        Document document = nitriteMapper.asDocument(object);
+        Document document = nitriteMapper.convertType(object, Document.class);
         if (idField != null) {
             if (idField.getType() == NitriteId.class) {
                 try {
@@ -248,7 +250,11 @@ class RepositoryOperations {
 
     <I> Filter createIdFilter(I id) {
         if (idField != null) {
-            if (idField.getType().isAssignableFrom(id.getClass())) {
+            if (id == null) {
+                throw new InvalidIdException("null id is not a valid id");
+            }
+
+            if (isCompatibleTypes(idField.getType(), id.getClass())) {
                 return when(idField.getName()).eq(id);
             } else {
                 throw new InvalidIdException(id.getClass().getName() + " is not assignable to id type "
@@ -314,6 +320,7 @@ class RepositoryOperations {
         if (fieldType.isPrimitive()
             || fieldType == NitriteId.class
             || fieldType.isInterface()
+            || nitriteMapper.isValueType(fieldType)
             || Modifier.isAbstract(fieldType.getModifiers())) {
             // we will validate the solid class during insertion/update
             return;

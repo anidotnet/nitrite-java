@@ -20,13 +20,29 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee.
  */
 @Getter
 @Setter
-public class WithTransientField {
+public class WithTransientField implements Mappable {
     private transient String name;
+    @Id
     private long number;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument()
+            .put("number", number);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        number = document.get("number", Long.class);
+    }
 }

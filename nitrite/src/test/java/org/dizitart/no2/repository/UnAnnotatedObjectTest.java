@@ -27,8 +27,7 @@ import org.dizitart.no2.repository.data.ClassC;
 import org.junit.Test;
 
 import static org.dizitart.no2.filters.FluentFilter.when;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -40,7 +39,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
     public void testFind() {
         Cursor cursor = aObjectRepository.find();
         assertEquals(cursor.size(), 10);
-        assertTrue(cursor.isEmpty());
+        assertFalse(cursor.isEmpty());
 
         IndexOptions indexOptions = new IndexOptions();
         indexOptions.setIndexType(IndexType.Unique);

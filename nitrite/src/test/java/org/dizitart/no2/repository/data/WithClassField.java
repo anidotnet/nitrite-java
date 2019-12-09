@@ -20,13 +20,30 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee.
  */
 @Getter
 @Setter
-public class WithClassField {
+public class WithClassField implements Mappable {
+    @Id
     private String name;
     private Class<?> clazz;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("name", name)
+            .put("clazz", clazz);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        name = document.get("name", String.class);
+        clazz = document.get("clazz", Class.class);
+    }
 }

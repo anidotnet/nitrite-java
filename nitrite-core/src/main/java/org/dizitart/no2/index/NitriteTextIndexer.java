@@ -37,11 +37,7 @@ public class NitriteTextIndexer implements TextIndexer {
 
     @Override
     public String getIndexType() {
-        if (textTokenizer instanceof EnglishTextTokenizer) {
-            return IndexType.Fulltext;
-        } else {
-            return IndexType.Fulltext + "-" + textTokenizer.getLanguage().name();
-        }
+        return IndexType.Fulltext;
     }
 
     @Override

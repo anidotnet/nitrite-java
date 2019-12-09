@@ -184,5 +184,6 @@ public abstract class NitriteConfig {
 
     void initialized() {
         this.configured = true;
+        this.pluginManager.initializePlugins();
     }
 }

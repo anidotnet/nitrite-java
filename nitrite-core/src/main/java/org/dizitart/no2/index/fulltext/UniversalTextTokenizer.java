@@ -23,6 +23,8 @@ import org.dizitart.no2.index.fulltext.languages.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.dizitart.no2.common.util.Iterables.arrayContains;
+
 /**
  * A {@link TextTokenizer} implementation for various languages.
  *
@@ -38,7 +40,11 @@ public class UniversalTextTokenizer extends BaseTextTokenizer {
     }
 
     public UniversalTextTokenizer(Languages... languages) {
-        loadLanguage(languages);
+        if (arrayContains(languages, Languages.ALL)) {
+            loadAllLanguages();
+        } else {
+            loadLanguage(languages);
+        }
     }
 
     @Override

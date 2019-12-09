@@ -21,6 +21,9 @@ package org.dizitart.no2.repository.data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.Date;
 
@@ -29,7 +32,19 @@ import java.util.Date;
  */
 @Getter @Setter
 @EqualsAndHashCode
-public class WithDateId {
+public class WithDateId implements Mappable {
     private Date id;
     private String name;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("name", name)
+            .put("id", mapper.convertType(id, Long.class));
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        name = document.get("name", String.class);
+        id = new Date(document.get("id", Long.class));
+    }
 }

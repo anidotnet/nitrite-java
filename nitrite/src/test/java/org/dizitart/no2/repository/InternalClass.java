@@ -20,6 +20,7 @@ package org.dizitart.no2.repository;
 
 import lombok.Data;
 import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 
@@ -28,11 +29,12 @@ import org.dizitart.no2.mapper.NitriteMapper;
  */
 @Data
 class InternalClass implements Mappable {
+    @Id
     private long id;
     private String name;
 
     @Override
-    public Document write(NitriteMapper mapperz) {
+    public Document write(NitriteMapper mapper) {
         return Document.createDocument("id", id)
             .put("name", name);
     }

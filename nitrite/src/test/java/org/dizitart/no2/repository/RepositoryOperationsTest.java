@@ -24,7 +24,6 @@ import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.common.util.ObjectUtilsTest;
 import org.dizitart.no2.exceptions.IndexingException;
-import org.dizitart.no2.exceptions.InvalidIdException;
 import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.index.annotations.Id;
@@ -32,6 +31,7 @@ import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.InheritIndices;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
+import org.dizitart.no2.repository.data.Employee;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -77,15 +77,15 @@ public class RepositoryOperationsTest {
     public void testInvalidIndexComparableAndIterable() {
         NitriteMapper nitriteMapper = db.getConfig().nitriteMapper();
         ObjectRepository<ObjectWithIterableIndex> repository = db.getRepository(ObjectWithIterableIndex.class);
-        operations = new RepositoryOperations(TestObjectWithIndex.class, nitriteMapper, repository.getDocumentCollection());
+        operations = new RepositoryOperations(ObjectWithIterableIndex.class, nitriteMapper, repository.getDocumentCollection());
         operations.extractIndices(ObjectWithIterableIndex.class);
     }
 
     @Test(expected = ValidationException.class)
     public void testGetFieldsUpToNullStartClass() {
         NitriteMapper nitriteMapper = db.getConfig().nitriteMapper();
-        ObjectRepository<ObjectWithIterableIndex> repository = db.getRepository(ObjectWithIterableIndex.class);
-        operations = new RepositoryOperations(TestObjectWithIndex.class, nitriteMapper, repository.getDocumentCollection());
+        ObjectRepository<Employee> repository = db.getRepository(Employee.class);
+        operations = new RepositoryOperations(Employee.class, nitriteMapper, repository.getDocumentCollection());
         assertEquals(operations.getFieldsUpto(null, null).size(), 0);
     }
 
@@ -100,7 +100,7 @@ public class RepositoryOperationsTest {
     @Test
     public void testGetFieldsUpTo() {
         NitriteMapper nitriteMapper = db.getConfig().nitriteMapper();
-        ObjectRepository<ObjectWithIterableIndex> repository = db.getRepository(ObjectWithIterableIndex.class);
+        ObjectRepository<Employee> repository = db.getRepository(Employee.class);
         operations = new RepositoryOperations(TestObjectWithIndex.class, nitriteMapper, repository.getDocumentCollection());
 
         assertEquals(operations.getFieldsUpto(A.class, B.class).size(), 3);
@@ -115,7 +115,7 @@ public class RepositoryOperationsTest {
                 ClassWithNoAnnotatedFields.class).size(), 3);
     }
 
-    @Test(expected = InvalidIdException.class)
+    @Test(expected = NotIdentifiableException.class)
     public void testCreateUniqueFilterInvalidId() {
         NitriteMapper nitriteMapper = db.getConfig().nitriteMapper();
         ObjectRepository<B> repository = db.getRepository(B.class);

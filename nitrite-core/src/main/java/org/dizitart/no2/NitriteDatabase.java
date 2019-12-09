@@ -160,7 +160,7 @@ class NitriteDatabase implements Nitrite {
     }
 
     private void initialize(String username, String password) {
-        nitriteConfig.initialized();
+        this.nitriteConfig.initialized();
         this.store = nitriteConfig.getNitriteStore();
         this.store.openOrCreate(username, password, nitriteConfig.getStoreConfig());
     }

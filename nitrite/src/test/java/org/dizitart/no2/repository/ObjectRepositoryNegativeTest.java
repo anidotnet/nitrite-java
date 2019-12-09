@@ -126,9 +126,9 @@ public class ObjectRepositoryNegativeTest {
 
     @Test(expected = InvalidOperationException.class)
     public void testFindResultRemove() {
-        ObjectRepository<String> repository = db.getRepository(String.class);
-        repository.insert("test");
-        ReadableStream<String> result = repository.find();
+        ObjectRepository<Employee> repository = db.getRepository(Employee.class);
+        repository.insert(DataGenerator.generateEmployee());
+        ReadableStream<Employee> result = repository.find();
         result.iterator().remove();
     }
 
@@ -179,12 +179,25 @@ public class ObjectRepositoryNegativeTest {
         repository.insert(object);
 
         ReadableStream<NitriteId> project = repository.find().project(NitriteId.class);
-        assertNull(project);
+        assertNull(project.toList());
     }
 
     @Test(expected = ValidationException.class)
     public void testNullInsert() {
         ObjectRepository<WithOutId> repository = db.getRepository(WithOutId.class);
         repository.insert(null);
+    }
+
+    @Test(expected = InvalidIdException.class)
+    public void testGetByNullId() {
+        ObjectRepository<WithPublicField> repository = db.getRepository(WithPublicField.class);
+        WithPublicField object = new WithPublicField();
+        object.name = "test";
+        object.number = 2;
+
+        repository.insert(object);
+        WithPublicField instance = repository.getById(null);
+        assertEquals(object.name, instance.name);
+        assertEquals(object.number, instance.number);
     }
 }

@@ -38,10 +38,7 @@ import org.junit.runners.Parameterized;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
@@ -195,7 +192,6 @@ public class RepositoryJoinTest {
                 PersonDetails.class);
 
         assertEquals(result.size(), 5);
-        assertEquals(result.size(), 10);
         assertFalse(result.isEmpty());
         assertNotNull(result.toString());
     }
@@ -229,7 +225,7 @@ public class RepositoryJoinTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return createDocument()
-                .put("nitriteId", nitriteId.getIdValue())
+                .put("nitriteId", nitriteId != null ? nitriteId.getIdValue() : null)
                 .put("id", id)
                 .put("name", name);
         }
@@ -252,7 +248,7 @@ public class RepositoryJoinTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return createDocument()
-                .put("nitriteId", nitriteId.getIdValue())
+                .put("nitriteId", nitriteId != null ? nitriteId.getIdValue() : null)
                 .put("personId", personId)
                 .put("street", street);
         }
@@ -288,7 +284,13 @@ public class RepositoryJoinTest {
             nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
             id = document.get("id", String.class);
             name = document.get("name", String.class);
-            addresses = (List<Address>) document.get("addresses", List.class);
+            Set<Document> documents = document.get("addresses", Set.class);
+            this.addresses = new ArrayList<>();
+            for (Document doc : documents) {
+                Address address = new Address();
+                address.read(mapper, doc);
+                addresses.add(address);
+            }
         }
     }
 }

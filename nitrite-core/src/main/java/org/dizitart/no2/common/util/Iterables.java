@@ -90,6 +90,13 @@ public class Iterables {
         }
     }
 
+    public static <T> boolean arrayContains(T[] array, T element) {
+        for (T item : array) {
+            if (item.equals(element)) return true;
+        }
+        return false;
+    }
+
     @SuppressWarnings("unchecked")
     static Object[] toArray(Iterable iterable) {
         if (iterable instanceof Collection) {

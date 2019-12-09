@@ -19,17 +19,33 @@
 package org.dizitart.no2.repository.data;
 
 import lombok.EqualsAndHashCode;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee.
  */
 @EqualsAndHashCode
-public class WithOutGetterSetter {
+public class WithOutGetterSetter implements Mappable {
     private String name;
     private long number;
 
     public WithOutGetterSetter() {
         name = "test";
         number = 2;
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("name", name)
+            .put("number", number);
+
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        name = document.get("name", String.class);
+        number = document.get("number", Long.class);
     }
 }

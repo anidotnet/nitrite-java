@@ -20,7 +20,6 @@ package org.dizitart.no2.common.util;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.repository.ObjectRepository;
@@ -33,7 +32,8 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Date;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
@@ -47,11 +47,27 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
  * @since 1.0
  * @author Anindya Chatterjee.
  */
+@SuppressWarnings("rawtypes")
 @UtilityClass
 @Slf4j
 public class ObjectUtils {
     private static Objenesis stdObjenesis = new ObjenesisStd(true);
     private static Objenesis serializerObjenesis = new ObjenesisSerializer(true);
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER_TYPE;
+
+    static {
+        Map<Class<?>, Class<?>> primToWrap = new LinkedHashMap<>();
+        primToWrap.put(boolean.class, Boolean.class);
+        primToWrap.put(byte.class, Byte.class);
+        primToWrap.put(char.class, Character.class);
+        primToWrap.put(double.class, Double.class);
+        primToWrap.put(float.class, Float.class);
+        primToWrap.put(int.class, Integer.class);
+        primToWrap.put(long.class, Long.class);
+        primToWrap.put(short.class, Short.class);
+        primToWrap.put(void.class, Void.class);
+        PRIMITIVE_TO_WRAPPER_TYPE = Collections.unmodifiableMap(primToWrap);
+    }
 
     /**
      * Checks whether a collection name is a valid object repository name.
@@ -127,6 +143,7 @@ public class ObjectUtils {
      * @param o2 the other object
      * @return `true` if two objects are equal.
      */
+    @SuppressWarnings("rawtypes")
     public static boolean deepEquals(Object o1, Object o2) {
         if (o1 == null && o2 == null) {
             return true;
@@ -182,7 +199,7 @@ public class ObjectUtils {
         // none of the type check passes so they are not of compatible type
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> T newInstance(Class<T> type, boolean createSkeleton) {
         try {
             if (type.isPrimitive() || type.isArray() || type == String.class) {
@@ -228,9 +245,25 @@ public class ObjectUtils {
         if (Character.class == retType) return true;
         if (String.class == retType) return true;
         if (byte[].class.isAssignableFrom(retType)) return true;
-        if (Date.class == retType) return true;
-        if (NitriteId.class == retType) return true;
         return Enum.class.isAssignableFrom(retType);
+    }
+
+    public static boolean isCompatibleTypes(Class<?> type1, Class<?> type2) {
+        if (type1.equals(type2)) return true;
+        if (type1.isAssignableFrom(type2)) return true;
+        if (type1.isPrimitive()) {
+            Class<?> wrapperType = toWrapperType(type1);
+            return isCompatibleTypes(wrapperType, type2);
+        } else if (type2.isPrimitive()) {
+            Class<?> wrapperType = toWrapperType(type2);
+            return isCompatibleTypes(type1, wrapperType);
+        }
+        return false;
+    }
+
+    private Class<?> toWrapperType(Class<?> type) {
+        Class<?> wrapped = PRIMITIVE_TO_WRAPPER_TYPE.get(type);
+        return (wrapped == null) ? type : wrapped;
     }
 
     private static <T> ObjectInstantiator<T> getInstantiatorOf(Class<T> type) {

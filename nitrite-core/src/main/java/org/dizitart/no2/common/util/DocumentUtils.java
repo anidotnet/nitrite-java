@@ -73,11 +73,11 @@ public class DocumentUtils {
      * @return the document
      */
     public static <T> Document skeletonDocument(NitriteMapper nitriteMapper, Class<T> type) {
-        T dummy = newInstance(type, true);
-        if (nitriteMapper.isValueType(dummy)) {
+        if (nitriteMapper.isValueType(type)) {
             return Document.createDocument();
         }
-        Document document = nitriteMapper.asDocument(dummy);
+        T dummy = newInstance(type, true);
+        Document document = nitriteMapper.convertType(dummy, Document.class);
         return removeValues(document);
     }
 

@@ -345,23 +345,18 @@ public class NitriteBuilderTest {
 
     public static class CustomNitriteMapper implements NitriteMapper {
         @Override
-        public <T> Document writeObject(T object) {
+        public <Source, Target> Target convertType(Source source, Class<Target> targetClass) {
             return null;
         }
 
         @Override
-        public <T> T readObject(Document document, Class<T> type) {
-            return null;
-        }
-
-        @Override
-        public boolean isValueType(Object object) {
+        public boolean isValueType(Class<?> type) {
             return false;
         }
 
         @Override
-        public Object convertValue(Object object) {
-            return null;
+        public boolean isValue(Object object) {
+            return false;
         }
 
         @Override

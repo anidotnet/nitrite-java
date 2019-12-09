@@ -19,9 +19,7 @@
 package org.dizitart.no2.repository;
 
 import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.WriteResult;
-import org.dizitart.no2.common.util.Iterables;
 import org.dizitart.no2.exceptions.InvalidIdException;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
 import org.dizitart.no2.filters.Filter;
@@ -100,15 +98,15 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
 
     @Test
     public void testCompanyRecord() {
-        Cursor cursor = companyRepository.find();
+        Cursor<Company> cursor = companyRepository.find();
         assertEquals(cursor.size(), 10);
-        assertTrue(cursor.isEmpty());
+        assertFalse(cursor.isEmpty());
     }
 
     @Test
     public void testInsert() {
         Company company = DataGenerator.generateCompanyRecord();
-        Cursor cursor = companyRepository.find();
+        Cursor<Company> cursor = companyRepository.find();
         assertEquals(cursor.size(), 10);
 
         companyRepository.insert(company);
@@ -297,16 +295,14 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
                 = employeeRepository.update(when("empId").eq(employee.getEmpId()), update, false);
         assertEquals(writeResult.getAffectedCount(), 1);
 
-        NitriteId nitriteId = Iterables.firstOrNull(writeResult);
-        Employee byId = employeeRepository.getById(nitriteId);
+        Employee byId = employeeRepository.getById(employee.getEmpId());
         assertEquals(byId.getAddress(), "new address");
         assertEquals(byId.getEmpId(), employee.getEmpId());
 
         update.put("address", "another address");
-        writeResult
-                = employeeRepository.update(when("empId").eq(employee.getEmpId()), update);
-        nitriteId = Iterables.firstOrNull(writeResult);
-        byId = employeeRepository.getById(nitriteId);
+        employeeRepository.update(when("empId").eq(employee.getEmpId()), update);
+
+        byId = employeeRepository.getById(employee.getEmpId());
         assertEquals(byId.getAddress(), "another address");
         assertEquals(byId.getEmpId(), employee.getEmpId());
     }

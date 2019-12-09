@@ -16,6 +16,7 @@ import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.data.Company;
 import org.dizitart.no2.repository.data.Note;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,6 +38,11 @@ public class CustomFieldSeparatorTest {
                 .fieldSeparator(":")
                 .openOrCreate();
         repository = db.getRepository(EmployeeForCustomSeparator.class);
+    }
+
+    @After
+    public void reset() {
+        NitriteConfig.create().fieldSeparator(".");
     }
 
     @Test

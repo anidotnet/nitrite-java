@@ -20,9 +20,11 @@ package org.dizitart.no2.repository;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
-import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.meta.Attributes;
-import org.dizitart.no2.common.WriteResult;
+import org.dizitart.no2.mapper.MappableMapper;
+import org.dizitart.no2.mapper.NitriteMapper;
+import org.dizitart.no2.mapper.TypeConverter;
 import org.dizitart.no2.repository.data.*;
 import org.junit.After;
 import org.junit.Before;
@@ -47,9 +49,28 @@ public class ObjectRepositoryTest {
 
     @Before
     public void setUp() {
+        TypeConverter<StressRecord, Document> converter = new TypeConverter<>(StressRecord.class, Document.class,
+            source -> Document.createDocument("firstName", source.getFirstName())
+                .put("lastName", source.getLastName())
+                .put("failed", source.isFailed())
+                .put("notes", source.getNotes())
+                .put("processed", source.isProcessed()),
+            source -> {
+                StressRecord record = new StressRecord();
+                record.setFirstName(source.get("firstName", String.class));
+                record.setProcessed(source.get("processed", Boolean.class));
+                record.setLastName(source.get("lastName", String.class));
+                record.setFailed(source.get("failed", Boolean.class));
+                record.setNotes(source.get("notes", String.class));
+                return record;
+            });
+
+        NitriteMapper mapper = new MappableMapper(converter);
+
         db = NitriteBuilder.get()
-                .filePath(dbPath)
-                .openOrCreate();
+            .filePath(dbPath)
+            .loadPlugin(mapper)
+            .openOrCreate();
     }
 
     @After
@@ -67,12 +88,10 @@ public class ObjectRepositoryTest {
         object.setName("test");
         object.setClazz(String.class);
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithClassField instance = repository.getById(id);
-            assertEquals(instance.getName(), object.getName());
-            assertEquals(instance.getClazz(), object.getClazz());
-        }
+        repository.insert(object);
+        WithClassField instance = repository.getById("test");
+        assertEquals(instance.getName(), object.getName());
+        assertEquals(instance.getClazz(), object.getClazz());
     }
 
     @Test
@@ -81,11 +100,10 @@ public class ObjectRepositoryTest {
         WithFinalField object = new WithFinalField();
         object.setName("test");
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithFinalField instance = repository.getById(id);
+        repository.insert(object);
+        for (WithFinalField instance : repository.find()) {
             assertEquals(object.getName(), instance.getName());
-            assertEquals(object.getNumber(), instance.getNumber());
+            assertEquals(0, instance.getNumber());
         }
     }
 
@@ -94,10 +112,9 @@ public class ObjectRepositoryTest {
         ObjectRepository<WithOutGetterSetter> repository = db.getRepository(WithOutGetterSetter.class);
         WithOutGetterSetter object = new WithOutGetterSetter();
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithOutGetterSetter instance = repository.getById(id);
-            assertEquals(instance, object);
+        repository.insert(object);
+        for (WithOutGetterSetter instance : repository.find()) {
+            assertEquals(object, instance);
         }
     }
 
@@ -108,9 +125,8 @@ public class ObjectRepositoryTest {
         object.setName("test");
         object.setNumber(2);
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithOutId instance = repository.getById(id);
+        repository.insert(object);
+        for (WithOutId instance : repository.find()) {
             assertEquals(object.getName(), instance.getName());
             assertEquals(object.getNumber(), instance.getNumber());
         }
@@ -123,12 +139,10 @@ public class ObjectRepositoryTest {
         object.name = "test";
         object.number = 2;
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithPublicField instance = repository.getById(id);
-            assertEquals(object.name, instance.name);
-            assertEquals(object.number, instance.number);
-        }
+        repository.insert(object);
+        WithPublicField instance = repository.getById("test");
+        assertEquals(object.name, instance.name);
+        assertEquals(object.number, instance.number);
     }
 
     @Test
@@ -138,13 +152,11 @@ public class ObjectRepositoryTest {
         object.setNumber(2);
         object.setName("test");
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithTransientField instance = repository.getById(id);
-            assertNotEquals(object.getName(), instance.getName());
-            assertNull(instance.getName());
-            assertEquals(object.getNumber(), instance.getNumber());
-        }
+        repository.insert(object);
+        WithTransientField instance = repository.getById(2L);
+        assertNotEquals(object.getName(), instance.getName());
+        assertNull(instance.getName());
+        assertEquals(object.getNumber(), instance.getNumber());
     }
 
     @Test
@@ -164,7 +176,7 @@ public class ObjectRepositoryTest {
         }
 
         Cursor<StressRecord> cursor
-                = repository.find(when("failed").eq(false));
+            = repository.find(when("failed").eq(false));
         for (StressRecord record : cursor) {
             record.setProcessed(true);
             repository.update(when("firstName").eq(record.getFirstName()), record);
@@ -178,23 +190,20 @@ public class ObjectRepositoryTest {
         internalClass.setId(1);
         internalClass.setName("name");
 
-        WriteResult result = repository.insert(internalClass);
-        for (NitriteId id : result) {
-            InternalClass instance = repository.getById(id);
-            assertEquals(internalClass.getName(), instance.getName());
-            assertEquals(internalClass.getId(), instance.getId());
-        }
+        repository.insert(internalClass);
+        InternalClass instance = repository.getById((long) 1);
+        assertEquals(internalClass.getName(), instance.getName());
+        assertEquals(internalClass.getId(), instance.getId());
     }
 
     @Test
     public void testWithPrivateConstructor() {
-        ObjectRepository<WithPrivateConstructor> repository = db.getRepository(WithPrivateConstructor.class);
+        ObjectRepository<WithPrivateConstructor> repository =
+            db.getRepository(WithPrivateConstructor.class);
 
         WithPrivateConstructor object = WithPrivateConstructor.create("test", 2L);
-
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithPrivateConstructor instance = repository.getById(id);
+        repository.insert(object);
+        for (WithPrivateConstructor instance : repository.find()) {
             assertEquals(object, instance);
         }
     }
@@ -214,9 +223,9 @@ public class ObjectRepositoryTest {
         repository.insert(object2);
 
         assertEquals(repository.find(when("id").eq(new Date(1482773634L)))
-                .firstOrNull(), object1);
+            .firstOrNull(), object1);
         assertEquals(repository.find(when("id").eq(new Date(1482773720L)))
-                .firstOrNull(), object2);
+            .firstOrNull(), object2);
     }
 
     @Test

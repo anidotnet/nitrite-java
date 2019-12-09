@@ -32,7 +32,6 @@ public class PluginManager {
 
     public void load(NitritePlugin... plugins) {
         populatePlugins(plugins);
-        initializePlugins(plugins);
     }
 
     @SafeVarargs
@@ -74,10 +73,24 @@ public class PluginManager {
         }
     }
 
-    private void initializePlugins(NitritePlugin[] plugins) {
-        for (NitritePlugin plugin : plugins) {
-            plugin.initialize(nitriteConfig);
+    public void initializePlugins() {
+        if (indexerMap != null && !indexerMap.isEmpty()) {
+            for (Indexer indexer : indexerMap.values()) {
+                initializePlugin(indexer);
+            }
         }
+
+        if (nitriteMapper != null) {
+            initializePlugin(nitriteMapper);
+        }
+
+        if (nitriteStore != null) {
+            initializePlugin(nitriteStore);
+        }
+    }
+
+    private void initializePlugin(NitritePlugin plugin) {
+        plugin.initialize(nitriteConfig);
     }
 
     private void populatePlugins(NitritePlugin[] plugins) {
