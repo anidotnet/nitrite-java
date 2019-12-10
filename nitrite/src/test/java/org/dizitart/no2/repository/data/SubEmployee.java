@@ -48,14 +48,14 @@ public class SubEmployee implements Mappable {
     public Document write(NitriteMapper mapper) {
         return Document.createDocument()
             .put("empId", empId)
-            .put("joinDate", joinDate != null ? joinDate.getTime() : null)
+            .put("joinDate", joinDate)
             .put("address", address);
     }
 
     @Override
     public void read(NitriteMapper mapper, Document document) {
         empId = document.get("empId", Long.class);
-        joinDate = new Date(document.get("joinDate", Long.class));
+        joinDate = document.get("joinDate", Date.class);
         address = document.get("address", String.class);
     }
 }

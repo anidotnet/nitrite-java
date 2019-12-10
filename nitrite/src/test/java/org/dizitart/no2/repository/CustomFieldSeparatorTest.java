@@ -124,7 +124,7 @@ public class CustomFieldSeparatorTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return Document.createDocument().put("empId", empId)
-                .put("joinDate", joinDate.getTime())
+                .put("joinDate", joinDate)
                 .put("address", address)
                 .put("blob", blob)
                 .put("company", company.write(mapper))
@@ -134,7 +134,7 @@ public class CustomFieldSeparatorTest {
         @Override
         public void read(NitriteMapper mapper, Document document) {
             empId = document.get("empId", Long.class);
-            joinDate = new Date(document.get("joinDate", Long.class));
+            joinDate = document.get("joinDate", Date.class);
             address = document.get("address", String.class);
             blob = document.get("blob", byte[].class);
             employeeNote = new Note();

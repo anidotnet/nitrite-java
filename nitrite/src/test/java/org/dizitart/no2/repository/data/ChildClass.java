@@ -20,7 +20,9 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.annotations.InheritIndices;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee
@@ -30,4 +32,15 @@ import org.dizitart.no2.index.annotations.InheritIndices;
 @InheritIndices
 public class ChildClass extends ParentClass {
     private String name;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return super.write(mapper).put("name", name);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        super.read(mapper, document);
+        name = document.get("name", String.class);
+    }
 }

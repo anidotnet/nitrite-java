@@ -20,21 +20,36 @@ package org.dizitart.no2.repository.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee
  */
 @Getter
 @Setter
-public class ProductScore {
+public class ProductScore implements Mappable {
     private String product;
     private int score;
 
-    ProductScore() {
+    public ProductScore() {
     }
 
     public ProductScore(String product, int score) {
         this.product = product;
         this.score = score;
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("product", product)
+            .put("score", score);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        product = document.get("product", String.class);
+        score = document.get("score", Integer.class);
     }
 }

@@ -17,7 +17,7 @@ import java.util.Set;
  */
 public interface TextIndexer extends Indexer {
     /**
-     * Finds with text filer using full-text index.
+     * Finds matching text using full-text index.
      *
      * @param collectionName collection name
      * @param field the value

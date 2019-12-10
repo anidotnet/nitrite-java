@@ -120,13 +120,13 @@ public class NitriteIdAsIdTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return Document.createDocument()
-                .put("idField", idField != null ? idField.getIdValue() : null)
+                .put("idField", idField)
                 .put("name", name);
         }
 
         @Override
         public void read(NitriteMapper mapper, Document document) {
-            idField = NitriteId.createId(document.get("idField", Long.class));
+            idField = document.get("idField", NitriteId.class);
             name = document.get("name", String.class);
         }
     }

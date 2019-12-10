@@ -42,13 +42,13 @@ public class ParentClass extends SuperDuperClass {
     public Document write(NitriteMapper mapper) {
         return super.write(mapper)
             .put("id", id)
-            .put("date", date.getTime());
+            .put("date", date);
     }
 
     @Override
     public void read(NitriteMapper mapper, Document document) {
         super.read(mapper, document);
         id = document.get("id", Long.class);
-        date = new Date(document.get("date", Long.class));
+        date = document.get("date", Date.class);
     }
 }

@@ -100,7 +100,7 @@ class RepositoryOperations {
                     if (idField.get(object) == null) {
                         NitriteId id = document.getId();
                         idField.set(object, id);
-                        document.put(idField.getName(), id.getIdValue());
+                        document.put(idField.getName(), nitriteMapper.convert(id, NitriteId.class));
                     } else if (!update) {
                         throw new InvalidIdException("auto generated id should not be set manually");
                     }
@@ -246,7 +246,7 @@ class RepositoryOperations {
     <I> Filter createIdFilter(I id) {
         if (idField != null) {
             if (id == null) {
-                throw new InvalidIdException("null id is not a valid id");
+                throw new InvalidIdException("a null id is not a valid id");
             }
 
             if (isCompatibleTypes(idField.getType(), id.getClass())) {
@@ -256,7 +256,7 @@ class RepositoryOperations {
                     + idField.getType().getName());
             }
         } else {
-            throw new InvalidIdException(type.getName() + " does not have any id field");
+            throw new NotIdentifiableException(type.getName() + " does not have any id field");
         }
     }
 

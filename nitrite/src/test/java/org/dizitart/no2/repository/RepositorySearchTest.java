@@ -21,7 +21,7 @@ package org.dizitart.no2.repository;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.InvalidIdException;
-import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.repository.data.*;
 import org.junit.Test;
@@ -93,18 +93,18 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         Employee e3 = DataGenerator.generateEmployee();
         Employee e4 = DataGenerator.generateEmployee();
 
-        e1.setEmpId(1L);
-        e2.setEmpId(2L);
-        e3.setEmpId(3L);
-        e4.setEmpId(4L);
+        e1.setEmpId(1000000L);
+        e2.setEmpId(2000000L);
+        e3.setEmpId(3000000L);
+        e4.setEmpId(4000000L);
 
         empRepo.insert(e1, e2, e3, e4);
 
-        Employee byId = empRepo.getById(2L);
+        Employee byId = empRepo.getById(2000000L);
         assertEquals(byId, e2);
     }
 
-    @Test(expected = InvalidIdException.class)
+    @Test(expected = NotIdentifiableException.class)
     public void testGetByIdNoId() {
         ObjectRepository<Note> repository = db.getRepository(Note.class);
         Note n1 = DataGenerator.randomNote();
@@ -112,18 +112,18 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         Note n3 = DataGenerator.randomNote();
 
         assert n1 != null;
-        n1.setNoteId(1L);
+        n1.setNoteId(1000000L);
         assert n2 != null;
-        n2.setNoteId(2L);
+        n2.setNoteId(2000000L);
         assert n3 != null;
-        n3.setNoteId(3L);
+        n3.setNoteId(3000000L);
 
         repository.insert(n1, n2, n3);
 
-        repository.getById(2L);
+        repository.getById(2000000L);
     }
 
-    @Test(expected = ValidationException.class)
+    @Test(expected = InvalidIdException.class)
     public void testGetByIdNullId() {
         ObjectRepository<Employee> empRepo = db.getRepository(Employee.class);
         Employee e1 = DataGenerator.generateEmployee();
@@ -131,10 +131,10 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         Employee e3 = DataGenerator.generateEmployee();
         Employee e4 = DataGenerator.generateEmployee();
 
-        e1.setEmpId(1L);
-        e2.setEmpId(2L);
-        e3.setEmpId(3L);
-        e4.setEmpId(4L);
+        e1.setEmpId(1000000L);
+        e2.setEmpId(2000000L);
+        e3.setEmpId(3000000L);
+        e4.setEmpId(4000000L);
 
         empRepo.insert(e1, e2, e3, e4);
 
@@ -149,10 +149,10 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
         Employee e3 = DataGenerator.generateEmployee();
         Employee e4 = DataGenerator.generateEmployee();
 
-        e1.setEmpId(1L);
-        e2.setEmpId(2L);
-        e3.setEmpId(3L);
-        e4.setEmpId(4L);
+        e1.setEmpId(1000000L);
+        e2.setEmpId(2000000L);
+        e3.setEmpId(3000000L);
+        e4.setEmpId(4000000L);
 
         empRepo.insert(e1, e2, e3, e4);
 
@@ -182,24 +182,24 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
 
     @Test
     public void testStringEqualFilter() {
-        ObjectRepository<WithPublicField> repository = db.getRepository(WithPublicField.class);
+        ObjectRepository<ProductScore> repository = db.getRepository(ProductScore.class);
 
-        WithPublicField object = new WithPublicField();
-        object.name = "test";
-        object.number = 1;
+        ProductScore object = new ProductScore();
+        object.setProduct("test");
+        object.setScore(1);
         repository.insert(object);
 
-        object = new WithPublicField();
-        object.name = "test";
-        object.number = 2;
+        object = new ProductScore();
+        object.setProduct("test");
+        object.setScore(2);
         repository.insert(object);
 
-        object = new WithPublicField();
-        object.name = "another-test";
-        object.number = 3;
+        object = new ProductScore();
+        object.setProduct("another-test");
+        object.setScore(3);
         repository.insert(object);
 
-        assertEquals(repository.find(when("name").eq("test")).size(), 2);
+        assertEquals(repository.find(when("product").eq("test")).size(), 2);
     }
 
     @Test

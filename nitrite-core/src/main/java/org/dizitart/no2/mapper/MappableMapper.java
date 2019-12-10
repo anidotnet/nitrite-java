@@ -2,6 +2,7 @@ package org.dizitart.no2.mapper;
 
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 
 import java.util.*;
@@ -124,6 +125,8 @@ public class MappableMapper implements NitriteMapper {
         this.valueTypes.add(String.class);
         this.valueTypes.add(byte[].class);
         this.valueTypes.add(Enum.class);
+        this.valueTypes.add(NitriteId.class);
+        this.valueTypes.add(Date.class);
 
         if (valueTypes != null && !valueTypes.isEmpty()) {
             this.valueTypes.addAll(valueTypes);

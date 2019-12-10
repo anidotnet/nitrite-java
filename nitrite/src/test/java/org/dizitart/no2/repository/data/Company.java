@@ -68,16 +68,17 @@ public class Company implements Serializable, Mappable {
     public Document write(NitriteMapper mapper) {
         return Document.createDocument("companyId", companyId)
             .put("companyName", companyName)
-            .put("dateCreated", dateCreated.getTime())
+            .put("dateCreated", dateCreated)
             .put("departments", departments)
             .put("employeeRecord", employeeRecord);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void read(NitriteMapper mapper, Document document) {
         companyId = document.get("companyId", Long.class);
         companyName = document.get("companyName", String.class);
-        dateCreated = new Date(document.get("dateCreated", Long.class));
+        dateCreated = document.get("dateCreated", Date.class);
         departments = document.get("departments", List.class);
         employeeRecord = document.get("employeeRecord", Map.class);
     }

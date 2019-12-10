@@ -7,13 +7,14 @@ import org.dizitart.no2.collection.events.ChangeListener;
 import org.dizitart.no2.collection.events.ChangeType;
 import org.dizitart.no2.common.PersistentCollection;
 import org.dizitart.no2.common.WriteResult;
+import org.dizitart.no2.common.util.Iterables;
 import org.dizitart.no2.exceptions.InvalidIdException;
+import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.annotations.Id;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -107,7 +108,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
             Collections.addAll(itemList, others);
         }
 
-        return insert(itemList.toArray((T[]) Array.newInstance(object.getClass(), 0)));
+        return insert(Iterables.toArray(itemList, getType()));
     }
 
     /**
@@ -286,7 +287,8 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * @param id the id value
      * @return the unique object associated with the id.
      * @throws ValidationException if `id` is `null`.
-     * @throws InvalidIdException if the object has no field marked with {@link Id}.
+     * @throws InvalidIdException if the id value is `null`, or the type is not compatible.
+     * @throws NotIdentifiableException if the object has no field marked with {@link Id}.
      */
     <I> T getById(I id);
 

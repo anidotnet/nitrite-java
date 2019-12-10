@@ -19,10 +19,13 @@
 package org.dizitart.no2.repository.data;
 
 import lombok.Data;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.util.Date;
 import java.util.UUID;
@@ -34,7 +37,7 @@ import java.util.UUID;
 @Indices({
         @Index(value = "name", type = IndexType.Fulltext)
 })
-public class PersonEntity {
+public class PersonEntity implements Mappable {
     @Id
     private String uuid;
     private String name;
@@ -51,5 +54,26 @@ public class PersonEntity {
         this.uuid = UUID.randomUUID().toString();
         this.name = name;
         this.dateCreated = new Date();
+    }
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("uuid", uuid)
+            .put("name", name)
+            .put("status", status)
+            .put("friend", friend != null ? friend.write(mapper) : null)
+            .put("dateCreated", dateCreated);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        if (document != null) {
+            uuid = document.get("uuid", String.class);
+            name = document.get("name", String.class);
+            status = document.get("status", String.class);
+            dateCreated = document.get("dateCreated", Date.class);
+            friend = new PersonEntity();
+            friend.read(mapper, document.get("friend", Document.class));
+        }
     }
 }

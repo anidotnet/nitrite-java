@@ -19,18 +19,35 @@
 package org.dizitart.no2.repository.data;
 
 import lombok.Data;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Index;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 
 /**
  * @author Anindya Chatterjee
  */
 @Data
-@Index(value = "firstName", type = IndexType.Unique)
+@Index(value = "firstName")
 @Index(value = "age", type = IndexType.NonUnique)
 @Index(value = "lastName", type = IndexType.Fulltext)
-public class RepeatableIndexTest {
+public class RepeatableIndexTest implements Mappable {
     private String firstName;
     private Integer age;
     private String lastName;
+
+    @Override
+    public Document write(NitriteMapper mapper) {
+        return Document.createDocument("firstName", firstName)
+            .put("age", age)
+            .put("lastName", lastName);
+    }
+
+    @Override
+    public void read(NitriteMapper mapper, Document document) {
+        firstName = document.get("firstName", String.class);
+        age = document.get("age", Integer.class);
+        lastName = document.get("lastName", String.class);
+    }
 }

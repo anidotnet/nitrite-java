@@ -225,14 +225,14 @@ public class RepositoryJoinTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return createDocument()
-                .put("nitriteId", nitriteId != null ? nitriteId.getIdValue() : null)
+                .put("nitriteId", nitriteId)
                 .put("id", id)
                 .put("name", name);
         }
 
         @Override
         public void read(NitriteMapper mapper, Document document) {
-            nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
+            nitriteId = document.get("nitriteId", NitriteId.class);
             id = document.get("id", String.class);
             name = document.get("name", String.class);
         }
@@ -248,14 +248,14 @@ public class RepositoryJoinTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return createDocument()
-                .put("nitriteId", nitriteId != null ? nitriteId.getIdValue() : null)
+                .put("nitriteId", nitriteId)
                 .put("personId", personId)
                 .put("street", street);
         }
 
         @Override
         public void read(NitriteMapper mapper, Document document) {
-            nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
+            nitriteId = document.get("nitriteId", NitriteId.class);
             personId = document.get("personId", String.class);
             street = document.get("street", String.class);
         }
@@ -272,7 +272,7 @@ public class RepositoryJoinTest {
         @Override
         public Document write(NitriteMapper mapper) {
             return createDocument()
-                .put("nitriteId", nitriteId.getIdValue())
+                .put("nitriteId", nitriteId)
                 .put("personId", id)
                 .put("street", name)
                 .put("addresses", addresses);
@@ -281,7 +281,7 @@ public class RepositoryJoinTest {
         @Override
         @SuppressWarnings("unchecked")
         public void read(NitriteMapper mapper, Document document) {
-            nitriteId = NitriteId.createId(document.get("nitriteId", Long.class));
+            nitriteId = document.get("nitriteId", NitriteId.class);
             id = document.get("id", String.class);
             name = document.get("name", String.class);
             Set<Document> documents = document.get("addresses", Set.class);
