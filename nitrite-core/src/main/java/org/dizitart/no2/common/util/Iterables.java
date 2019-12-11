@@ -62,7 +62,7 @@ public class Iterables {
         for (T item : iterable) {
             list.add(item);
         }
-        return list;
+        return Collections.unmodifiableList(list);
     }
 
     /**
