@@ -18,8 +18,6 @@
 
 package org.dizitart.no2.collection;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.BaseCollectionTest;
 import org.dizitart.no2.common.NullOrder;
 import org.dizitart.no2.common.SortOrder;
@@ -407,19 +405,21 @@ public class CollectionFindTest extends BaseCollectionTest {
     }
 
     @Test
-    public void testElemMatchFilter() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Map map = mapper.readValue("{ productScores: [ { product: \"abc\", score: 10 }, " +
-            "{ product: \"xyz\", score: 5 } ], strArray: [\"a\", \"b\"]}", Map.class);
-        Document doc1 = createDocument(map);
+    public void testElemMatchFilter() {
+        Document doc1 = createDocument("productScores", new Document[] {
+            createDocument("product", "abc").put("score", 10),
+            createDocument("product", "xyz").put("score", 5)
+        }).put("strArray", new String[] {"a", "b"});
 
-        map = mapper.readValue("{ productScores: [ { product: \"abc\", score: 8 }, " +
-            "{ product: \"xyz\", score: 7 } ], strArray: [\"d\", \"e\"] }", Map.class);
-        Document doc2 = createDocument(map);
+        Document doc2 = createDocument("productScores", new Document[] {
+            createDocument("product", "abc").put("score", 8),
+            createDocument("product", "xyz").put("score", 7)
+        }).put("strArray", new String[] {"d", "e"});
 
-        map = mapper.readValue("{ productScores: [ { product: \"abc\", score: 7 }, " +
-            "{ product: \"xyz\", score: 8 } ], strArray: [\"a\", \"f\"] }", Map.class);
-        Document doc3 = createDocument(map);
+        Document doc3 = createDocument("productScores", new Document[] {
+            createDocument("product", "abc").put("score", 7),
+            createDocument("product", "xyz").put("score", 8)
+        }).put("strArray", new String[] {"a", "f"});
 
         NitriteCollection prodCollection = db.getCollection("prodScore");
         prodCollection.insert(doc1, doc2, doc3);

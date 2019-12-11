@@ -68,7 +68,7 @@ class JoinedDocumentIterable implements ReadableStream<Document> {
 
         @Override
         public void remove() {
-            throw new InvalidOperationException("remove on cursor is not supported");
+            throw new InvalidOperationException("remove on a cursor is not supported");
         }
 
         private Document join(Document localDocument, DocumentCursor foreignCursor, Lookup lookup) {

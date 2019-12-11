@@ -212,7 +212,7 @@ public class CollectionFindByIndexTest extends BaseCollectionTest {
         collection.dropIndex("body");
         boolean filterException = false;
         try {
-            collection.find(when("body").text("Lorem"));
+            collection.find(when("body").text("Lorem")).toList();
         } catch (FilterException fe) {
             filterException = true;
         } finally {
@@ -238,7 +238,7 @@ public class CollectionFindByIndexTest extends BaseCollectionTest {
         collection.dropIndex("body");
         boolean filterException = false;
         try {
-            collection.find(when("body").text("Lorem"));
+            collection.find(when("body").text("Lorem")).toList();
         } catch (FilterException fe) {
             filterException = true;
         } finally {

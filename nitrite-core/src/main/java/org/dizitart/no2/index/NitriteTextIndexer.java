@@ -43,7 +43,7 @@ public class NitriteTextIndexer implements TextIndexer {
     @Override
     public Set<NitriteId> findText(String collectionName, String field, String searchString) {
         notNull(field, "field cannot be null");
-        notNull(searchString, "searchString cannot be null");
+        notNull(searchString, "search term cannot be null");
 
         try {
             if (searchString.startsWith("*") || searchString.endsWith("*")) {

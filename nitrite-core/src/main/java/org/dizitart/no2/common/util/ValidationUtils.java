@@ -68,10 +68,6 @@ public class ValidationUtils {
         if (value == null) {
             throw new ValidationException(message);
         }
-
-        if (value instanceof String) {
-            notEmpty((String) value, message);
-        }
     }
 
     /**

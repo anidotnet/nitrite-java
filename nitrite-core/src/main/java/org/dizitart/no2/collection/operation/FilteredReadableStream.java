@@ -4,6 +4,7 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.filters.Filter;
 
 import java.util.Iterator;
@@ -54,7 +55,7 @@ class FilteredReadableStream implements ReadableStream<NitriteId> {
         @Override
         public void remove() {
             if (nextIdSet) {
-                throw new IllegalStateException("remove() cannot be called");
+                throw new InvalidOperationException("remove operation cannot be called here");
             }
             iterator.remove();
         }

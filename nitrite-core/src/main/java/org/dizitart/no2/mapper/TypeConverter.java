@@ -1,14 +1,14 @@
 package org.dizitart.no2.mapper;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dizitart.no2.collection.Document;
 
 /**
  * @author Anindya Chatterjee
  */
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TypeConverter<Source> {

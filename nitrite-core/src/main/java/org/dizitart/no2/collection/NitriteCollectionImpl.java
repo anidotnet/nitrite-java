@@ -21,6 +21,7 @@ import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
 
+import static org.dizitart.no2.collection.UpdateOptions.updateOptions;
 import static org.dizitart.no2.common.util.DocumentUtils.createUniqueFilter;
 import static org.dizitart.no2.common.util.ValidationUtils.containsNull;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -60,10 +61,14 @@ class NitriteCollectionImpl implements NitriteCollection {
         checkOpened();
         notNull(document, "a null document cannot be used for update");
 
-        if (document.hasId()) {
-            return update(createUniqueFilter(document), document, UpdateOptions.updateOptions(insertIfAbsent));
+        if (insertIfAbsent) {
+            return update(createUniqueFilter(document), document, updateOptions(true));
         } else {
-            throw new NotIdentifiableException("update operation failed as no id value found for the document");
+            if (document.hasId()) {
+                return update(createUniqueFilter(document), document, updateOptions(false));
+            } else {
+                throw new NotIdentifiableException("update operation failed as no id value found for the document");
+            }
         }
     }
 

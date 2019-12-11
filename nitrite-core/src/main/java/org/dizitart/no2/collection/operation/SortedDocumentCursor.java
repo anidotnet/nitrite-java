@@ -5,7 +5,7 @@ import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.NullOrder;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.SortOrder;
-import org.dizitart.no2.exceptions.InvalidOperationException;
+import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.store.NitriteMap;
 
 import java.text.Collator;
@@ -92,7 +92,7 @@ class SortedDocumentCursor implements ReadableStream<NitriteId> {
                 Object value = document.get(field);
                 if (value != null) {
                     if (value.getClass().isArray() || value instanceof Iterable) {
-                        throw new InvalidOperationException("cannot sort on array or collection objects");
+                        throw new ValidationException("cannot sort on an array or collection object");
                     }
                 } else {
                     nullValueIds.add(id);

@@ -50,12 +50,12 @@ public class ObjectRepositoryTest {
     @Before
     public void setUp() {
         TypeConverter<StressRecord> converter = new TypeConverter<>(StressRecord.class,
-            source -> Document.createDocument("firstName", source.getFirstName())
+            (source, mapper) -> Document.createDocument("firstName", source.getFirstName())
                 .put("lastName", source.getLastName())
                 .put("failed", source.isFailed())
                 .put("notes", source.getNotes())
                 .put("processed", source.isProcessed()),
-            source -> {
+            (source, mapper) -> {
                 StressRecord record = new StressRecord();
                 record.setFirstName(source.get("firstName", String.class));
                 record.setProcessed(source.get("processed", Boolean.class));

@@ -33,6 +33,6 @@ class TextFilter extends StringFilter {
 
     @Override
     protected boolean applyNonIndexed(KeyValuePair<NitriteId, Document> element) {
-        throw new FilterException(getField() + " is not indexed");
+        throw new FilterException(getField() + " is not text indexed");
     }
 }

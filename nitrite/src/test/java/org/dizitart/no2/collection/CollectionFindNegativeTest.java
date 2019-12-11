@@ -21,7 +21,6 @@ package org.dizitart.no2.collection;
 import org.dizitart.no2.BaseCollectionTest;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.FilterException;
-import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.junit.Test;
 
@@ -36,10 +35,10 @@ import static org.junit.Assert.assertEquals;
  * @author Anindya Chatterjee.
  */
 public class CollectionFindNegativeTest extends BaseCollectionTest {
-    @Test(expected = FilterException.class)
+    @Test(expected = ValidationException.class)
     public void testFindFilterInvalidIndex() {
         insert();
-        collection.find(when("data.9").eq(4));
+        collection.find(when("data.9").eq(4)).toList();
     }
 
     @Test(expected = ValidationException.class)
@@ -54,22 +53,21 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
         collection.find().limit(0, -1);
     }
 
-    @Test(expected = ValidationException.class)
     public void testFindOptionsInvalidOffset() {
         insert();
-        collection.find().limit(10, 1);
+        assertEquals(collection.find().limit(10, 1).size(), 0);
     }
 
-    @Test(expected = InvalidOperationException.class)
+    @Test(expected = ValidationException.class)
     public void testFindInvalidSort() {
         insert();
-        collection.find().sort("data", SortOrder.Descending);
+        collection.find().sort("data", SortOrder.Descending).toList();
     }
 
     @Test(expected = FilterException.class)
     public void testFindTextFilterNonIndexed() {
         insert();
-        collection.find(when("body").text("Lorem"));
+        collection.find(when("body").text("Lorem")).toList();
     }
 
     @Test(expected = FilterException.class)

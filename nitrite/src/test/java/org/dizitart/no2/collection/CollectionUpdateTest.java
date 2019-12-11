@@ -57,15 +57,22 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         }
     }
 
-    @Test
-    public void testUpsert() {
+    @Test(expected = NotIdentifiableException.class)
+    public void testUpsertWithoutId() {
         insert();
         Document update = createDocument("lastName", "ln4");
         WriteResult writeResult = collection.update(update, false);
         assertEquals(writeResult.getAffectedCount(), 0);
         assertEquals(collection.size(), 3);
+    }
 
-        writeResult = collection.update(update, true);
+    @Test
+    public void testUpsert() {
+        insert();
+        assertEquals(collection.size(), 3);
+
+        Document update = createDocument("lastName", "ln4");
+        WriteResult writeResult = collection.update(update, true);
         assertEquals(writeResult.getAffectedCount(), 1);
         assertEquals(collection.size(), 4);
 

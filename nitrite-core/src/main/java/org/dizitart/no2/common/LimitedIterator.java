@@ -1,5 +1,7 @@
 package org.dizitart.no2.common;
 
+import org.dizitart.no2.exceptions.ValidationException;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -14,13 +16,13 @@ public class LimitedIterator<T> implements Iterator<T> {
 
     public LimitedIterator(final Iterator<? extends T> iterator, final int offset, final int size) {
         if (iterator == null) {
-            throw new NullPointerException("Iterator must not be null");
+            throw new ValidationException("iterator must not be null");
         }
         if (offset < 0) {
-            throw new IllegalArgumentException("Offset parameter must not be negative.");
+            throw new ValidationException("offset parameter must not be negative.");
         }
         if (size < 0) {
-            throw new IllegalArgumentException("Max parameter must not be negative.");
+            throw new ValidationException("size parameter must not be negative.");
         }
 
         this.iterator = iterator;

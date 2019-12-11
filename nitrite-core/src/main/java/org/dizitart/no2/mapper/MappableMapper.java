@@ -65,7 +65,7 @@ public class MappableMapper implements NitriteMapper {
         if (key != null) {
             TypeConverter<?> typeConverter = typeConverterMap.get(key);
             Converter<Document, ?> converter = typeConverter.getTargetConverter();
-            return (Target) converter.convert(source);
+            return (Target) converter.convert(source, this);
         }
 
         throw new ObjectMappingException("object must implements Mappable or register a TypeConverter");
@@ -81,7 +81,7 @@ public class MappableMapper implements NitriteMapper {
         Class<?> key = findConverterKey(source.getClass());
         if (key != null) {
             TypeConverter<Source> typeConverter = (TypeConverter<Source>) typeConverterMap.get(key);
-            return typeConverter.getSourceConverter().convert(source);
+            return typeConverter.getSourceConverter().convert(source, this);
         }
 
         throw new ObjectMappingException("object must implements Mappable or register a TypeConverter");
