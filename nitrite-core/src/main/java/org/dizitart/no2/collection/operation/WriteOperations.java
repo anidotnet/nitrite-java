@@ -71,7 +71,7 @@ class WriteOperations {
                     "entry with same id already exists in " + nitriteMap.getName());
             } else {
                 try {
-                    indexOperations.updateIndexEntry(item, nitriteId);
+                    indexOperations.updateIndex(item, nitriteId);
                 } catch (UniqueConstraintException uce) {
                     log.error("Unique constraint violated for the document "
                         + document + " in " + nitriteMap.getName(), uce);
@@ -157,7 +157,7 @@ class WriteOperations {
                         writeResult.addToList(nitriteId);
                     }
 
-                    indexOperations.refreshIndexEntry(oldDocument, item, nitriteId);
+                    indexOperations.refreshIndex(oldDocument, item, nitriteId);
 
                     ChangedItem<Document> changedItem = new ChangedItem<>();
                     changedItem.setItem(document);
@@ -191,7 +191,7 @@ class WriteOperations {
 
         for (Document document : cursor) {
             NitriteId nitriteId = document.getId();
-            indexOperations.removeIndexEntry(document, nitriteId);
+            indexOperations.removeIndex(document, nitriteId);
 
             Document removed = nitriteMap.remove(nitriteId);
             int rev = removed.getRevision();

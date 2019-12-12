@@ -39,7 +39,7 @@ class IndexOperations {
     }
 
     boolean isIndexing(String field) {
-        // has index will only return true, if there is an index on
+        // has an index will only return true, if there is an index on
         // the value and indexing is not running on it
         return indexCatalog.hasIndexEntry(collectionName, field)
             && getBuildFlag(field).get();
@@ -62,7 +62,7 @@ class IndexOperations {
         rebuildIndex(indexEntry, isAsync);
     }
 
-    void updateIndexEntry(Document document, NitriteId nitriteId) {
+    void updateIndex(Document document, NitriteId nitriteId) {
         Set<String> fieldNames = document.getFields();
         for (String field : fieldNames) {
             IndexEntry indexEntry = findIndexEntry(field);
@@ -70,38 +70,26 @@ class IndexOperations {
                 String indexType = indexEntry.getIndexType();
                 Indexer indexer = findIndexer(indexType);
 
-                updateIndexEntryForField(field, document, nitriteId, indexer, indexEntry);
+                updateIndexEntry(field, document, nitriteId, indexer, indexEntry);
             }
         }
     }
 
-    void removeIndexEntry(Document document, NitriteId nitriteId) {
+    void removeIndex(Document document, NitriteId nitriteId) {
         Set<String> fieldNames = document.getFields();
         for (String field : fieldNames) {
             IndexEntry indexEntry = findIndexEntry(field);
             if (indexEntry != null) {
-                Object fieldValue = document.get(field);
+                String indexType = indexEntry.getIndexType();
+                Indexer indexer = findIndexer(indexType);
 
-                if (fieldValue == null) continue;
-                validateDocumentIndexField(fieldValue, field);
-
-                // if dirty index and currently indexing is not running, rebuild
-                if (indexCatalog.isDirtyIndex(collectionName, field)
-                    && indexBuildRegistry.get(field) != null
-                    && !indexBuildRegistry.get(field).get()) {
-                    // rebuild will also take care of the current document
-                    rebuildIndex(indexEntry, true);
-                } else {
-                    String indexType = indexEntry.getIndexType();
-                    Indexer indexer = findIndexer(indexType);
-                    indexer.removeIndex(nitriteMap, nitriteId, field, fieldValue);
-                }
+                removeIndexEntry(field, document, nitriteId, indexer, indexEntry);
             }
         }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    void refreshIndexEntry(Document oldDocument, Document newDocument, NitriteId nitriteId) {
+    void refreshIndex(Document oldDocument, Document newDocument, NitriteId nitriteId) {
         Set<String> fieldNames = newDocument.getFields();
         for (String field : fieldNames) {
             IndexEntry indexEntry = findIndexEntry(field);
@@ -147,7 +135,7 @@ class IndexOperations {
     }
 
     void dropAllIndices() {
-        for (Map.Entry<String, AtomicBoolean> entry :indexBuildRegistry.entrySet()) {
+        for (Map.Entry<String, AtomicBoolean> entry : indexBuildRegistry.entrySet()) {
             if (entry.getValue() != null && entry.getValue().get()) {
                 throw new IndexingException("cannot drop index as indexing is running on " + entry.getKey());
             }
@@ -203,14 +191,16 @@ class IndexOperations {
             // first put dirty marker
             indexCatalog.beginIndexing(collectionName, field);
 
-            // drop index
             String indexType = indexEntry.getIndexType();
             Indexer indexer = findIndexer(indexType);
-            indexer.dropIndex(nitriteMap, field);
 
-            // re-create index for value of the field from document
+            // re-create the index for the values of the field from document
             for (KeyValuePair<NitriteId, Document> entry : nitriteMap.entries()) {
-                updateIndexEntryForField(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
+                // remove old values if exists
+                removeIndexEntry(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
+
+                // re-create new entry
+                updateIndexEntry(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
             }
         } finally {
             // remove dirty marker to denote indexing completed successfully
@@ -220,8 +210,8 @@ class IndexOperations {
         }
     }
 
-    private void updateIndexEntryForField(String field, Document document, NitriteId nitriteId,
-                                          Indexer indexer, IndexEntry indexEntry) {
+    private void updateIndexEntry(String field, Document document, NitriteId nitriteId,
+                                  Indexer indexer, IndexEntry indexEntry) {
         if (indexEntry != null) {
             Object fieldValue = document.get(field);
             if (fieldValue == null) return;
@@ -233,8 +223,27 @@ class IndexOperations {
                 && !getBuildFlag(field).get()) {
                 // rebuild will also take care of the current document
                 rebuildIndex(indexEntry, true);
-            } else if(indexer != null) {
+            } else if (indexer != null) {
                 indexer.writeIndex(nitriteMap, nitriteId, field, fieldValue);
+            }
+        }
+    }
+
+    private void removeIndexEntry(String field, Document document, NitriteId nitriteId,
+                                  Indexer indexer, IndexEntry indexEntry) {
+        if (indexEntry != null) {
+            Object fieldValue = document.get(field);
+            if (fieldValue == null) return;
+
+            validateDocumentIndexField(fieldValue, field);
+
+            // if dirty index and currently indexing is not running, rebuild
+            if (indexCatalog.isDirtyIndex(collectionName, field)
+                && !getBuildFlag(field).get()) {
+                // rebuild will also take care of the current document
+                rebuildIndex(indexEntry, true);
+            } else if (indexer != null) {
+                indexer.removeIndex(nitriteMap, nitriteId, field, fieldValue);
             }
         }
     }
