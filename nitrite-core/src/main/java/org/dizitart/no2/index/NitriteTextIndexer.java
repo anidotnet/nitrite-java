@@ -100,24 +100,6 @@ public class NitriteTextIndexer implements TextIndexer {
     }
 
     @Override
-    public void rebuildIndex(NitriteMap<NitriteId, Document> collection, String field) {
-        for (KeyValuePair<NitriteId, Document> entry : collection.entries()) {
-            // create the document
-            Document object = entry.getValue();
-
-            // retrieve the value from document
-            Object fieldValue = object.get(field);
-
-            if (fieldValue == null) continue;
-            if (!(fieldValue instanceof String)) {
-                throw new IndexingException("value must be of string data type");
-            }
-
-            writeIndex(collection, entry.getKey(), field, fieldValue);
-        }
-    }
-
-    @Override
     public void initialize(NitriteConfig nitriteConfig) {
         this.nitriteStore = nitriteConfig.getNitriteStore();
         this.indexCatalog = this.nitriteStore.getIndexCatalog();

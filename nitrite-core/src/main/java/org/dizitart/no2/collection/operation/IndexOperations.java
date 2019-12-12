@@ -3,6 +3,7 @@ package org.dizitart.no2.collection.operation;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.index.IndexEntry;
@@ -41,8 +42,7 @@ class IndexOperations {
         // has index will only return true, if there is an index on
         // the value and indexing is not running on it
         return indexCatalog.hasIndexEntry(collectionName, field)
-            && indexBuildRegistry.get(field) != null
-            && indexBuildRegistry.get(field).get();
+            && getBuildFlag(field).get();
     }
 
     boolean hasIndexEntry(String field) {
@@ -67,21 +67,10 @@ class IndexOperations {
         for (String field : fieldNames) {
             IndexEntry indexEntry = findIndexEntry(field);
             if (indexEntry != null) {
-                Object fieldValue = document.get(field);
-                if (fieldValue == null) continue;
-                validateDocumentIndexField(fieldValue, field);
+                String indexType = indexEntry.getIndexType();
+                Indexer indexer = findIndexer(indexType);
 
-                // if dirty index and currently indexing is not running, rebuild
-                if (indexCatalog.isDirtyIndex(collectionName, field)
-                    && indexBuildRegistry.get(field) != null
-                    && !indexBuildRegistry.get(field).get()) {
-                    // rebuild will also take care of the current document
-                    rebuildIndex(indexEntry, true);
-                } else {
-                    String indexType = indexEntry.getIndexType();
-                    Indexer indexer = findIndexer(indexType);
-                    indexer.writeIndex(nitriteMap, nitriteId, field, fieldValue);
-                }
+                updateIndexEntryForField(field, document, nitriteId, indexer, indexEntry);
             }
         }
     }
@@ -111,7 +100,7 @@ class IndexOperations {
         }
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void refreshIndexEntry(Document oldDocument, Document newDocument, NitriteId nitriteId) {
         Set<String> fieldNames = newDocument.getFields();
         for (String field : fieldNames) {
@@ -128,8 +117,7 @@ class IndexOperations {
                 validateDocumentIndexField(newValue, field);
 
                 if (indexCatalog.isDirtyIndex(collectionName, field)
-                    && indexBuildRegistry.get(field) != null
-                    && !indexBuildRegistry.get(field).get()) {
+                    && !getBuildFlag(field).get()) {
                     // rebuild will also take care of the current document
                     rebuildIndex(indexEntry, true);
                 } else {
@@ -142,8 +130,7 @@ class IndexOperations {
     }
 
     void dropIndex(String field) {
-        if (indexBuildRegistry.get(field) != null
-            && indexBuildRegistry.get(field).get()) {
+        if (getBuildFlag(field).get()) {
             throw new IndexingException("cannot drop index as indexing is running on " + field);
         }
 
@@ -216,14 +203,39 @@ class IndexOperations {
             // first put dirty marker
             indexCatalog.beginIndexing(collectionName, field);
 
+            // drop index
             String indexType = indexEntry.getIndexType();
             Indexer indexer = findIndexer(indexType);
-            indexer.rebuildIndex(nitriteMap, field);
+            indexer.dropIndex(nitriteMap, field);
+
+            // re-create index for value of the field from document
+            for (KeyValuePair<NitriteId, Document> entry : nitriteMap.entries()) {
+                updateIndexEntryForField(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
+            }
         } finally {
             // remove dirty marker to denote indexing completed successfully
             // if dirty marker is found in any index, it needs to be rebuild
             indexCatalog.endIndexing(collectionName, field);
             getBuildFlag(field).set(false);
+        }
+    }
+
+    private void updateIndexEntryForField(String field, Document document, NitriteId nitriteId,
+                                          Indexer indexer, IndexEntry indexEntry) {
+        if (indexEntry != null) {
+            Object fieldValue = document.get(field);
+            if (fieldValue == null) return;
+
+            validateDocumentIndexField(fieldValue, field);
+
+            // if dirty index and currently indexing is not running, rebuild
+            if (indexCatalog.isDirtyIndex(collectionName, field)
+                && !getBuildFlag(field).get()) {
+                // rebuild will also take care of the current document
+                rebuildIndex(indexEntry, true);
+            } else if(indexer != null) {
+                indexer.writeIndex(nitriteMap, nitriteId, field, fieldValue);
+            }
         }
     }
 

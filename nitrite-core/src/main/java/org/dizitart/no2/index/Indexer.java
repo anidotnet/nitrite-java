@@ -22,8 +22,6 @@ public interface Indexer extends NitritePlugin {
 
     void dropIndex(NitriteMap<NitriteId, Document> collection, String field);
 
-    void rebuildIndex(NitriteMap<NitriteId, Document> collection, String field);
-
     default String getIndexMapName(String collectionName, String field) {
         return INDEX_PREFIX +
             INTERNAL_NAME_SEPARATOR +

@@ -194,11 +194,6 @@ public class LuceneIndexer implements TextIndexer {
     }
 
     @Override
-    public void rebuildIndex(NitriteMap<NitriteId, Document> collection, String field) {
-        // nothing to be done
-    }
-
-    @Override
     public void initialize(NitriteConfig nitriteConfig) {
         nitriteConfig.getNitriteStore().addStoreEventListener(eventInfo -> {
             if (eventInfo.getEvent() == StoreEvents.Commit) {

@@ -333,11 +333,6 @@ public class NitriteBuilderTest {
         }
 
         @Override
-        public void rebuildIndex(NitriteMap<NitriteId, Document> collection, String field) {
-
-        }
-
-        @Override
         public void initialize(NitriteConfig nitriteConfig) {
 
         }

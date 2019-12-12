@@ -32,9 +32,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.util.Iterables.toArray;
@@ -44,16 +42,16 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 /**
  * A utility class.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 @SuppressWarnings("rawtypes")
 @UtilityClass
 @Slf4j
 public class ObjectUtils {
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER_TYPE;
     private static Objenesis stdObjenesis = new ObjenesisStd(true);
     private static Objenesis serializerObjenesis = new ObjenesisSerializer(true);
-    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER_TYPE;
 
     static {
         Map<Class<?>, Class<?>> primToWrap = new LinkedHashMap<>();
@@ -113,7 +111,7 @@ public class ObjectUtils {
      *
      * @param collectionName name of the collection
      * @return the key
-     * */
+     */
     public static String getKeyName(String collectionName) {
         if (collectionName.contains(KEY_OBJ_SEPARATOR)) {
             String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
@@ -127,7 +125,7 @@ public class ObjectUtils {
      *
      * @param collectionName name of the collection
      * @return the type name
-     * */
+     */
     public static String getKeyedRepositoryType(String collectionName) {
         if (collectionName.contains(KEY_OBJ_SEPARATOR)) {
             String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
@@ -162,7 +160,7 @@ public class ObjectUtils {
             }
             // cast to Number and take care of boxing and compare
             return compare((Number) o1, (Number) o2) == 0;
-        } else if (o1 instanceof Iterable && o2 instanceof Iterable)  {
+        } else if (o1 instanceof Iterable && o2 instanceof Iterable) {
             Object[] arr1 = toArray((Iterable) o1);
             Object[] arr2 = toArray((Iterable) o2);
             // convert iterable to array and recursively compare arrays
@@ -259,6 +257,20 @@ public class ObjectUtils {
             return isCompatibleTypes(type1, wrapperType);
         }
         return false;
+    }
+
+    public static Object[] convertToObjectArray(Object array) {
+        Class ofArray = array.getClass().getComponentType();
+        if (ofArray.isPrimitive()) {
+            List<Object> ar = new ArrayList<>();
+            int length = Array.getLength(array);
+            for (int i = 0; i < length; i++) {
+                ar.add(Array.get(array, i));
+            }
+            return ar.toArray();
+        } else {
+            return (Object[]) array;
+        }
     }
 
     private Class<?> toWrapperType(Class<?> type) {

@@ -24,6 +24,7 @@ import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 
+import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
@@ -95,14 +96,39 @@ public class ValidationUtils {
             throw new InvalidOperationException("compound index on field " + field + " is not supported");
         }
 
-        if (fieldValue instanceof Iterable || fieldValue.getClass().isArray()) {
-            throw new IndexingException("indexing on arrays or collections " +
-                    "are not supported for field " + field);
-        }
-
-        if (!(fieldValue instanceof Comparable)) {
-            throw new IndexingException("cannot index on non comparable field " + field);
+        if (!(fieldValue instanceof Iterable || fieldValue.getClass().isArray())) {
+            if (!(fieldValue instanceof Comparable)) {
+                throw new IndexingException("cannot index on non comparable field " + field);
+            }
         }
     }
 
+    public static void validateIterableIndexField(Iterable<?> fieldValue, String field) {
+        if (fieldValue != null) {
+            for (Object value : fieldValue) {
+                if (value == null) continue;
+                validateArrayItem(value, field);
+            }
+        }
+    }
+
+    public static void validateArrayIndexField(Object arrayValue, String field) {
+        if (arrayValue != null) {
+            Object[] array = convertToObjectArray(arrayValue);
+            for (Object value : array) {
+                if (value == null) continue;
+                validateArrayItem(value, field);
+            }
+        }
+    }
+
+    private static void validateArrayItem(Object value, String field) {
+        if (value instanceof Iterable || value.getClass().isArray()) {
+            throw new InvalidOperationException("nested array index on iterable field " + field + " is not supported");
+        }
+
+        if (!(value instanceof Comparable)) {
+            throw new IndexingException("cannot index on an array field containing non comparable values " + field);
+        }
+    }
 }
