@@ -42,3 +42,113 @@ SimpleType -> SimpleType (no change)
 
 (jackson)
 AnotherSimpleType -> SimpleType (via module)
+
+
+
+=====================================
+
+{
+	first: "value",
+	seconds: ["1", "2"],
+	third: null,
+	fourth: {
+		first: "value",
+		second: ["1", "2"],
+		third: {
+			first: [1, 2],
+			second: "other"
+		}
+	},
+	fifth: [
+		{
+			first: "value",
+			second: [1, 2, 3],
+			third: {
+				first: "value",
+				second: [1, 2]
+			},
+			fourth: [
+				{
+					first: "value",
+					second: [1, 2]
+				},
+				{
+					first: "value",
+					second: [1, 2]
+				}
+			]
+		},
+		{
+			first: "value",
+			second: [1, 2, 3],
+			third: {
+				first: "value",
+				second: [1, 2]
+			},
+			fourth: [
+				{
+					first: "value",
+					second: [1, 2]
+				},
+				{
+					first: "value",
+					second: [1, 2]
+				}
+			]
+		},
+		{
+			first: "value",
+			second: [1, 2, 3],
+			third: {
+				first: "value",
+				second: [1, 2]
+			},
+			fourth: [
+				{
+					first: "value",
+					second: [1, 2]
+				},
+				{
+					first: "value",
+					second: [1, 2]
+				}
+			]
+		}
+	]
+}
+
+
+
+---------------------------
+
+
+generic accessor, specific accessor
+
+use case for generic accessor
+1. Create index on array field - pattern
+fifth.second
+fifth.fourth.second
+
+2. Create index on object field - pattern
+fourth.third.second
+
+
+use case for specific accesor
+1. Get value from an array field - exact value
+fifth.0.second.0
+fifth.1.fourth.0.second.1
+
+2. Get value from an object field - exact value
+fourth.third.second
+
+Steps.
+1. Split by separator
+2. if primitive value -> return
+3. if object but not document
+	1. if comparable return
+	2. throw exception
+4. if document
+	1. access the field get value and goto Step 2.
+5. if array/iterable
+	1. if accessor is integer, check range, get value at index and goto step 2.
+	2. if accessor not integer, get array and goto step 2.
