@@ -14,7 +14,6 @@ import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -63,10 +62,10 @@ class IndexOperations {
     }
 
     void updateIndex(Document document, NitriteId nitriteId) {
-        Set<String> fieldNames = document.getFields();
-        for (String field : fieldNames) {
-            IndexEntry indexEntry = findIndexEntry(field);
-            if (indexEntry != null) {
+        Collection<IndexEntry> indexEntries = listIndexes();
+        if (indexEntries != null) {
+            for (IndexEntry indexEntry : indexEntries) {
+                String field = indexEntry.getField();
                 String indexType = indexEntry.getIndexType();
                 Indexer indexer = findIndexer(indexType);
 
@@ -76,10 +75,10 @@ class IndexOperations {
     }
 
     void removeIndex(Document document, NitriteId nitriteId) {
-        Set<String> fieldNames = document.getFields();
-        for (String field : fieldNames) {
-            IndexEntry indexEntry = findIndexEntry(field);
-            if (indexEntry != null) {
+        Collection<IndexEntry> indexEntries = listIndexes();
+        if (indexEntries != null) {
+            for (IndexEntry indexEntry : indexEntries) {
+                String field = indexEntry.getField();
                 String indexType = indexEntry.getIndexType();
                 Indexer indexer = findIndexer(indexType);
 
@@ -90,10 +89,10 @@ class IndexOperations {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     void refreshIndex(Document oldDocument, Document newDocument, NitriteId nitriteId) {
-        Set<String> fieldNames = newDocument.getFields();
-        for (String field : fieldNames) {
-            IndexEntry indexEntry = findIndexEntry(field);
-            if (indexEntry != null) {
+        Collection<IndexEntry> indexEntries = listIndexes();
+        if (indexEntries != null) {
+            for (IndexEntry indexEntry : indexEntries) {
+                String field = indexEntry.getField();
                 Object newValue = newDocument.get(field);
                 Object oldValue = oldDocument.get(field);
 
