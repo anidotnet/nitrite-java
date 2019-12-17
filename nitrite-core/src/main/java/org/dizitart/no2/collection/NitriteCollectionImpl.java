@@ -2,8 +2,8 @@ package org.dizitart.no2.collection;
 
 import lombok.Getter;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.events.ChangedItem;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventInfo;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperations;
 import org.dizitart.no2.common.WriteResult;
@@ -34,7 +34,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     private NitriteMap<NitriteId, Document> nitriteMap;
     private NitriteStore nitriteStore;
     private CollectionOperations collectionOperations;
-    private EventBus<ChangedItem<Document>, ChangeListener> eventBus;
+    private EventBus<EventInfo<Document>, EventListener> eventBus;
     private NitriteConfig nitriteConfig;
 
     @Getter
@@ -218,7 +218,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void register(ChangeListener listener) {
+    public void subscribe(EventListener listener) {
         checkOpened();
         notNull(listener, "listener cannot be null");
 
@@ -226,7 +226,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void deregister(ChangeListener listener) {
+    public void unsubscribe(EventListener listener) {
         checkOpened();
         notNull(listener, "listener cannot be null");
 
@@ -281,14 +281,14 @@ class NitriteCollectionImpl implements NitriteCollection {
         }
     }
 
-    private static class CollectionEventBus extends NitriteEventBus<ChangedItem<Document>, ChangeListener> {
+    private static class CollectionEventBus extends NitriteEventBus<EventInfo<Document>, EventListener> {
         @Override
-        public void post(ChangedItem<Document> changedItem) {
-            for (final ChangeListener listener : getListeners()) {
+        public void post(EventInfo<Document> changedItem) {
+            for (final EventListener listener : getListeners()) {
                 String threadName = Thread.currentThread().getName();
                 changedItem.setOriginatingThread(threadName);
 
-                getEventExecutor().submit(() -> listener.onChange(changedItem));
+                getEventExecutor().submit(() -> listener.onEvent(changedItem));
             }
         }
     }

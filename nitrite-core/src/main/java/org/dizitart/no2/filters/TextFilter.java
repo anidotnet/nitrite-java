@@ -25,7 +25,7 @@ class TextFilter extends StringFilter {
                 TextIndexer textIndexer = (TextIndexer) getIndexer();
                 idSet = textIndexer.findText(getCollectionName(), getField(), getStringValue());
             } else {
-                throw new FilterException(getValue() + " is not of string type");
+                throw new FilterException(getField() + " is not full-text indexed");
             }
         }
         return idSet;

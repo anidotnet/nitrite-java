@@ -195,7 +195,7 @@ public class LuceneIndexer implements TextIndexer {
 
     @Override
     public void initialize(NitriteConfig nitriteConfig) {
-        nitriteConfig.getNitriteStore().addStoreEventListener(eventInfo -> {
+        nitriteConfig.getNitriteStore().subscribe(eventInfo -> {
             if (eventInfo.getEvent() == StoreEvents.Commit) {
                 this.commit();
             } else if (eventInfo.getEvent() == StoreEvents.Closing) {

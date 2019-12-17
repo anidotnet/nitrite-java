@@ -7,8 +7,8 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.events.ChangedItem;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventInfo;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
@@ -30,7 +30,7 @@ public class CollectionOperations {
     private IndexOperations indexOperations;
     private WriteOperations writeOperations;
     private ReadOperations readOperations;
-    private EventBus<ChangedItem<Document>, ChangeListener> eventBus;
+    private EventBus<EventInfo<Document>, EventListener> eventBus;
     private Lock readLock;
     private Lock writeLock;
 
@@ -41,7 +41,7 @@ public class CollectionOperations {
     public CollectionOperations(String collectionName,
                                 NitriteMap<NitriteId, Document> nitriteMap,
                                 NitriteConfig nitriteConfig,
-                                EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
+                                EventBus<EventInfo<Document>, EventListener> eventBus) {
         this.collectionName = collectionName;
         this.nitriteMap = nitriteMap;
         this.nitriteConfig = nitriteConfig;

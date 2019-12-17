@@ -20,21 +20,21 @@ package org.dizitart.no2.common.event;
 
 import lombok.Getter;
 import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.events.ChangeType;
-import org.dizitart.no2.collection.events.ChangedItem;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventType;
+import org.dizitart.no2.collection.events.EventInfo;
 
 /**
  * @author Anindya Chatterjee.
  */
 @Getter
-class SampleListener implements ChangeListener {
-    private ChangeType action;
+class SampleListener implements EventListener {
+    private EventType action;
     private Document item;
 
     @Override
-    public void onChange(ChangedItem<Document> changeInfo) {
-        this.action = changeInfo.getChangeType();
-        this.item = changeInfo.getItem();
+    public void onEvent(EventInfo<Document> eventInfo) {
+        this.action = eventInfo.getEventType();
+        this.item = eventInfo.getItem();
     }
 }

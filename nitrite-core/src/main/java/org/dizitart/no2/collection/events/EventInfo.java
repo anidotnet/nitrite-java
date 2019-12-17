@@ -23,17 +23,17 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * Represents affected item during collection modification.
+ * Represents a collection event data.
  *
- * @since 1.0
+ * @since 4.0
  * @author Anindya Chatterjee
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangedItem<T> implements Serializable {
+public class EventInfo<T> implements Serializable {
     /**
-     * Specifies the changed item.
+     * Specifies the item triggering the event.
      *
      * @param item the item that changed.
      * @returns the item.
@@ -46,7 +46,7 @@ public class ChangedItem<T> implements Serializable {
      * @param changeType the type of the change.
      * @returns the type of the change.
      * */
-    private ChangeType changeType;
+    private EventType eventType;
 
     /**
      * Specifies the unix timestamp of the change.
@@ -54,7 +54,7 @@ public class ChangedItem<T> implements Serializable {
      * @param changeTimestamp the unix timestamp of the change.
      * @returns the unix timestamp of the change.
      * */
-    private long changeTimestamp;
+    private long timestamp;
 
     /**
      * Specifies the name of the thread where the change
@@ -66,7 +66,7 @@ public class ChangedItem<T> implements Serializable {
      * */
     private String originatingThread;
 
-    public ChangedItem(ChangeType changeType) {
-        this.changeType = changeType;
+    public EventInfo(EventType eventType) {
+        this.eventType = eventType;
     }
 }

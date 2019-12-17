@@ -107,7 +107,7 @@ class NitriteDatabase implements Nitrite {
 
     @Override
     public void addEventListener(StoreEventListener listener) {
-        store.addStoreEventListener(listener);
+        store.subscribe(listener);
     }
 
     @Override

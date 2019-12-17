@@ -58,6 +58,7 @@ public class Iterables {
      * @return the list containing all elements of the `iterable`.
      */
     public static <T> List<T> toList(Iterable<T> iterable) {
+        if (iterable instanceof List) return (List<T>) iterable;
         List<T> list = new ArrayList<>();
         for (T item : iterable) {
             list.add(item);
@@ -100,6 +101,13 @@ public class Iterables {
             return Arrays.asList(items);
         }
         return Collections.emptyList();
+    }
+
+    public static long size(Iterable<?> iterable) {
+        if (iterable instanceof Collection) {
+            return ((Collection<?>) iterable).size();
+        }
+        return toList(iterable).size();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

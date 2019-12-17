@@ -5,9 +5,9 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.events.ChangeType;
-import org.dizitart.no2.collection.events.ChangedItem;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventType;
+import org.dizitart.no2.collection.events.EventInfo;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.exceptions.InvalidOperationException;
@@ -27,13 +27,13 @@ import static org.dizitart.no2.common.Constants.*;
 class WriteOperations {
     private final IndexOperations indexOperations;
     private final ReadOperations readOperations;
-    private final EventBus<ChangedItem<Document>, ChangeListener> eventBus;
+    private final EventBus<EventInfo<Document>, EventListener> eventBus;
     private final NitriteMap<NitriteId, Document> nitriteMap;
 
     WriteOperations(IndexOperations indexOperations,
                     ReadOperations readOperations,
                     NitriteMap<NitriteId, Document> nitriteMap,
-                    EventBus<ChangedItem<Document>, ChangeListener> eventBus) {
+                    EventBus<EventInfo<Document>, EventListener> eventBus) {
         this.indexOperations = indexOperations;
         this.readOperations = readOperations;
         this.eventBus = eventBus;
@@ -81,11 +81,11 @@ class WriteOperations {
             }
 
             nitriteIdList.add(nitriteId);
-            ChangedItem<Document> changedItem = new ChangedItem<>();
+            EventInfo<Document> changedItem = new EventInfo<>();
             changedItem.setItem(document);
-            changedItem.setChangeTimestamp(document.getLastModifiedSinceEpoch());
-            changedItem.setChangeType(ChangeType.Insert);
-            alert(ChangeType.Insert, changedItem);
+            changedItem.setTimestamp(document.getLastModifiedSinceEpoch());
+            changedItem.setEventType(EventType.Insert);
+            alert(EventType.Insert, changedItem);
         }
 
         WriteResultImpl result = new WriteResultImpl();
@@ -124,7 +124,7 @@ class WriteOperations {
             }
 
             if (update.size() == 0) {
-                alert(ChangeType.Update, null);
+                alert(EventType.Update, null);
                 return writeResult;
             }
 
@@ -159,11 +159,11 @@ class WriteOperations {
 
                     indexOperations.refreshIndex(oldDocument, item, nitriteId);
 
-                    ChangedItem<Document> changedItem = new ChangedItem<>();
+                    EventInfo<Document> changedItem = new EventInfo<>();
                     changedItem.setItem(document);
-                    changedItem.setChangeType(ChangeType.Update);
-                    changedItem.setChangeTimestamp(document.getLastModifiedSinceEpoch());
-                    alert(ChangeType.Update, changedItem);
+                    changedItem.setEventType(EventType.Update);
+                    changedItem.setTimestamp(document.getLastModifiedSinceEpoch());
+                    alert(EventType.Update, changedItem);
                 }
             }
         }
@@ -201,11 +201,11 @@ class WriteOperations {
             log.debug("Document removed {} from {}", removed, nitriteMap.getName());
             result.addToList(nitriteId);
 
-            ChangedItem<Document> changedItem = new ChangedItem<>();
+            EventInfo<Document> changedItem = new EventInfo<>();
             changedItem.setItem(removed);
-            changedItem.setChangeType(ChangeType.Remove);
-            changedItem.setChangeTimestamp(removed.getLastModifiedSinceEpoch());
-            alert(ChangeType.Remove, changedItem);
+            changedItem.setEventType(EventType.Remove);
+            changedItem.setTimestamp(removed.getLastModifiedSinceEpoch());
+            alert(EventType.Remove, changedItem);
 
             if (justOne) {
                 return result;
@@ -216,7 +216,7 @@ class WriteOperations {
         return result;
     }
 
-    private void alert(ChangeType action, ChangedItem<Document> changedItem) {
+    private void alert(EventType action, EventInfo<Document> changedItem) {
         log.debug("Notifying {} event for item {} from {}", action, changedItem, nitriteMap.getName());
         if (eventBus != null) {
             eventBus.post(changedItem);

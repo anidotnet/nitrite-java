@@ -28,9 +28,9 @@ public class CollectionFieldIndexTest {
         Document doc1 = Document.createDocument("name", "Anindya")
             .put("color", new String[] {"red", "green", "blue"})
             .put("books", new Document[] {
-                Document.createDocument("name", "Awesome Book")
+                Document.createDocument("name", "Book ABCD")
                 .put("tag", new String[] {"tag1", "tag2"}),
-                Document.createDocument("name", "Another awesome book")
+                Document.createDocument("name", "Book EFGH")
                 .put("tag", new String[] {"tag3", "tag1"}),
                 Document.createDocument("name", "No Tag")
             });
@@ -38,9 +38,9 @@ public class CollectionFieldIndexTest {
         Document doc2 = Document.createDocument("name", "Sandip")
             .put("color", new String[] {"purple", "yellow", "gray"})
             .put("books", new Document[] {
-                Document.createDocument("name", "Awesome Book 2")
-                    .put("tag", new String[] {"tag1", "tag2"}),
-                Document.createDocument("name", "Another awesome book 2")
+                Document.createDocument("name", "Book abcd")
+                    .put("tag", new String[] {"tag4", "tag5"}),
+                Document.createDocument("name", "Book wxyz")
                     .put("tag", new String[] {"tag3", "tag1"}),
                 Document.createDocument("name", "No Tag 2")
             });
@@ -48,10 +48,10 @@ public class CollectionFieldIndexTest {
         Document doc3 = Document.createDocument("name", "Subhra")
             .put("color", new String[] {"black", "sky", "violet"})
             .put("books", new Document[] {
-                Document.createDocument("name", "Awesome Book 3")
-                    .put("tag", new String[] {"tag1", "tag2"}),
-                Document.createDocument("name", "Another awesome book")
-                    .put("tag", new String[] {"tag3", "tag4"}),
+                Document.createDocument("name", "Book Mnop")
+                    .put("tag", new String[] {"tag6", "tag2"}),
+                Document.createDocument("name", "Book ghij")
+                    .put("tag", new String[] {"tag3", "tag7"}),
                 Document.createDocument("name", "No Tag")
             });
 
@@ -65,5 +65,17 @@ public class CollectionFieldIndexTest {
 
         DocumentCursor documents = collection.find(when("color").eq("red"));
         assertEquals(documents.firstOrNull(), doc1);
+
+        documents = collection.find(when("books.name").text("abcd"));
+        assertEquals(documents.size(), 2);
+
+        documents = collection.find(when("books.tag").eq("tag2"));
+        assertEquals(documents.size(), 2);
+
+        documents = collection.find(when("books.tag").eq("tag5"));
+        assertEquals(documents.size(), 1);
+
+        documents = collection.find(when("books.tag").eq("tag10"));
+        assertEquals(documents.size(), 0);
     }
 }

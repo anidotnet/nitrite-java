@@ -16,7 +16,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import static org.dizitart.no2.common.util.ValidationUtils.notNull;
+import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
+import static org.dizitart.no2.common.util.ValidationUtils.*;
 
 /**
  * @author Anindya Chatterjee
@@ -64,10 +65,8 @@ public class NitriteTextIndexer implements TextIndexer {
     @Override
     public void removeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
         try {
-            validateStringValue(fieldValue);
-
-            String text = (String) fieldValue;
-            Set<String> words = textTokenizer.tokenize(text);
+            validateStringValue(fieldValue, field);
+            Set<String> words = decompose(fieldValue);
 
             NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> indexMap
                 = getIndexMap(collection.getName(), field);
@@ -111,18 +110,22 @@ public class NitriteTextIndexer implements TextIndexer {
         return nitriteStore.openMap(mapName);
     }
 
-    private void validateStringValue(Object value) {
-        if (value != null && !(value instanceof String)) {
+    private void validateStringValue(Object value, String field) {
+        if (value == null || value instanceof String) return;
+
+        if (value instanceof Iterable) {
+            validateStringIterableIndexField((Iterable) value, field);
+        } else if (value.getClass().isArray()) {
+            validateStringArrayIndexField(value, field);
+        } else {
             throw new IndexingException("string data is expected");
         }
     }
 
     private void createOrUpdate(NitriteMap<NitriteId, Document> collection, NitriteId id, String field, Object fieldValue) {
         try {
-            validateStringValue(fieldValue);
-
-            String text = (String) fieldValue;
-            Set<String> words = textTokenizer.tokenize(text);
+            validateStringValue(fieldValue, field);
+            Set<String> words = decompose(fieldValue);
 
             NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> indexMap
                 = getIndexMap(collection.getName(), field);
@@ -139,6 +142,32 @@ public class NitriteTextIndexer implements TextIndexer {
         } catch (IOException ioe) {
             throw new IndexingException("could not write full-text index data for " + fieldValue, ioe);
         }
+    }
+
+    private Set<String> decompose(Object fieldValue) throws IOException {
+        Set<String> result = new HashSet<>();
+        if (fieldValue == null) {
+             result.add(null);
+        } else if (fieldValue instanceof String) {
+            result.add((String) fieldValue);
+        } else if (fieldValue instanceof Iterable) {
+            Iterable<?> iterable = (Iterable<?>) fieldValue;
+            for (Object item : iterable) {
+                result.addAll(decompose(item));
+            }
+        } else if (fieldValue.getClass().isArray()) {
+            Object[] array = convertToObjectArray(fieldValue);
+            for (Object item : array) {
+                result.addAll(decompose(item));
+            }
+        }
+
+        Set<String> words = new HashSet<>();
+        for (String item : result) {
+            words.addAll(textTokenizer.tokenize(item));
+        }
+
+        return words;
     }
 
     private Set<NitriteId> searchByWildCard(String collectionName, String field, String searchString) {

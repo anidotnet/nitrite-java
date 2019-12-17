@@ -21,7 +21,7 @@ package org.dizitart.no2.repository;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.*;
-import org.dizitart.no2.collection.events.ChangeListener;
+import org.dizitart.no2.collection.events.EventListener;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.exceptions.ValidationException;
@@ -169,12 +169,12 @@ public class RepositoryFactoryTest {
         }
 
         @Override
-        public void register(ChangeListener listener) {
+        public void subscribe(EventListener listener) {
 
         }
 
         @Override
-        public void deregister(ChangeListener listener) {
+        public void unsubscribe(EventListener listener) {
 
         }
 

@@ -3,8 +3,9 @@ package org.dizitart.no2.repository;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.events.ChangeType;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventType;
+import org.dizitart.no2.collection.events.EventAware;
 import org.dizitart.no2.common.PersistentCollection;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.util.Iterables;
@@ -58,10 +59,10 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * employeeStore.insert(emp);
  * <p>
  * --
- * @see org.dizitart.no2.collection.events.ChangeAware
+ * @see EventAware
  * @see Document
  * @see NitriteId
- * @see ChangeListener
+ * @see EventListener
  * @see org.dizitart.no2.common.event.EventBus
  * @see NitriteCollection
  * @since 1.0
@@ -78,9 +79,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * index will also be updated.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Insert}.
+     * {@link EventType#Insert}.
      *
      * @param object the object to insert
      * @param others other objects to insert in a batch.
@@ -125,9 +126,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Update}.
+     * {@link EventType#Update}.
      *
      * @param filter the filter to apply to select objects from the collection.
      * @param update the modifications to apply.
@@ -153,10 +154,10 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Update} or
-     * {@link ChangeType#Insert}.
+     * {@link EventType#Update} or
+     * {@link EventType#Insert}.
      *
      * @param filter         the filter to apply to select objects from the collection.
      * @param update         the modifications to apply.
@@ -179,9 +180,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Update}.
+     * {@link EventType#Update}.
      *
      * @param filter the filter to apply to select objects from the collection.
      * @param update the modifications to apply.
@@ -207,9 +208,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Update}.
+     * {@link EventType#Update}.
      *
      * @param filter   the filter to apply to select objects from the collection.
      * @param update   the modifications to apply.
@@ -225,9 +226,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * If the `filter` is `null`, it will remove all objects from the collection.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Remove}.
+     * {@link EventType#Remove}.
      *
      * @param filter the filter to apply to select elements from collection.
      * @return the result of the remove operation.
@@ -244,9 +245,9 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * `justOnce` is set to `true` in `removeOptions`.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Remove}.
+     * {@link EventType#Remove}.
      *
      * @param filter  the filter to apply to select objects from collection.
      * @param justOne indicates if only one element will be removed or all of them.

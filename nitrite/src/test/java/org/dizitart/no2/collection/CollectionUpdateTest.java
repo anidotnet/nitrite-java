@@ -241,14 +241,14 @@ public class CollectionUpdateTest extends BaseCollectionTest {
     public void testRegisterListenerAfterDrop() {
         NitriteCollection collection = db.getCollection("test");
         collection.drop();
-        collection.register(changeInfo -> fail("should not happen"));
+        collection.subscribe(changeInfo -> fail("should not happen"));
     }
 
     @Test(expected = NitriteIOException.class)
     public void testRegisterListenerAfterClose() {
         NitriteCollection collection = db.getCollection("test");
         collection.close();
-        collection.register(changeInfo -> fail("should not happen"));
+        collection.subscribe(changeInfo -> fail("should not happen"));
     }
 
     @Test(expected = UniqueConstraintException.class)

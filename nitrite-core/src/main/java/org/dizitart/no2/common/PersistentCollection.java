@@ -2,7 +2,9 @@ package org.dizitart.no2.common;
 
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.events.ChangeAware;
+import org.dizitart.no2.collection.events.EventAware;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.collection.meta.MetadataAware;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexOptions;
@@ -21,7 +23,7 @@ import java.util.Collection;
  * @see NitriteCollection
  * @see ObjectRepository
  */
-public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Closeable {
+public interface PersistentCollection<T> extends EventAware, MetadataAware, Closeable {
     /**
      * Creates an index on `value`, if not already exists.
      * If `indexOptions` is `null`, it will use default options.
@@ -109,9 +111,9 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * index will also be updated.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Insert}.
+     * {@link EventType#Insert}.
      *
      * @param elements an array of element for batch insertion.
      * @return the result of the write operation.
@@ -130,9 +132,9 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * Updates `element` in the collection. Specified `element` must have an id.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Update}.
+     * {@link EventType#Update}.
      *
      * @param element the element to update.
      * @return the result of the update operation.
@@ -149,10 +151,10 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * is set to `true`.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Update
-     * or {@link org.dizitart.no2.collection.events.ChangeType#Insert}.
+     * {@link EventType#Update
+     * or {@link EventType#Insert}.
      *
      * @param element the element to update.
      * @param insertIfAbsent if set to `true`, `element` will be inserted if not found.
@@ -167,9 +169,9 @@ public interface PersistentCollection<T> extends ChangeAware, MetadataAware, Clo
      * Deletes the `element` from the collection. The `element` must have an id.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link org.dizitart.no2.collection.events.ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link org.dizitart.no2.collection.events.ChangeType#Remove}.
+     * {@link EventType#Remove}.
      *
      * @param element the element
      * @return the result of the remove operation.

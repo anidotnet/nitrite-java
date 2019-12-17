@@ -21,37 +21,37 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.repository.ObjectRepository;
 
 /**
- * Represents different types of collection modification
- * actions.
+ * An interface when implemented makes an object be
+ * able to listen to any changes in a {@link NitriteCollection}
+ * or {@link ObjectRepository}.
+ *
+ * [[app-listing]]
+ * [source,java]
+ * .Example
+ * --
+ *
+ *  // observe any change to the collection
+ *  collection.register(new ChangeListener() {
+ *
+ *      @Override
+ *      public void onEvent(EventInfo<Document> eventInfo) {
+ *          System.out.println("Action - " + eventInfo.getEventType());
+ *
+ *          System.out.println("Affected document - " + eventInfo.getItem());
+ *      }
+ *  });
+ *
+ * --
  *
  * @since 1.0
  * @author Anindya Chatterjee.
  */
-public enum ChangeType {
-    /**
-     * Insert action.
-     *
-     * @see NitriteCollection#insert(Object[])
-     * @see ObjectRepository#insert(Object, Object[])
-     * @see ObjectRepository#insert(Object[])
-     */
-    Insert,
+public interface EventListener {
 
     /**
-     * Update action.
+     * Listener routine to be invoked for each change event.
      *
-     * @see NitriteCollection#update(Filter, Document)
-     * @see NitriteCollection#update(Filter, Document, UpdateOptions)
-     * @see ObjectRepository#update(Filter, Object)
+     * @param eventInfo the change information
      */
-    Update,
-
-    /**
-     * Remove action.
-     *
-     * @see NitriteCollection#remove(Filter)
-     * @see NitriteCollection#remove(Filter, RemoveOptions)
-     * @see ObjectRepository#remove(Filter, RemoveOptions)
-     */
-    Remove,
+    void onEvent(EventInfo<Document> eventInfo);
 }

@@ -144,8 +144,13 @@ public class NitriteMVStore implements NitriteStore {
     }
 
     @Override
-    public void addStoreEventListener(StoreEventListener listener) {
+    public void subscribe(StoreEventListener listener) {
         eventBus.register(listener);
+    }
+
+    @Override
+    public void unsubscribe(StoreEventListener listener) {
+        eventBus.deregister(listener);
     }
 
     @Override

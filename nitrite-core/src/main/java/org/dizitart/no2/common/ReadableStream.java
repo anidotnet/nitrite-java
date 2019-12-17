@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface ReadableStream<T> extends Iterable<T> {
     default long size() {
-        return toList().size();
+        return Iterables.size(this);
     }
 
     default List<T> toList() {

@@ -112,12 +112,31 @@ public class ValidationUtils {
         }
     }
 
+    public static void validateStringIterableIndexField(Iterable<?> fieldValue, String field) {
+        if (fieldValue != null) {
+            for (Object value : fieldValue) {
+                if (value == null) continue;
+                validateStringArrayItem(value, field);
+            }
+        }
+    }
+
     public static void validateArrayIndexField(Object arrayValue, String field) {
         if (arrayValue != null) {
             Object[] array = convertToObjectArray(arrayValue);
             for (Object value : array) {
                 if (value == null) continue;
                 validateArrayItem(value, field);
+            }
+        }
+    }
+
+    public static void validateStringArrayIndexField(Object arrayValue, String field) {
+        if (arrayValue != null) {
+            Object[] array = convertToObjectArray(arrayValue);
+            for (Object value : array) {
+                if (value == null) continue;
+                validateStringArrayItem(value, field);
             }
         }
     }
@@ -129,6 +148,16 @@ public class ValidationUtils {
 
         if (!(value instanceof Comparable)) {
             throw new IndexingException("cannot index on an array field containing non comparable values " + field);
+        }
+    }
+
+    private static void validateStringArrayItem(Object value, String field) {
+        if (!(value instanceof String) && (value instanceof Iterable || value.getClass().isArray())) {
+            throw new InvalidOperationException("nested array index on iterable field " + field + " is not supported");
+        }
+
+        if (!(value instanceof String)) {
+            throw new IndexingException("cannot index on an array field containing non string values " + field);
         }
     }
 }

@@ -16,30 +16,24 @@
  *
  */
 
-package org.dizitart.no2.collection.events;
+package org.dizitart.no2;
+
+import org.dizitart.no2.collection.events.EventType;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Interface to be implemented by collections that wish to be aware
- * of any data modification.
- *
- * @since 1.0
  * @author Anindya Chatterjee.
- * @see ChangeType
  */
-public interface ChangeAware {
-    /**
-     * Registers a {@link ChangeListener} instance to listen to any
-     * changes.
-     *
-     * @param listener the listener
-     */
-    void register(ChangeListener listener);
+public class EventTypeTest {
 
-    /**
-     * De-registers an already registered {@link ChangeListener} instance
-     * to listen to any changes.
-     *
-     * @param listener the listener.
-     */
-    void deregister(ChangeListener listener);
+    @Test
+    public void testValueOf() {
+        assertEquals(EventType.valueOf("Insert"), EventType.Insert);
+        assertEquals(EventType.valueOf("Update"), EventType.Update);
+        assertEquals(EventType.valueOf("Remove"), EventType.Remove);
+
+        assertEquals(EventType.values().length, 3);
+    }
 }

@@ -20,7 +20,7 @@ package org.dizitart.no2;
 
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
-import org.dizitart.no2.collection.events.ChangeType;
+import org.dizitart.no2.collection.events.EventType;
 import org.junit.Test;
 
 import static org.dizitart.no2.collection.Document.createDocument;
@@ -58,8 +58,8 @@ public class DocumentMetadataTest extends BaseCollectionTest {
         final long time = document.getRevision();
         final Document removed = document;
 
-        collection.register(changeInfo -> {
-            if (changeInfo.getChangeType() == ChangeType.Remove) {
+        collection.subscribe(changeInfo -> {
+            if (changeInfo.getEventType() == EventType.Remove) {
                 assertTrue(removed.getRevision() > time);
             }
         });

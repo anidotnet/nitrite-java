@@ -2,18 +2,20 @@ package org.dizitart.no2.collection;
 
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.util.Iterables;
 import org.dizitart.no2.exceptions.InvalidIdException;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.*;
 
 import static org.dizitart.no2.collection.NitriteId.createId;
 import static org.dizitart.no2.collection.NitriteId.newId;
 import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.common.util.Iterables.asList;
+import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 
@@ -53,7 +55,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
     @Override
     public <T> T get(String key, Class<T> type) {
         notNull(type, "type cannot be null");
-        return type.cast(super.get(key));
+        return type.cast(get(key));
     }
 
     @Override
@@ -177,6 +179,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
         return recursiveGet(get(path[0]), Arrays.copyOfRange(path, 1, path.length));
     }
 
+    @SuppressWarnings("unchecked")
     private Object recursiveGet(Object object, String[] remainingPath) {
         if (object == null) {
             return null;
@@ -186,44 +189,69 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
             return object;
         }
 
-        if (object.getClass().isArray()) {
-            String indexString = remainingPath[0];
-            int index = asInteger(indexString);
-            if (index < 0) {
-                throw new ValidationException("invalid index " + indexString + " for array");
-            }
-
-            Object[] array = getArray(object);
-            if (index >= array.length) {
-                throw new ValidationException("index " + indexString +
-                        " is not less than the size of the array " + array.length);
-            }
-
-            return recursiveGet(array[index], Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
-        }
-
-        if (object instanceof List) {
-            String indexString = remainingPath[0];
-            int index = asInteger(indexString);
-            if (index < 0) {
-                throw new ValidationException("invalid index " + indexString + " for list");
-            }
-
-            List collection = (List) object;
-            if (index >= collection.size()) {
-                throw new ValidationException("index " + indexString +
-                    " is not less than the size of the list " + collection.size());
-            }
-
-            return recursiveGet(collection.get(index), Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
-        }
-
         if (object instanceof Document) {
             return recursiveGet(((Document) object).get(remainingPath[0]),
                 Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
         }
 
+        if (object.getClass().isArray()) {
+            String accessor = remainingPath[0];
+            Object[] array = convertToObjectArray(object);
+            if (isInteger(accessor)) {
+                int index = asInteger(accessor);
+                if (index >= array.length) {
+                    throw new ValidationException("index " + index +
+                        " is not less than the size of the array " + array.length);
+                }
+
+                return recursiveGet(array[index], Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
+            } else {
+                return decompose(asList(array), remainingPath);
+            }
+        }
+
+        if (object instanceof Iterable) {
+            String accessor = remainingPath[0];
+            Iterable<Object> iterable = (Iterable<Object>) object;
+            List<Object> collection = Iterables.toList(iterable);
+            if (isInteger(accessor)) {
+                int index = asInteger(accessor);
+                if (index < 0) {
+                    throw new ValidationException("invalid index " + accessor + " for list");
+                }
+
+                if (index >= collection.size()) {
+                    throw new ValidationException("index " + accessor +
+                        " is not less than the size of the list " + collection.size());
+                }
+
+                return recursiveGet(collection.get(index), Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
+            } else {
+                return decompose(collection, remainingPath);
+            }
+        }
+
         return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Object> decompose(List<Object> collection, String[] remainingPath) {
+        Set<Object> items = new HashSet<>();
+        for (Object item : collection) {
+            Object value = recursiveGet(item, remainingPath);
+            if (value != null) {
+                if (value instanceof Iterable) {
+                    List<Object> list = Iterables.toList((Iterable<Object>) value);
+                    items.addAll(list);
+                } else if (value.getClass().isArray()) {
+                    List<Object> list = Arrays.asList(convertToObjectArray(value));
+                    items.addAll(list);
+                } else{
+                    items.add(value);
+                }
+            }
+        }
+        return new ArrayList<>(items);
     }
 
     private int asInteger(String number) {
@@ -234,13 +262,14 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
         }
     }
 
-    private Object[] getArray(Object val){
-        int length = Array.getLength(val);
-        Object[] outputArray = new Object[length];
-        for(int i = 0; i < length; ++i){
-            outputArray[i] = Array.get(val, i);
+    private boolean isInteger(String value) {
+        try {
+            int number = Integer.parseInt(value);
+            if (number >= 0) return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
-        return outputArray;
+        return false;
     }
 
     private boolean validId(Object value) {

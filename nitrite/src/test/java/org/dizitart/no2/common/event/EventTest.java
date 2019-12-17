@@ -20,7 +20,7 @@ package org.dizitart.no2.common.event;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
-import org.dizitart.no2.collection.events.ChangeType;
+import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.repository.data.Employee;
 import org.junit.After;
@@ -120,7 +120,7 @@ public class EventTest {
 
         employeeRepository = db.getRepository(Employee.class);
         listener = new SampleListener();
-        employeeRepository.register(listener);
+        employeeRepository.subscribe(listener);
     }
 
     @Test
@@ -128,8 +128,8 @@ public class EventTest {
         Employee employee = new Employee();
         employee.setEmpId(1L);
         employeeRepository.insert(employee);
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Insert));
-        assertEquals(listener.getAction(), ChangeType.Insert);
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
+        assertEquals(listener.getAction(), EventType.Insert);
         assertNotNull(listener.getItem());
     }
 
@@ -139,14 +139,14 @@ public class EventTest {
         e.setEmpId(1L);
         e.setAddress("abcd");
         employeeRepository.insert(e);
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Insert));
-        assertEquals(listener.getAction(), ChangeType.Insert);
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
+        assertEquals(listener.getAction(), EventType.Insert);
         assertNotNull(listener.getItem());
 
         e.setAddress("xyz");
         employeeRepository.update(when("empId").eq(1L), e);
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Update));
-        assertEquals(listener.getAction(), ChangeType.Update);
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Update));
+        assertEquals(listener.getAction(), EventType.Update);
         assertNotNull(listener.getItem());
 
         Employee byId = employeeRepository.getById(1L);
@@ -160,8 +160,8 @@ public class EventTest {
         e.setAddress("abcd");
 
         employeeRepository.update(when("empId").eq(1), e, true);
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Insert));
-        assertEquals(listener.getAction(), ChangeType.Insert);
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
+        assertEquals(listener.getAction(), EventType.Insert);
         assertNotNull(listener.getItem());
     }
 
@@ -172,13 +172,13 @@ public class EventTest {
         e.setAddress("abcd");
 
         employeeRepository.insert(e);
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Insert));
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
 
         employeeRepository.remove(when("empId").eq(1L));
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Remove));
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Remove));
 
         System.out.println("Action - " + listener.getAction());
-        assertEquals(listener.getAction(), ChangeType.Remove);
+        assertEquals(listener.getAction(), EventType.Remove);
         assertNotNull(listener.getItem());
     }
 
@@ -198,7 +198,7 @@ public class EventTest {
 
     @Test
     public void testDeregister() {
-        employeeRepository.deregister(listener);
+        employeeRepository.unsubscribe(listener);
         Employee e = new Employee();
         e.setEmpId(1L);
         e.setAddress("abcd");
@@ -211,16 +211,16 @@ public class EventTest {
     @Test
     public void testMultipleListeners() {
         final AtomicInteger count = new AtomicInteger(0);
-        employeeRepository.register(changeInfo -> count.incrementAndGet());
+        employeeRepository.subscribe(changeInfo -> count.incrementAndGet());
 
-        employeeRepository.register(changeInfo -> count.incrementAndGet());
+        employeeRepository.subscribe(changeInfo -> count.incrementAndGet());
 
         Employee e = new Employee();
         e.setEmpId(1L);
         e.setAddress("abcd");
         employeeRepository.insert(e);
 
-        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(ChangeType.Insert));
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
         assertEquals(count.get(), 2);
     }
 
@@ -230,7 +230,7 @@ public class EventTest {
             if (!employeeRepository.isDropped()
                     && employeeRepository.isOpen()) {
                 employeeRepository.remove(ALL);
-                employeeRepository.deregister(listener);
+                employeeRepository.unsubscribe(listener);
                 employeeRepository.close();
             }
         }
@@ -245,7 +245,7 @@ public class EventTest {
         }
     }
 
-    private Callable<Boolean> listenerPrepared(final ChangeType action) {
+    private Callable<Boolean> listenerPrepared(final EventType action) {
         return () -> listener.getAction() == action;
     }
 }

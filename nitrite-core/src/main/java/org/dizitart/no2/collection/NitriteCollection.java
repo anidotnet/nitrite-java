@@ -1,8 +1,8 @@
 package org.dizitart.no2.collection;
 
-import org.dizitart.no2.collection.events.ChangeAware;
-import org.dizitart.no2.collection.events.ChangeListener;
-import org.dizitart.no2.collection.events.ChangeType;
+import org.dizitart.no2.collection.events.EventAware;
+import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.common.PersistentCollection;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
@@ -39,10 +39,10 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * --
  *
  * @author Anindya Chatterjee
- * @see ChangeAware
+ * @see EventAware
  * @see Document
  * @see NitriteId
- * @see ChangeListener
+ * @see EventListener
  * @see EventBus
  * @since 1.0
  */
@@ -57,9 +57,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * index will also be updated.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: These operations will notify all {@link ChangeListener}
+     * NOTE: These operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Insert}.
+     * {@link EventType#Insert}.
      *
      * @param document  the document to insert
      * @param documents other documents to insert in a batch.
@@ -99,9 +99,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * If the `filter` is `null`, it will update all documents in the collection.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Update}.
+     * {@link EventType#Update}.
      *
      * @param filter the filter to apply to select documents from the collection.
      * @param update the modifications to apply.
@@ -120,9 +120,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * `justOnce` is set to `true` in `updateOptions`.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Update} or {@link ChangeType#Insert}.
+     * {@link EventType#Update} or {@link EventType#Insert}.
      *
      * @param filter        the filter to apply to select documents from the collection.
      * @param update        the modifications to apply.
@@ -140,9 +140,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * If the `filter` is `null`, it will remove all objects from the collection.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Remove}.
+     * {@link EventType#Remove}.
      *
      * @param filter the filter to apply to select elements from collection.
      * @return the result of the remove operation.
@@ -159,9 +159,9 @@ public interface NitriteCollection extends PersistentCollection<Document> {
      * `justOnce` is set to `true` in `removeOptions`.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link ChangeListener}
+     * NOTE: This operations will notify all {@link EventListener}
      * instances registered to this collection with change type
-     * {@link ChangeType#Remove}.
+     * {@link EventType#Remove}.
      *
      * @param filter  the filter to apply to select documents from collection.
      * @param justOne indicates if only one element will be removed or all of them.

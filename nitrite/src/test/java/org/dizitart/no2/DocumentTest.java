@@ -26,12 +26,11 @@ import org.dizitart.no2.exceptions.ValidationException;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.common.Constants.DOC_ID;
+import static org.dizitart.no2.common.util.Iterables.asList;
 import static org.dizitart.no2.common.util.TestUtil.parse;
 import static org.junit.Assert.*;
 
@@ -44,19 +43,19 @@ public class DocumentTest {
     @Before
     public void setUp() {
         doc = parse("{" +
-                "  score: 1034," +
-                "  location: {  " +
-                "       state: 'NY', " +
-                "       city: 'New York', " +
-                "       address: {" +
-                "            line1: '40', " +
-                "            line2: 'ABC Street', " +
-                "            house: ['1', '2', '3'] " +
-                "       }" +
-                "  }," +
-                "  category: ['food', 'produce', 'grocery'], " +
-                "  objArray: [{ value: 1}, {value: 2}]" +
-                "}");
+            "  score: 1034," +
+            "  location: {  " +
+            "       state: 'NY', " +
+            "       city: 'New York', " +
+            "       address: {" +
+            "            line1: '40', " +
+            "            line2: 'ABC Street', " +
+            "            house: ['1', '2', '3'] " +
+            "       }" +
+            "  }," +
+            "  category: ['food', 'produce', 'grocery'], " +
+            "  objArray: [{ value: 1}, {value: 2}]" +
+            "}");
     }
 
     @Test
@@ -65,10 +64,10 @@ public class DocumentTest {
         assertEquals(doc.get("score"), 1034);
         assertEquals(doc.get("location.state"), "NY");
         assertEquals(doc.get("location.address"), parse("{" +
-                "            line1: '40', " +
-                "            line2: 'ABC Street', " +
-                "            house: ['1', '2', '3'] " +
-                "       },"));
+            "            line1: '40', " +
+            "            line2: 'ABC Street', " +
+            "            house: ['1', '2', '3'] " +
+            "       },"));
         assertEquals(doc.get("location.address.line1"), "40");
         assertNull(doc.get("location.category"));
 
@@ -77,9 +76,9 @@ public class DocumentTest {
         assertEquals(doc.get("location.address.house.2"), "3");
 
         assertNotEquals(doc.get("location.address.test"), parse("{" +
-                "            line1: '40', " +
-                "            line2: 'ABC Street'" +
-                "       },"));
+            "            line1: '40', " +
+            "            line2: 'ABC Street'" +
+            "       },"));
         assertNotEquals(doc.get("location.address.test"), "a");
         assertNull(doc.get("."));
         assertNull(doc.get("score.test"));
@@ -93,10 +92,10 @@ public class DocumentTest {
         assertEquals(doc.get("score"), 1034);
         assertEquals(doc.get("location:state"), "NY");
         assertEquals(doc.get("location:address"), parse("{" +
-                "            line1: '40', " +
-                "            line2: 'ABC Street', " +
-                "            house: ['1', '2', '3'] " +
-                "       },"));
+            "            line1: '40', " +
+            "            line2: 'ABC Street', " +
+            "            house: ['1', '2', '3'] " +
+            "       },"));
         assertEquals(doc.get("location:address:line1"), "40");
         assertNull(doc.get("location:category"));
 
@@ -105,9 +104,9 @@ public class DocumentTest {
         assertEquals(doc.get("location:address:house:2"), "3");
 
         assertNotEquals(doc.get("location:address:test"), parse("{" +
-                "            line1: '40', " +
-                "            line2: 'ABC Street'" +
-                "       },"));
+            "            line1: '40', " +
+            "            line2: 'ABC Street'" +
+            "       },"));
         assertNotEquals(doc.get("location:address:test"), "a");
         assertNull(doc.get(":"));
         assertNull(doc.get("score:test"));
@@ -141,15 +140,15 @@ public class DocumentTest {
         Map<String, Object> map = new HashMap<>();
         map.put(DOC_ID, "id");
 
-        Document document = Document.createDocument(map);
+        Document document = createDocument(map);
         document.getId();
     }
 
     @Test(expected = ValidationException.class)
     public void testGet() {
         String key = "first.array.-1";
-        Document document = Document.createDocument()
-                .put("first", Document.createDocument().put("array", new int[]{0}));
+        Document document = createDocument()
+            .put("first", createDocument().put("array", new int[]{0}));
         document.get(key);
     }
 
@@ -173,5 +172,66 @@ public class DocumentTest {
         assertTrue(fields.contains("location.city"));
         assertTrue(fields.contains("location.state"));
         assertTrue(fields.contains("score"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void getEmbeddedArrayFields() {
+        Document document = createDocument("first", "value")
+            .put("seconds", new String[]{"1", "2"})
+            .put("third", null)
+            .put("fourth", createDocument("first", "value")
+                .put("seconds", new String[]{"1", "2"})
+                .put("third", createDocument("first", new Integer[]{1, 2})
+                    .put("second", "other")
+                )
+            )
+            .put("fifth", asList(
+                createDocument("first", "value")
+                    .put("second", new Integer[]{1, 2, 3})
+                    .put("third", createDocument("first", "value")
+                        .put("second", new Integer[]{1, 2}))
+                    .put("fourth", new Document[]{
+                        createDocument("first", "value")
+                            .put("second", new Integer[]{1, 2}),
+                        createDocument("first", "value")
+                            .put("second", new Integer[]{1, 2})
+                    }),
+                createDocument("first", "value")
+                    .put("second", new Integer[]{3, 4, 5})
+                    .put("third", createDocument("first", "value")
+                        .put("second", new Integer[]{1, 2}))
+                    .put("fourth", new Document[]{
+                        createDocument("first", "value")
+                            .put("second", new Integer[]{1, 2}),
+                        createDocument("first", "value")
+                            .put("second", new Integer[]{1, 2})
+                    }),
+                createDocument("first", "value")
+                    .put("second", new Integer[]{5, 6, 7})
+                    .put("third", createDocument("first", "value")
+                        .put("second", new Integer[]{1, 2}))
+                    .put("fourth", new Document[]{
+                        createDocument("first", "value")
+                            .put("second", new Integer[]{1, 2}),
+                        createDocument("first", "value")
+                            .put("second", new Integer[]{3, 4})
+                    })
+            ));
+
+        List<Integer> intArray = document.get("fifth.second", List.class);
+        assertEquals(intArray.size(), 7);
+
+        intArray = document.get("fifth.fourth.second", List.class);
+        assertEquals(intArray.size(), 4);
+
+        String value = document.get("fourth.third.second", String.class);
+        assertEquals(value, "other");
+
+        int number = document.get("fifth.0.second.0", Integer.class);
+        assertEquals(number, 1);
+
+        number = document.get("fifth.1.fourth.0.second.1", Integer.class);
+        assertEquals(number, 2);
     }
 }
