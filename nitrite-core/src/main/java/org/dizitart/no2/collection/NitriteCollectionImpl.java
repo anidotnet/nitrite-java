@@ -2,8 +2,8 @@ package org.dizitart.no2.collection;
 
 import lombok.Getter;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.collection.events.EventListener;
-import org.dizitart.no2.collection.events.EventInfo;
+import org.dizitart.no2.collection.events.CollectionEventListener;
+import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperations;
 import org.dizitart.no2.common.WriteResult;
@@ -34,7 +34,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     private NitriteMap<NitriteId, Document> nitriteMap;
     private NitriteStore nitriteStore;
     private CollectionOperations collectionOperations;
-    private EventBus<EventInfo<Document>, EventListener> eventBus;
+    private EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private NitriteConfig nitriteConfig;
 
     @Getter
@@ -218,7 +218,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void subscribe(EventListener listener) {
+    public void subscribe(CollectionEventListener listener) {
         checkOpened();
         notNull(listener, "listener cannot be null");
 
@@ -226,7 +226,7 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
-    public void unsubscribe(EventListener listener) {
+    public void unsubscribe(CollectionEventListener listener) {
         checkOpened();
         notNull(listener, "listener cannot be null");
 
@@ -281,14 +281,14 @@ class NitriteCollectionImpl implements NitriteCollection {
         }
     }
 
-    private static class CollectionEventBus extends NitriteEventBus<EventInfo<Document>, EventListener> {
+    private static class CollectionEventBus extends NitriteEventBus<CollectionEventInfo<?>, CollectionEventListener> {
         @Override
-        public void post(EventInfo<Document> changedItem) {
-            for (final EventListener listener : getListeners()) {
+        public void post(CollectionEventInfo<?> collectionEventInfo) {
+            for (final CollectionEventListener listener : getListeners()) {
                 String threadName = Thread.currentThread().getName();
-                changedItem.setOriginatingThread(threadName);
+                collectionEventInfo.setOriginatingThread(threadName);
 
-                getEventExecutor().submit(() -> listener.onEvent(changedItem));
+                getEventExecutor().submit(() -> listener.onEvent(collectionEventInfo));
             }
         }
     }

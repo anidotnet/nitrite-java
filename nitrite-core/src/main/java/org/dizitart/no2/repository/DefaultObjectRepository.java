@@ -3,7 +3,7 @@ package org.dizitart.no2.repository;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.filters.Filter;
@@ -152,12 +152,12 @@ class DefaultObjectRepository<T> implements ObjectRepository<T> {
     }
 
     @Override
-    public void subscribe(EventListener listener) {
+    public void subscribe(CollectionEventListener listener) {
         collection.subscribe(listener);
     }
 
     @Override
-    public void unsubscribe(EventListener listener) {
+    public void unsubscribe(CollectionEventListener listener) {
         collection.unsubscribe(listener);
     }
 

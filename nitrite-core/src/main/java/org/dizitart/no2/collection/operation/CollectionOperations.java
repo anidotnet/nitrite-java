@@ -7,8 +7,8 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.collection.events.EventListener;
-import org.dizitart.no2.collection.events.EventInfo;
+import org.dizitart.no2.collection.events.CollectionEventListener;
+import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
@@ -30,7 +30,7 @@ public class CollectionOperations {
     private IndexOperations indexOperations;
     private WriteOperations writeOperations;
     private ReadOperations readOperations;
-    private EventBus<EventInfo<Document>, EventListener> eventBus;
+    private EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private Lock readLock;
     private Lock writeLock;
 
@@ -41,7 +41,7 @@ public class CollectionOperations {
     public CollectionOperations(String collectionName,
                                 NitriteMap<NitriteId, Document> nitriteMap,
                                 NitriteConfig nitriteConfig,
-                                EventBus<EventInfo<Document>, EventListener> eventBus) {
+                                EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus) {
         this.collectionName = collectionName;
         this.nitriteMap = nitriteMap;
         this.nitriteConfig = nitriteConfig;
@@ -198,7 +198,7 @@ public class CollectionOperations {
         ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         this.readLock = readWriteLock.readLock();
         this.writeLock = readWriteLock.writeLock();
-        this.indexOperations = new IndexOperations(nitriteConfig, nitriteMap);
+        this.indexOperations = new IndexOperations(nitriteConfig, nitriteMap, eventBus);
         this.readOperations = new ReadOperations(collectionName, nitriteConfig, nitriteMap);
         this.writeOperations = new WriteOperations(indexOperations, readOperations,
             nitriteMap, eventBus);

@@ -3,7 +3,7 @@ package org.dizitart.no2.repository;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.collection.events.EventAware;
 import org.dizitart.no2.common.PersistentCollection;
@@ -62,7 +62,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * @see EventAware
  * @see Document
  * @see NitriteId
- * @see EventListener
+ * @see CollectionEventListener
  * @see org.dizitart.no2.common.event.EventBus
  * @see NitriteCollection
  * @since 1.0
@@ -79,7 +79,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * index will also be updated.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Insert}.
      *
@@ -126,7 +126,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update}.
      *
@@ -154,7 +154,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update} or
      * {@link EventType#Insert}.
@@ -180,7 +180,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update}.
      *
@@ -208,7 +208,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * ====
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update}.
      *
@@ -226,7 +226,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * If the `filter` is `null`, it will remove all objects from the collection.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Remove}.
      *
@@ -245,7 +245,7 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      * `justOnce` is set to `true` in `removeOptions`.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Remove}.
      *

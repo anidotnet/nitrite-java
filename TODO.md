@@ -3,6 +3,7 @@
 3. Validate indexing on null value (it should index null values)
 3. All exception message must be detailed and unique as no number is there now.
 4. Try implement Collection<?> for stream support
+5. Old nitrite data compatibility check
 
 ComplexType/SimpleType
 

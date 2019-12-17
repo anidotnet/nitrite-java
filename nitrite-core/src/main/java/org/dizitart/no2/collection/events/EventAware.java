@@ -28,17 +28,17 @@ package org.dizitart.no2.collection.events;
  */
 public interface EventAware {
     /**
-     * Subscribes an {@link EventListener} instance to listen to any
+     * Subscribes an {@link CollectionEventListener} instance to listen to any
      * collection events.
      *
      * @param listener the listener
      */
-    void subscribe(EventListener listener);
+    void subscribe(CollectionEventListener listener);
 
     /**
-     * Unsubscribes an {@link EventListener} instance.
+     * Unsubscribes an {@link CollectionEventListener} instance.
      *
      * @param listener the listener.
      */
-    void unsubscribe(EventListener listener);
+    void unsubscribe(CollectionEventListener listener);
 }

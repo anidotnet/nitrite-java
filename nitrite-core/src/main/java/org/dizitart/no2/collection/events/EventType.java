@@ -16,46 +16,35 @@
 
 package org.dizitart.no2.collection.events;
 
-import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.repository.ObjectRepository;
-
 /**
- * Represents different types of collection modification
- * actions.
+ * Represents different types of collection events.
  *
- * @since 1.0
+ * @since 4.0
  * @author Anindya Chatterjee.
  */
 public enum EventType {
     /**
-     * Insert action.
-     *
-     * @see NitriteCollection#insert(Object[])
-     * @see ObjectRepository#insert(Object, Object[])
-     * @see ObjectRepository#insert(Object[])
+     * Insert event.
      */
     Insert,
 
     /**
-     * Update action.
-     *
-     * @see NitriteCollection#update(Filter, Document)
-     * @see NitriteCollection#update(Filter, Document, UpdateOptions)
-     * @see ObjectRepository#update(Filter, Object)
+     * Update event.
      */
     Update,
 
     /**
-     * Remove action.
-     *
-     * @see NitriteCollection#remove(Filter)
-     * @see NitriteCollection#remove(Filter, RemoveOptions)
-     * @see ObjectRepository#remove(Filter, RemoveOptions)
+     * Remove event.
      */
     Remove,
 
+    /**
+     * Indexing start event.
+     * */
     IndexStart,
 
+    /**
+     * Indexing end event.
+     * */
     IndexEnd
 }

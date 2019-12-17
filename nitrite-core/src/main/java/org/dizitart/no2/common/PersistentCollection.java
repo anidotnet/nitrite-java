@@ -3,7 +3,7 @@ package org.dizitart.no2.common;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.EventAware;
-import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.collection.meta.MetadataAware;
 import org.dizitart.no2.index.IndexEntry;
@@ -111,7 +111,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * index will also be updated.
      * <p>
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Insert}.
      *
@@ -132,7 +132,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * Updates `element` in the collection. Specified `element` must have an id.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update}.
      *
@@ -151,7 +151,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * is set to `true`.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update
      * or {@link EventType#Insert}.
@@ -169,7 +169,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * Deletes the `element` from the collection. The `element` must have an id.
      *
      * [icon="{@docRoot}/note.png"]
-     * NOTE: This operations will notify all {@link EventListener}
+     * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Remove}.
      *

@@ -52,7 +52,7 @@ public class EventTest {
     private String fileName = getRandomTempDbFile();
     private Nitrite db;
     private ObjectRepository<Employee> employeeRepository;
-    private SampleListener listener;
+    private SampleListenerCollection listener;
 
     @Parameterized.Parameter
     public boolean inMemory = false;
@@ -119,7 +119,7 @@ public class EventTest {
         }
 
         employeeRepository = db.getRepository(Employee.class);
-        listener = new SampleListener();
+        listener = new SampleListenerCollection();
         employeeRepository.subscribe(listener);
     }
 

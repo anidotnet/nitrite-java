@@ -23,13 +23,13 @@ import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import org.dizitart.no2.Nitrite;
-import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.repository.ObjectRepository;
 
 public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
     UserAdapter adapter;
-    EventListener listener;
+    CollectionEventListener listener;
 
     private Nitrite db;
     private ObjectRepository<User> repository;

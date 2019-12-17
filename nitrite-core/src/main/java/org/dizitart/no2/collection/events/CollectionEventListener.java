@@ -16,7 +16,6 @@
 
 package org.dizitart.no2.collection.events;
 
-import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.repository.ObjectRepository;
 
@@ -31,7 +30,7 @@ import org.dizitart.no2.repository.ObjectRepository;
  * --
  *
  *  // observe any change to the collection
- *  collection.register(new ChangeListener() {
+ *  collection.subscribe(new EventListener() {
  *
  *      @Override
  *      public void onEvent(EventInfo<Document> eventInfo) {
@@ -43,15 +42,15 @@ import org.dizitart.no2.repository.ObjectRepository;
  *
  * --
  *
- * @since 1.0
+ * @since 4.0
  * @author Anindya Chatterjee.
  */
-public interface EventListener {
+public interface CollectionEventListener {
 
     /**
-     * Listener routine to be invoked for each change event.
+     * A subscriber to listen to collection events.
      *
-     * @param eventInfo the change information
+     * @param eventInfo the event information
      */
-    void onEvent(EventInfo<Document> eventInfo);
+    void onEvent(CollectionEventInfo<?> eventInfo);
 }

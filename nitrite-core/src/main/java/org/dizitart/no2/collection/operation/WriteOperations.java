@@ -5,9 +5,9 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.collection.events.EventListener;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.EventType;
-import org.dizitart.no2.collection.events.EventInfo;
+import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.exceptions.InvalidOperationException;
@@ -27,13 +27,13 @@ import static org.dizitart.no2.common.Constants.*;
 class WriteOperations {
     private final IndexOperations indexOperations;
     private final ReadOperations readOperations;
-    private final EventBus<EventInfo<Document>, EventListener> eventBus;
+    private final EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private final NitriteMap<NitriteId, Document> nitriteMap;
 
     WriteOperations(IndexOperations indexOperations,
                     ReadOperations readOperations,
                     NitriteMap<NitriteId, Document> nitriteMap,
-                    EventBus<EventInfo<Document>, EventListener> eventBus) {
+                    EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus) {
         this.indexOperations = indexOperations;
         this.readOperations = readOperations;
         this.eventBus = eventBus;
@@ -71,7 +71,7 @@ class WriteOperations {
                     "entry with same id already exists in " + nitriteMap.getName());
             } else {
                 try {
-                    indexOperations.updateIndex(item, nitriteId);
+                    indexOperations.writeIndex(item, nitriteId);
                 } catch (UniqueConstraintException uce) {
                     log.error("Unique constraint violated for the document "
                         + document + " in " + nitriteMap.getName(), uce);
@@ -81,7 +81,7 @@ class WriteOperations {
             }
 
             nitriteIdList.add(nitriteId);
-            EventInfo<Document> changedItem = new EventInfo<>();
+            CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
             changedItem.setItem(document);
             changedItem.setTimestamp(document.getLastModifiedSinceEpoch());
             changedItem.setEventType(EventType.Insert);
@@ -157,9 +157,9 @@ class WriteOperations {
                         writeResult.addToList(nitriteId);
                     }
 
-                    indexOperations.refreshIndex(oldDocument, item, nitriteId);
+                    indexOperations.updateIndex(oldDocument, item, nitriteId);
 
-                    EventInfo<Document> changedItem = new EventInfo<>();
+                    CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
                     changedItem.setItem(document);
                     changedItem.setEventType(EventType.Update);
                     changedItem.setTimestamp(document.getLastModifiedSinceEpoch());
@@ -201,7 +201,7 @@ class WriteOperations {
             log.debug("Document removed {} from {}", removed, nitriteMap.getName());
             result.addToList(nitriteId);
 
-            EventInfo<Document> changedItem = new EventInfo<>();
+            CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
             changedItem.setItem(removed);
             changedItem.setEventType(EventType.Remove);
             changedItem.setTimestamp(removed.getLastModifiedSinceEpoch());
@@ -216,7 +216,7 @@ class WriteOperations {
         return result;
     }
 
-    private void alert(EventType action, EventInfo<Document> changedItem) {
+    private void alert(EventType action, CollectionEventInfo<?> changedItem) {
         log.debug("Notifying {} event for item {} from {}", action, changedItem, nitriteMap.getName());
         if (eventBus != null) {
             eventBus.post(changedItem);

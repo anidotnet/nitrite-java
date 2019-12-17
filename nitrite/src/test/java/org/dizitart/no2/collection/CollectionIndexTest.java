@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import static org.awaitility.Awaitility.await;
@@ -265,5 +266,38 @@ public class CollectionIndexTest extends BaseCollectionTest {
         assertFalse(coll.hasIndex("text"));
 
         Files.delete(Paths.get(file));
+    }
+
+    @Test
+    public void testIndexEvent() {
+        NitriteCollection collection = db.getCollection("index-test");
+        Random random = new Random();
+        for (int i = 0; i < 10000; i++) {
+            Document document = createDocument("first", random.nextInt())
+                .put("second", random.doubles());
+            collection.insert(document);
+        }
+
+        collection.subscribe(eventInfo -> {
+            switch (eventInfo.getEventType()) {
+                case Insert:
+                    fail("wrong event Insert");
+                    break;
+                case Update:
+                    fail("wrong event Update");
+                    break;
+                case Remove:
+                    fail("wrong event Remove");
+                    break;
+                case IndexStart:
+                case IndexEnd:
+                    break;
+            }
+            assertTrue(eventInfo.getItem() instanceof String);
+            System.out.println(eventInfo.getEventType() + " for field " + eventInfo.getItem());
+        });
+
+        collection.createIndex("first", indexOptions(IndexType.NonUnique));
+        assertEquals(collection.find().size(), 10000);
     }
 }

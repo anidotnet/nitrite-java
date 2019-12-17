@@ -31,7 +31,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventInfo<T> implements Serializable {
+public class CollectionEventInfo<T> implements Serializable {
     /**
      * Specifies the item triggering the event.
      *
@@ -66,7 +66,7 @@ public class EventInfo<T> implements Serializable {
      * */
     private String originatingThread;
 
-    public EventInfo(EventType eventType) {
+    public CollectionEventInfo(EventType eventType) {
         this.eventType = eventType;
     }
 }
