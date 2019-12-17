@@ -39,10 +39,11 @@ public class CollectionIndexNegativeTest extends BaseCollectionTest {
         insert();
     }
 
-    @Test(expected = IndexingException.class)
+    @Test(expected = UniqueConstraintException.class)
     public void testCreateIndexOnArray() {
         collection.createIndex("data", IndexOptions.indexOptions(IndexType.Unique));
         assertTrue(collection.hasIndex("data"));
+        // data array field has repetition, so unique constraint exception
         insert();
     }
 

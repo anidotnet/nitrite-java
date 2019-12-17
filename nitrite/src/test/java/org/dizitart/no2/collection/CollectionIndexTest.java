@@ -19,26 +19,19 @@
 package org.dizitart.no2.collection;
 
 import org.dizitart.no2.BaseCollectionTest;
-import org.dizitart.no2.Nitrite;
-import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.LuceneIndexer;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
 import static org.awaitility.Awaitility.await;
-import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.filters.FluentFilter.when;
 import static org.dizitart.no2.index.IndexOptions.indexOptions;
@@ -241,40 +234,12 @@ public class CollectionIndexTest extends BaseCollectionTest {
     }
 
     @Test
-    public void testIssue174() throws IOException {
-        String file = getRandomTempDbFile();
-        Nitrite ndb = NitriteBuilder.get()
-                .loadPlugin(new LuceneIndexer())
-                .filePath(file)
-                .openOrCreate();
-
-        NitriteCollection coll = ndb.getCollection("lucene");
-
-        Document doc = createDocument("text", "Quick brown fox").put("name", "Anindya");
-        Document doc2 = createDocument("text", "Jump over lazy dog").put("name", "Chatterjee");
-
-        coll.insert(doc, doc2);
-
-        coll.createIndex("name", indexOptions(IndexType.Unique));
-        coll.createIndex("text", indexOptions(IndexType.Fulltext));
-
-        assertTrue(coll.hasIndex("name"));
-        assertTrue(coll.hasIndex("text"));
-
-        coll.dropIndex("text");
-
-        assertFalse(coll.hasIndex("text"));
-
-        Files.delete(Paths.get(file));
-    }
-
-    @Test
     public void testIndexEvent() {
         NitriteCollection collection = db.getCollection("index-test");
         Random random = new Random();
         for (int i = 0; i < 10000; i++) {
             Document document = createDocument("first", random.nextInt())
-                .put("second", random.doubles());
+                .put("second", random.nextDouble());
             collection.insert(document);
         }
 
@@ -298,6 +263,9 @@ public class CollectionIndexTest extends BaseCollectionTest {
         });
 
         collection.createIndex("first", indexOptions(IndexType.NonUnique));
+        assertEquals(collection.find().size(), 10000);
+
+        collection.createIndex("second", indexOptions(IndexType.NonUnique));
         assertEquals(collection.find().size(), 10000);
     }
 }

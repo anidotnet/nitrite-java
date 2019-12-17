@@ -199,6 +199,10 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
             Object[] array = convertToObjectArray(object);
             if (isInteger(accessor)) {
                 int index = asInteger(accessor);
+                if (index < 0) {
+                    throw new ValidationException("invalid array index " + index + " to access item inside a document");
+                }
+
                 if (index >= array.length) {
                     throw new ValidationException("index " + index +
                         " is not less than the size of the array " + array.length);
@@ -217,7 +221,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
             if (isInteger(accessor)) {
                 int index = asInteger(accessor);
                 if (index < 0) {
-                    throw new ValidationException("invalid index " + accessor + " for list");
+                    throw new ValidationException("invalid collection index " + index + " to access item inside a document");
                 }
 
                 if (index >= collection.size()) {
@@ -264,12 +268,11 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document,
 
     private boolean isInteger(String value) {
         try {
-            int number = Integer.parseInt(value);
-            if (number >= 0) return true;
+            Integer.parseInt(value);
+            return true;
         } catch (NumberFormatException e) {
             return false;
         }
-        return false;
     }
 
     private boolean validId(Object value) {

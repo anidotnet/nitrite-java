@@ -33,7 +33,9 @@ public class EventTypeTest {
         assertEquals(EventType.valueOf("Insert"), EventType.Insert);
         assertEquals(EventType.valueOf("Update"), EventType.Update);
         assertEquals(EventType.valueOf("Remove"), EventType.Remove);
+        assertEquals(EventType.valueOf("IndexStart"), EventType.IndexStart);
+        assertEquals(EventType.valueOf("IndexEnd"), EventType.IndexEnd);
 
-        assertEquals(EventType.values().length, 3);
+        assertEquals(EventType.values().length, 5);
     }
 }
