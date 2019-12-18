@@ -222,8 +222,6 @@ class IndexOperations {
                                  Indexer indexer, IndexEntry indexEntry) {
         if (indexEntry != null) {
             Object fieldValue = document.get(field);
-            if (fieldValue == null) return;
-
             validateDocumentIndexField(fieldValue, field);
 
             // if dirty index and currently indexing is not running, rebuild

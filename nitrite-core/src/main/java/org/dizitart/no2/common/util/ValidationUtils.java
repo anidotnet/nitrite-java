@@ -92,6 +92,8 @@ public class ValidationUtils {
      * @param field      the field
      */
     public static void validateDocumentIndexField(Object fieldValue, String field) {
+        if (fieldValue == null) return;
+
         if (fieldValue instanceof Document) {
             throw new InvalidOperationException("compound index on field " + field + " is not supported");
         }

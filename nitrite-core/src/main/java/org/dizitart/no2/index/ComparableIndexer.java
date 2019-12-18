@@ -75,8 +75,6 @@ public abstract class ComparableIndexer implements Indexer {
     }
 
     public Set<NitriteId> findEqual(String collectionName, String field, Comparable value) {
-        if (value == null) return new LinkedHashSet<>();
-
         NitriteMap<Comparable, ConcurrentSkipListSet<NitriteId>> indexMap = getIndexMap(collectionName, field);
 
         Set<NitriteId> resultSet = null;
@@ -183,6 +181,7 @@ public abstract class ComparableIndexer implements Indexer {
     }
 
     private void validateIndexField(Object value, String field) {
+        if (value == null) return;
         if (value instanceof Iterable) {
             validateIterableIndexField((Iterable) value, field);
         } else if (value.getClass().isArray()) {

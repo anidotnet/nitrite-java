@@ -268,4 +268,18 @@ public class CollectionIndexTest extends BaseCollectionTest {
         collection.createIndex("second", indexOptions(IndexType.NonUnique));
         assertEquals(collection.find().size(), 10000);
     }
+
+    @Test
+    public void testIndexAndSearchOnNullValues() {
+        NitriteCollection collection = db.getCollection("index-on-null");
+        collection.insert(createDocument("first", null).put("second", 123).put("third", new Integer[] {1, 2, null}));
+        collection.insert(createDocument("first", "abcd").put("second", 456).put("third", new int[] {3, 1}));
+        collection.insert(createDocument("first", "xyz").put("second", 789).put("third", null));
+
+        collection.createIndex("first", indexOptions(IndexType.Unique));
+        assertEquals(collection.find(when("first").eq(null)).size(), 1);
+
+        collection.createIndex("third", indexOptions(IndexType.NonUnique));
+        assertEquals(collection.find(when("third").eq(null)).size(), 2);
+    }
 }
