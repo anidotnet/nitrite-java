@@ -59,7 +59,7 @@ class Security {
                 userCredential.setPasswordHash(hash);
                 userCredential.setPasswordSalt(salt);
 
-                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP);
+                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP, new MVMapBuilder<>());
                 userMap.put(userId, userCredential);
             }
         } finally {
@@ -78,7 +78,7 @@ class Security {
                 if (!store.hasMap(USER_MAP)) {
                     throw new SecurityException("no user map found in the database");
                 }
-                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP);
+                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP, new MVMapBuilder<>());
                 UserCredential userCredential = userMap.get(userId);
 
                 if (userCredential != null) {
@@ -118,7 +118,7 @@ class Security {
                 return false;
             }
 
-            MVMap<String, UserCredential> userMap = store.openMap(USER_MAP);
+            MVMap<String, UserCredential> userMap = store.openMap(USER_MAP, new MVMapBuilder<>());
             if (userMap.containsKey(userId)) {
                 UserCredential credential = userMap.get(userId);
 

@@ -113,7 +113,7 @@ public class NitriteMVStore implements NitriteStore {
             }
         }
 
-        MVMap<Key, Value> mvMap = mvStore.openMap(name);
+        MVMap<Key, Value> mvMap = mvStore.openMap(name, new MVMapBuilder<>());
         return new NitriteMVMap<>(mvMap, this);
     }
 
@@ -127,7 +127,7 @@ public class NitriteMVStore implements NitriteStore {
             }
         }
 
-        MVMap mvMap = mvStore.openMap(name);
+        MVMap mvMap = mvStore.openMap(name, new MVMapBuilder<>());
         mvStore.removeMap(mvMap);
     }
 

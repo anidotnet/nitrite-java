@@ -13,7 +13,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  *
  * @author Anindya Chatterjee
  * @since 1.0
- * @see NitriteCollection#createIndex(org.dizitart.no2.collection.Field, IndexOptions)
+ * @see NitriteCollection#createIndex(String, IndexOptions)
  */
 @ToString
 @EqualsAndHashCode

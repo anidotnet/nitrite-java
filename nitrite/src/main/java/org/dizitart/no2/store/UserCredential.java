@@ -9,6 +9,8 @@ import java.io.Serializable;
  */
 @Data
 class UserCredential implements Serializable {
+    private static final long serialVersionUID = -8798544358192824615L;
+
     private byte[] passwordHash;
     private byte[] passwordSalt;
 }
