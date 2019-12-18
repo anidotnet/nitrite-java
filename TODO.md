@@ -4,4 +4,4 @@
 3. All exception message must be detailed and unique as no number is there now.
 5. Old nitrite data compatibility check
 6. LuceneIndexer, test with testIssue174()
-
+7. https://stackoverflow.com/questions/10936625/using-readclassdescriptor-and-maybe-resolveclass-to-permit-serialization-ver/14608062#14608062
