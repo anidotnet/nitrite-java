@@ -28,9 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -367,6 +365,100 @@ public class NitriteTest {
 
         latch.await();
         assertTrue(repository.find().size() <= 5);
+    }
+
+    @Test
+    public void testReadCompatibility() {
+        String oldDbFile = "/home/anindya/old.db";
+        Nitrite db = NitriteBuilder.get()
+            .filePath(oldDbFile)
+            .openOrCreate("test", "test");
+
+        ObjectRepository<CompatData> repository = db.getRepository(CompatData.class);
+//        CompatData data = new CompatData();
+//        data.compatId = System.currentTimeMillis();
+//        data.firstName = "Sherlock";
+//        data.address = "221B, Baker Street, London";
+//        data.children = new ArrayList<>();
+//        data.children.add(new CompatChild(1L, "Holmes"));
+//        repository.insert(data);
+//
+//        data = new CompatData();
+//        data.compatId = System.currentTimeMillis() + 2L;
+//        data.firstName = "John";
+//        data.address = "223B, Baker Street, London";
+//        data.children = new ArrayList<>();
+//        data.children.add(new CompatChild(2L, "Watson"));
+//        repository.insert(data);
+
+        assertEquals(repository.find(when("firstName").eq("Sherlock")).size(), 1);
+        assertEquals(repository.find(when("address").text("London")).size(), 2);
+
+        db.close();
+    }
+
+    @Data
+    @Indices({
+        @Index(value = "firstName", type = IndexType.NonUnique),
+        @Index(value = "address", type = IndexType.Fulltext)
+    })
+    public static class CompatData implements Mappable {
+        @Id
+        private Long compatId;
+        private String firstName;
+        private String address;
+        private List<CompatChild> children;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            Document document = Document.createDocument("compatId", compatId)
+                .put("address", address)
+                .put("firstName", firstName);
+
+            List<Document> list = new ArrayList<>();
+            if (children != null) {
+                for (CompatChild child : children) {
+                    list.add(child.write(mapper));
+                }
+            }
+            document.put("children", list);
+            return document;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void read(NitriteMapper mapper, Document document) {
+            compatId = document.get("compatId", Long.class);
+            address = document.get("address", String.class);
+            firstName = document.get("firstName", String.class);
+            children = new ArrayList<>();
+            List<Document> childList = document.get("children", List.class);
+            for (Document doc : childList) {
+                CompatChild child = new CompatChild();
+                child.read(mapper, doc);
+                children.add(child);
+            }
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CompatChild implements Mappable {
+        private Long childId;
+        private String lastName;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument("childId", childId)
+                .put("lastName", lastName);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            childId = document.get("childId", Long.class);
+            lastName = document.get("lastName", String.class);
+        }
     }
 
     @Data
