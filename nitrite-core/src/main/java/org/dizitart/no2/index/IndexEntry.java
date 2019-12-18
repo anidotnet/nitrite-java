@@ -19,6 +19,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IndexEntry implements Comparable<IndexEntry>, Serializable {
+    private static final long serialVersionUID = 1576690829L;
 
     /**
      * Specifies the type of the index.

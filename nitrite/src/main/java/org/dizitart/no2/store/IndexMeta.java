@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Data
 class IndexMeta implements Serializable {
-    private static final long serialVersionUID = 1408827874803168220L;
+    private static final long serialVersionUID = 1576690663L;
 
     private IndexEntry index;
     private String indexMap;

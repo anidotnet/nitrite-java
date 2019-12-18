@@ -9,6 +9,7 @@ import org.h2.mvstore.MVStore;
 import java.io.File;
 
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
+import static org.dizitart.no2.store.Recovery.recover;
 import static org.dizitart.no2.store.Security.createSecurely;
 import static org.dizitart.no2.store.Security.openSecurely;
 
@@ -77,8 +78,8 @@ class MVStoreUtils {
 
                         if (file.exists() && file.isFile()) {
                             log.error("Database corruption detected. Trying to repair", ise);
-//                            recover(mvStoreConfig.getFilePath());
-//                            store = builder.open();
+                            recover(mvStoreConfig.getFilePath());
+                            store = builder.open();
                         } else {
                             if (mvStoreConfig.isReadOnly()) {
                                 throw new NitriteIOException("cannot create readonly database", ise);

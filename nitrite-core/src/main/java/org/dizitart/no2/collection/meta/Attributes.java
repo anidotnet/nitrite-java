@@ -18,16 +18,18 @@ public class Attributes implements Serializable {
     public static final String OWNER = "owner";
     public static final String UUID = "uuid";
 
-    private final Map<String, Object> attributes = new ConcurrentHashMap<>();
+    private Map<String, Object> attributes = new ConcurrentHashMap<>();
+
+    public Attributes() {
+        attributes = new ConcurrentHashMap<>();
+        set(CREATED_TIME, System.currentTimeMillis());
+        set(UUID, java.util.UUID.randomUUID().toString());
+    }
 
     public Attributes(String collection) {
         set(OWNER, collection);
         set(CREATED_TIME, System.currentTimeMillis());
         set(UUID, java.util.UUID.randomUUID().toString());
-    }
-
-    private Attributes() {
-        // constructor for jackson
     }
 
     public Attributes set(String key, Object value) {

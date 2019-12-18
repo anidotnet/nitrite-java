@@ -368,8 +368,6 @@ class NitriteDataType extends ObjectDataType {
             ByteArrayInputStream in = new ByteArrayInputStream(data);
             NitriteObjectInputStream is = new NitriteObjectInputStream(in);
             return is.readObject();
-        } catch (ClassCastException cce) {
-            return NitriteObjectInputStream.readFallback(cce, data);
         } catch (Throwable e) {
             throw DataUtils.newIllegalArgumentException(
                 "Could not deserialize {0}", Arrays.toString(data), e);
@@ -1230,7 +1228,7 @@ class NitriteDataType extends ObjectDataType {
      */
     static class ObjectArrayType extends AutoDetectDataType {
 
-        private final ObjectDataType elementType = new ObjectDataType();
+        private final NitriteDataType elementType = new NitriteDataType();
 
         ObjectArrayType(NitriteDataType base) {
             super(base, TYPE_ARRAY);
