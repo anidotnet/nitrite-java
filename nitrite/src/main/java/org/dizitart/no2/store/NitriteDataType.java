@@ -10,6 +10,7 @@ import org.h2.util.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -1540,7 +1541,23 @@ class NitriteDataType extends ObjectDataType {
             // using an exponential moving average
             averageSize = (size + 15 * averageSize) / 16;
             buff.get(data);
-            return deserialize(data);
+            try {
+                return deserialize(data);
+            } catch (IllegalArgumentException iae) {
+                return handleCompatibilityIssue(iae);
+            }
+        }
+
+        private Object handleCompatibilityIssue(IllegalArgumentException iae) {
+            if (iae.getCause() != null && iae.getCause() instanceof ClassCastException) {
+                ClassCastException cce = (ClassCastException) iae.getCause();
+                if (cce.getMessage().contains("org.dizitart.no2.store.Compat$IndexType")) {
+                    return null;
+                }
+            } else if (iae.getCause() != null && iae.getCause() instanceof StreamCorruptedException) {
+                return null;
+            }
+            throw iae;
         }
     }
 }
