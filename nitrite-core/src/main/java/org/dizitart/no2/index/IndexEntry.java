@@ -2,8 +2,11 @@ package org.dizitart.no2.index;
 
 import lombok.*;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.common.NitriteSerializable;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -18,7 +21,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class IndexEntry implements Comparable<IndexEntry>, Serializable {
+public class IndexEntry implements Comparable<IndexEntry>, NitriteSerializable {
     private static final long serialVersionUID = 1576690829L;
 
     /**
@@ -69,5 +72,19 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
         String string = collectionName + field + indexType;
         String otherString = other.collectionName + other.field + other.indexType;
         return string.compareTo(otherString);
+    }
+
+    @Override
+    public void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.writeUTF(indexType);
+        stream.writeUTF(field);
+        stream.writeUTF(collectionName);
+    }
+
+    @Override
+    public void readObject(ObjectInputStream stream) throws IOException {
+        indexType = stream.readUTF();
+        field = stream.readUTF();
+        collectionName = stream.readUTF();
     }
 }

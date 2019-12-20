@@ -132,4 +132,11 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      * @param listener the listener instances.
      * */
     void unsubscribe(StoreEventListener listener);
+
+    /**
+     * Returns information about the underlying data store.
+     *
+     * @return a {@link StoreInfo} object containing information about the store.
+     * */
+    StoreInfo getStoreInfo();
 }

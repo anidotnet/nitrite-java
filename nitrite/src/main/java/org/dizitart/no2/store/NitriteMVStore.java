@@ -154,6 +154,11 @@ public class NitriteMVStore implements NitriteStore {
     }
 
     @Override
+    public StoreInfo getStoreInfo() {
+        return null;
+    }
+
+    @Override
     public void initialize(NitriteConfig nitriteConfig) {
         this.nitriteConfig = nitriteConfig;
     }
