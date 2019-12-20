@@ -1,14 +1,12 @@
 package org.dizitart.no2.collection.operation;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
-import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
@@ -33,9 +31,6 @@ public class CollectionOperations {
     private EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private Lock readLock;
     private Lock writeLock;
-
-    @Getter
-    @Setter
     private Attributes attributes;
 
     public CollectionOperations(String collectionName,
@@ -189,6 +184,24 @@ public class CollectionOperations {
         try {
             readLock.lock();
             return nitriteMap.size();
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public void setAttributes(Attributes attributes) {
+        try {
+            writeLock.lock();
+            nitriteMap.setAttributes(attributes);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public Attributes getAttributes() {
+        try {
+            readLock.lock();
+            return nitriteMap != null ? nitriteMap.getAttributes() : null;
         } finally {
             readLock.unlock();
         }

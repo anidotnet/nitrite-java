@@ -22,8 +22,7 @@ import org.junit.Test;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
@@ -391,6 +390,11 @@ public class NitriteTest {
 //        data.children.add(new CompatChild(2L, "Watson"));
 //        repository.insert(data);
 
+        assertNotNull(repository.getAttributes());
+        repository.setAttributes(repository.getAttributes());
+        CompatData compatData = new CompatData();
+        compatData.compatId = 100L;
+        repository.insert(compatData);
         assertEquals(repository.find(when("firstName").eq("Sherlock")).size(), 1);
         assertEquals(repository.find(when("address").text("London")).size(), 2);
 

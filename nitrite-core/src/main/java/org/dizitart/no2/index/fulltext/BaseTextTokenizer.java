@@ -18,6 +18,8 @@
 
 package org.dizitart.no2.index.fulltext;
 
+import org.dizitart.no2.common.util.StringUtils;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -36,6 +38,8 @@ public abstract class BaseTextTokenizer implements TextTokenizer {
     @Override
     public Set<String> tokenize(String text) {
         Set<String> words = new HashSet<>();
+        if (StringUtils.isNullOrEmpty(text)) return words;
+
         StringTokenizer tokenizer = new StringTokenizer(text, WHITESPACE_CHARS);
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();

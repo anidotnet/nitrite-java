@@ -8,7 +8,6 @@ import org.h2.mvstore.MVMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import static org.dizitart.no2.collection.meta.Attributes.LAST_MODIFIED_TIME;
 import static org.dizitart.no2.common.Constants.META_MAP_NAME;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
@@ -159,7 +158,7 @@ class NitriteMVMap<Key, Value> implements NitriteMap<Key, Value> {
                 attributes = new Attributes(getName());
                 metaMap.put(getName(), attributes);
             }
-            attributes.set(LAST_MODIFIED_TIME, System.currentTimeMillis());
+            attributes.setLastModifiedTime(System.currentTimeMillis());
         }
     }
 }
