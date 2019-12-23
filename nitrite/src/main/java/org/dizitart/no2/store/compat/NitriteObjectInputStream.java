@@ -1,10 +1,6 @@
-package org.dizitart.no2.store;
+package org.dizitart.no2.store.compat;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.meta.Attributes;
-import org.dizitart.no2.index.IndexEntry;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,13 +17,13 @@ class NitriteObjectInputStream extends ObjectInputStream {
     private static final Map<String, Class<?>> migrationMap = new HashMap<>();
 
     static {
-        migrationMap.put("org.dizitart.no2.Security$UserCredential", UserCredential.class);
-        migrationMap.put("org.dizitart.no2.NitriteId", NitriteId.class);
-        migrationMap.put("org.dizitart.no2.Index", IndexEntry.class);
+        migrationMap.put("org.dizitart.no2.Security$UserCredential", Compat.UserCredential.class);
+        migrationMap.put("org.dizitart.no2.NitriteId", Compat.NitriteId.class);
+        migrationMap.put("org.dizitart.no2.Index", Compat.Index.class);
         migrationMap.put("org.dizitart.no2.IndexType", Compat.IndexType.class);
-        migrationMap.put("org.dizitart.no2.internals.IndexMetaService$IndexMeta", IndexMeta.class);
-        migrationMap.put("org.dizitart.no2.Document", Document.createDocument().getClass());
-        migrationMap.put("org.dizitart.no2.meta.Attributes", Attributes.class);
+        migrationMap.put("org.dizitart.no2.internals.IndexMetaService$IndexMeta", Compat.IndexMeta.class);
+        migrationMap.put("org.dizitart.no2.Document", Compat.Document.class);
+        migrationMap.put("org.dizitart.no2.meta.Attributes", Compat.Attributes.class);
     }
 
     public NitriteObjectInputStream(InputStream stream) throws IOException {

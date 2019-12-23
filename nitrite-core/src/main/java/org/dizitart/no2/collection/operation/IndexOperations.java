@@ -203,11 +203,14 @@ class IndexOperations {
 
             // re-create the index for the values of the field from document
             for (KeyValuePair<NitriteId, Document> entry : nitriteMap.entries()) {
-                // remove old values if exists
-                removeIndexEntry(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
+                Document document = entry.getValue();
+                if (document.getFields().contains(field)) {
+                    // remove old values if exists
+                    removeIndexEntry(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
 
-                // re-create new entry
-                writeIndexEntry(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
+                    // re-create new entry
+                    writeIndexEntry(field, entry.getValue(), entry.getKey(), indexer, indexEntry);
+                }
             }
         } finally {
             // remove dirty marker to denote indexing completed successfully

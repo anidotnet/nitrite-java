@@ -17,6 +17,7 @@
 package org.dizitart.no2.collection;
 
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.NitriteSerializable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,21 +26,22 @@ import java.util.Set;
 /**
  * @author Anindya Chatterjee
  */
-public interface Document extends Iterable<KeyValuePair<String, Object>>, Cloneable {
+public interface Document extends Iterable<KeyValuePair<String, Object>>, Cloneable, NitriteSerializable {
 
     static Document createDocument() {
-        Map<String, Object> document = new LinkedHashMap<>();
+        LinkedHashMap<String, Object> document = new LinkedHashMap<>();
         return new NitriteDocument(document);
     }
 
     static Document createDocument(String key, Object value) {
-        Map<String, Object> document = new LinkedHashMap<>();
+        LinkedHashMap<String, Object> document = new LinkedHashMap<>();
         document.put(key, value);
         return new NitriteDocument(document);
     }
 
     static Document createDocument(Map<String, Object> documentMap) {
-        return new NitriteDocument(documentMap);
+        LinkedHashMap<String, Object> document = new LinkedHashMap<>(documentMap);
+        return new NitriteDocument(document);
     }
 
     Document put(final String key, final Object value);

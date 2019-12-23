@@ -20,8 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * Represents a collection event data.
  *
@@ -31,7 +29,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CollectionEventInfo<T> implements Serializable {
+public class CollectionEventInfo<T> {
     /**
      * Specifies the item triggering the event.
      *

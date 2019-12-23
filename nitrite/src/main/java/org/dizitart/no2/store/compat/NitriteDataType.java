@@ -1,4 +1,4 @@
-package org.dizitart.no2.store;
+package org.dizitart.no2.store.compat;
 
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
@@ -1538,23 +1538,24 @@ class NitriteDataType extends ObjectDataType {
             // using an exponential moving average
             averageSize = (size + 15 * averageSize) / 16;
             buff.get(data);
-            try {
-                return deserialize(data);
-            } catch (IllegalArgumentException iae) {
-                return handleCompatibilityIssue(iae);
-            }
+            return deserialize(data);
+//            try {
+//
+//            } catch (IllegalArgumentException iae) {
+//                return handleCompatibilityIssue(iae);
+//            }
         }
 
-        private Object handleCompatibilityIssue(IllegalArgumentException iae) {
-            if (iae.getCause() != null && iae.getCause() instanceof ClassCastException) {
-                ClassCastException cce = (ClassCastException) iae.getCause();
-                if (cce.getMessage().contains("org.dizitart.no2.store.Compat$IndexType")) {
-                    return null;
-                }
-            } else if (iae.getCause() != null && iae.getCause() instanceof StreamCorruptedException) {
-                return null;
-            }
-            throw iae;
-        }
+//        private Object handleCompatibilityIssue(IllegalArgumentException iae) {
+//            if (iae.getCause() != null && iae.getCause() instanceof ClassCastException) {
+//                ClassCastException cce = (ClassCastException) iae.getCause();
+//                if (cce.getMessage().contains("org.dizitart.no2.store.compat.Compat$IndexType")) {
+//                    return null;
+//                }
+//            } else if (iae.getCause() != null && iae.getCause() instanceof StreamCorruptedException) {
+//                return null;
+//            }
+//            throw iae;
+//        }
     }
 }

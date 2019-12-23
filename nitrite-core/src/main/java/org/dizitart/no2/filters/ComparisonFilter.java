@@ -13,7 +13,7 @@ abstract class ComparisonFilter extends IndexAwareFilter {
     @SuppressWarnings("rawtypes")
     public Comparable getComparable() {
         if (getValue() == null) {
-            throw new FilterException("value parameter must not be null.");
+            throw new FilterException("value parameter must not be null");
         }
         return (Comparable) getValue();
     }

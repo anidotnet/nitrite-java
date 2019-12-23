@@ -34,7 +34,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
         IndexEntry index = new IndexEntry(indexType, field, collectionName);
 
         IndexMeta indexMeta = new IndexMeta();
-        indexMeta.setIndex(index);
+        indexMeta.setIndexEntry(index);
         indexMeta.setIsDirty(new AtomicBoolean(false));
         indexMeta.setIndexMap(getIndexMapName(index));
 
@@ -47,7 +47,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     public IndexEntry findIndexEntry(String collectionName, String field) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
         if (meta != null) {
-            return meta.getIndex();
+            return meta.getIndexEntry();
         }
         return null;
     }
@@ -62,7 +62,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     public Collection<IndexEntry> listIndexEntries(String collectionName) {
         Set<IndexEntry> indexSet = new LinkedHashSet<>();
         for (IndexMeta indexMeta : getIndexMetaMap(collectionName).values()) {
-            indexSet.add(indexMeta.getIndex());
+            indexSet.add(indexMeta.getIndexEntry());
         }
         return Collections.unmodifiableSet(indexSet);
     }
@@ -70,7 +70,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     @Override
     public void dropIndexEntry(String collectionName, String field) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
-        if (meta != null && meta.getIndex() != null) {
+        if (meta != null && meta.getIndexEntry() != null) {
             String indexMapName = meta.getIndexMap();
             nitriteStore.openMap(indexMapName).drop();
         }
@@ -108,7 +108,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
 
     private void markDirty(String collectionName, String field, boolean dirty) {
         IndexMeta meta = getIndexMetaMap(collectionName).get(field);
-        if (meta != null && meta.getIndex() != null) {
+        if (meta != null && meta.getIndexEntry() != null) {
             meta.getIsDirty().set(dirty);
         }
     }

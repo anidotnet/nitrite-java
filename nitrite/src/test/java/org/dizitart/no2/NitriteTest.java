@@ -18,6 +18,7 @@ import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
@@ -368,8 +369,9 @@ public class NitriteTest {
     }
 
     @Test
+    @Ignore("Only need to test manually with old version of nitrite")
     public void testReadCompatibility() {
-        String oldDbFile = "/home/anindya/old.db";
+        String oldDbFile = "/tmp/old.db";
         Nitrite db = NitriteBuilder.get()
             .filePath(oldDbFile)
             .openOrCreate("test", "test");
@@ -392,10 +394,6 @@ public class NitriteTest {
 //        repository.insert(data);
 
         assertNotNull(repository.getAttributes());
-        repository.setAttributes(repository.getAttributes());
-        CompatData compatData = new CompatData();
-        compatData.compatId = 100L;
-        repository.insert(compatData);
         assertEquals(repository.find(when("firstName").eq("Sherlock")).size(), 1);
         assertEquals(repository.find(when("address").text("London")).size(), 2);
 

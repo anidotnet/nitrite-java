@@ -113,7 +113,7 @@ public class NitriteMVStore implements NitriteStore {
             }
         }
 
-        MVMap<Key, Value> mvMap = mvStore.openMap(name, new MVMapBuilder<>());
+        MVMap<Key, Value> mvMap = mvStore.openMap(name);
         return new NitriteMVMap<>(mvMap, this);
     }
 
@@ -127,7 +127,7 @@ public class NitriteMVStore implements NitriteStore {
             }
         }
 
-        MVMap mvMap = mvStore.openMap(name, new MVMapBuilder<>());
+        MVMap mvMap = mvStore.openMap(name);
         mvStore.removeMap(mvMap);
     }
 
@@ -155,7 +155,7 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public StoreInfo getStoreInfo() {
-        return null;
+        return MVStoreUtils.getStoreInfo(mvStore);
     }
 
     @Override
@@ -213,5 +213,4 @@ public class NitriteMVStore implements NitriteStore {
             log.error("Could not find the class " + name);
         }
     }
-
 }

@@ -5,6 +5,6 @@
 ~~5. Old nitrite data compatibility check~~
 6. LuceneIndexer, test with testIssue174()
 ~~7. https://stackoverflow.com/questions/10936625/using-readclassdescriptor-and-maybe-resolveclass-to-permit-serialization-ver/14608062#14608062~~
-8. Why attribute is coming as null
-9. Migrate data and write to a new file
-10. Make all serializable to nitriteserializable and override readObject, writeObject
+~~8. Why attribute is coming as null~~
+~~9. Migrate data and write to a new file~~
+~~10. Make all serializable to nitriteserializable and override readObject, writeObject~~

@@ -59,7 +59,7 @@ class Security {
                 userCredential.setPasswordHash(hash);
                 userCredential.setPasswordSalt(salt);
 
-                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP, new MVMapBuilder<>());
+                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP);
                 userMap.put(userId, userCredential);
             }
         } finally {
@@ -78,7 +78,7 @@ class Security {
                 if (!store.hasMap(USER_MAP)) {
                     throw new SecurityException("no user map found in the database");
                 }
-                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP, new MVMapBuilder<>());
+                MVMap<String, UserCredential> userMap = store.openMap(USER_MAP);
                 UserCredential userCredential = userMap.get(userId);
 
                 if (userCredential != null) {
@@ -104,32 +104,6 @@ class Security {
                 store.close();
             }
         }
-    }
-
-    static boolean validateUserPassword(MVStore store, String userId, String password) {
-        if (isNullOrEmpty(userId)
-                && isNullOrEmpty(password)
-                && !store.hasMap(USER_MAP)) {
-            return true;
-        }
-
-        if (!isNullOrEmpty(userId)) {
-            if (isNullOrEmpty(password)) {
-                return false;
-            }
-
-            MVMap<String, UserCredential> userMap = store.openMap(USER_MAP, new MVMapBuilder<>());
-            if (userMap.containsKey(userId)) {
-                UserCredential credential = userMap.get(userId);
-
-                byte[] salt = credential.getPasswordSalt();
-                byte[] expectedHash = credential.getPasswordHash();
-
-                return isExpectedPassword(password.toCharArray(), salt, expectedHash);
-            }
-        }
-
-        return false;
     }
 
     private static byte[] getNextSalt() {

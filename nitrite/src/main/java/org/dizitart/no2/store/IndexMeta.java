@@ -13,22 +13,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Anindya Chatterjee
  */
 @Data
-class IndexMeta implements NitriteSerializable {
+public class IndexMeta implements NitriteSerializable {
     private static final long serialVersionUID = 1576690663L;
 
-    private IndexEntry index;
+    private IndexEntry indexEntry;
     private String indexMap;
     private AtomicBoolean isDirty;
 
     @Override
     public void writeObject(ObjectOutputStream stream) throws IOException {
-        if (index != null) {
-
-        }
+        stream.writeObject(indexEntry);
+        stream.writeUTF(indexMap);
+        stream.writeObject(isDirty);
     }
 
     @Override
     public void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-
+        indexEntry = (IndexEntry) stream.readObject();
+        indexMap = stream.readUTF();
+        isDirty = (AtomicBoolean) stream.readObject();
     }
 }

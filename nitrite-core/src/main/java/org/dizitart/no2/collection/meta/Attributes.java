@@ -1,10 +1,11 @@
 package org.dizitart.no2.collection.meta;
 
-import lombok.*;
+import org.dizitart.no2.common.NitriteSerializable;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -13,87 +14,49 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0
  * @author Anindya Chatterjee
  */
-@Data
-@NoArgsConstructor
-public class Attributes implements Serializable {
+public class Attributes implements NitriteSerializable {
     private static final long serialVersionUID = 1481284930L;
 
-    /**
-     * The collection creation timestamp.
-     *
-     * @param createdTime collection creation timestamp
-     * @return the collection creation timestamp.
-     * */
-    private long createdTime;
+    public static final String CREATED_TIME = "createdTime";
+    public static final String LAST_MODIFIED_TIME = "lastModifiedTime";
+    public static final String OWNER = "owner";
+    public static final String UUID = "uuid";
+    public static final String LAST_SYNCED = "lastSynced";
+    public static final String SYNC_LOCK = "syncLock";
+    public static final String EXPIRY_WAIT = "expiryWait";
 
-    /**
-     * The last modified timestamp.
-     *
-     * @param createdTime last collection modification timestamp
-     * @return the last collection modification timestamp.
-     * */
-    private long lastModifiedTime;
+    private Map<String, String> attributes;
 
-    /**
-     * The last replication timestamp.
-     *
-     * @param createdTime last replication timestamp
-     * @return the last replication timestamp.
-     * */
-    private long lastSynced;
-
-    /**
-     * The sync lock data of the collection.
-     *
-     * @param syncLock the sync lock data
-     * @return the sync lock data.
-     * */
-    private long syncLock;
-
-    /**
-     * The sync lock expiration time in milliseconds.
-     *
-     * @param syncLock the sync lock expiration time in milliseconds
-     * @return the sync lock expiration time in milliseconds.
-     * */
-    private long expiryWait;
-
-    /**
-     * The name of the collection associated with this attribute.
-     *
-     * @param collection the name of the collection
-     * @return the name of the collection.
-     * */
-    private String collection;
-
-    /**
-     * The unique identifier of the collection.
-     *
-     * @param uuid unique identifier of the collection
-     * @return the unique identifier of the collection.
-     * */
-    private String uuid;
-
-    @Getter(AccessLevel.PRIVATE)
-    @Setter(AccessLevel.PRIVATE)
-    private transient Map<String, Object> info;
-
-    /**
-     * Instantiates a new {@link Attributes}.
-     */
-    public Attributes(String collection) {
-        this.createdTime = System.currentTimeMillis();
-        this.collection = collection;
-        this.uuid = UUID.randomUUID().toString();
-        this.info = new ConcurrentHashMap<>();
+    public Attributes() {
+        attributes = new ConcurrentHashMap<>();
+        set(CREATED_TIME, Long.toString(System.currentTimeMillis()));
+        set(UUID, java.util.UUID.randomUUID().toString());
     }
 
-    public Attributes set(String key, Object value) {
-        info.put(key, value);
+    public Attributes(String collection) {
+        attributes = new ConcurrentHashMap<>();
+        set(OWNER, collection);
+        set(CREATED_TIME, Long.toString(System.currentTimeMillis()));
+        set(UUID, java.util.UUID.randomUUID().toString());
+    }
+
+    public Attributes set(String key, String value) {
+        attributes.put(key, value);
         return this;
     }
 
-    public Object get(String key) {
-        return info.get(key);
+    public String get(String key) {
+        return attributes.get(key);
+    }
+
+    @Override
+    public void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.writeObject(attributes);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        attributes = (Map<String, String>) stream.readObject();
     }
 }

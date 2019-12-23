@@ -20,9 +20,9 @@ import static org.dizitart.no2.common.util.ObjectUtils.deepEquals;
  */
 class ElementMatchFilter extends NitriteFilter {
     private String field;
-    private org.dizitart.no2.filters.Filter elementFilter;
+    private Filter elementFilter;
 
-    ElementMatchFilter(String field, org.dizitart.no2.filters.Filter elementFilter) {
+    ElementMatchFilter(String field, Filter elementFilter) {
         this.elementFilter = elementFilter;
         this.field = field;
     }
@@ -34,8 +34,8 @@ class ElementMatchFilter extends NitriteFilter {
             throw new FilterException("nested elemMatch filter is not supported");
         }
 
-        if (elementFilter instanceof org.dizitart.no2.filters.TextFilter) {
-            throw new FilterException("full-text search is not supported in elemMatch filter");
+        if (elementFilter instanceof TextFilter) {
+            throw new FilterException("text filter is not supported in elemMatch filter");
         }
 
         Document document = element.getValue();
@@ -61,7 +61,7 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings("rawtypes")
-    private boolean matches(Iterable iterable, org.dizitart.no2.filters.Filter filter) {
+    private boolean matches(Iterable iterable, Filter filter) {
         for (Object item : iterable) {
             if (matchElement(item, filter)) {
                 return true;
@@ -70,53 +70,53 @@ class ElementMatchFilter extends NitriteFilter {
         return false;
     }
 
-    private boolean matchElement(Object item, org.dizitart.no2.filters.Filter filter) {
-        if (filter instanceof org.dizitart.no2.filters.AndFilter) {
-            List<org.dizitart.no2.filters.Filter> filters = ((org.dizitart.no2.filters.AndFilter) filter).getFilters();
-            for (org.dizitart.no2.filters.Filter f : filters) {
+    private boolean matchElement(Object item, Filter filter) {
+        if (filter instanceof AndFilter) {
+            List<Filter> filters = ((AndFilter) filter).getFilters();
+            for (Filter f : filters) {
                 if (!matchElement(item, f)) {
                     return false;
                 }
             }
             return true;
-        } else if (filter instanceof org.dizitart.no2.filters.OrFilter) {
-            List<org.dizitart.no2.filters.Filter> filters = ((org.dizitart.no2.filters.OrFilter) filter).getFilters();
-            for (org.dizitart.no2.filters.Filter f : filters) {
+        } else if (filter instanceof OrFilter) {
+            List<Filter> filters = ((OrFilter) filter).getFilters();
+            for (Filter f : filters) {
                 if (matchElement(item, f)) {
                     return true;
                 }
             }
             return false;
-        } else if (filter instanceof org.dizitart.no2.filters.NotFilter) {
-            org.dizitart.no2.filters.Filter not = ((org.dizitart.no2.filters.NotFilter) filter).getFilter();
+        } else if (filter instanceof NotFilter) {
+            Filter not = ((NotFilter) filter).getFilter();
             return !matchElement(item, not);
-        } else if (filter instanceof org.dizitart.no2.filters.EqualsFilter) {
+        } else if (filter instanceof EqualsFilter) {
             return matchEqual(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.GreaterEqualFilter) {
+        } else if (filter instanceof GreaterEqualFilter) {
             return matchGreaterEqual(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.GreaterThanFilter) {
+        } else if (filter instanceof GreaterThanFilter) {
             return matchGreater(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.LesserEqualFilter) {
+        } else if (filter instanceof LesserEqualFilter) {
             return matchLesserEqual(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.LesserThanFilter) {
+        } else if (filter instanceof LesserThanFilter) {
             return matchLesser(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.InFilter) {
+        } else if (filter instanceof InFilter) {
             return matchIn(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.NotInFilter) {
+        } else if (filter instanceof NotInFilter) {
             return matchNotIn(item, filter);
-        } else if (filter instanceof org.dizitart.no2.filters.RegexFilter) {
+        } else if (filter instanceof RegexFilter) {
             return matchRegex(item, filter);
         } else {
-            throw new FilterException("filter " + filter.getClass() +
+            throw new FilterException("filter " + filter.getClass().getSimpleName() +
                 " is not a supported in elemMatch");
         }
     }
 
-    private boolean matchEqual(Object item, org.dizitart.no2.filters.Filter filter) {
-        Object value = ((org.dizitart.no2.filters.EqualsFilter) filter).getValue();
+    private boolean matchEqual(Object item, Filter filter) {
+        Object value = ((EqualsFilter) filter).getValue();
         if (item instanceof Document) {
             Document document = (Document) item;
-            Object docValue = document.get(((org.dizitart.no2.filters.EqualsFilter) filter).getField());
+            Object docValue = document.get(((EqualsFilter) filter).getField());
             return deepEquals(value, docValue);
         } else {
             return deepEquals(item, value);
@@ -124,8 +124,8 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private boolean matchGreater(Object item, org.dizitart.no2.filters.Filter filter) {
-        Comparable comparable = ((org.dizitart.no2.filters.GreaterThanFilter) filter).getComparable();
+    private boolean matchGreater(Object item, Filter filter) {
+        Comparable comparable = ((GreaterThanFilter) filter).getComparable();
 
         if (item instanceof Number && comparable instanceof Number) {
             return compare((Number) item, (Number) comparable) > 0;
@@ -134,13 +134,13 @@ class ElementMatchFilter extends NitriteFilter {
             return arg.compareTo(comparable) > 0;
         } else if (item instanceof Document) {
             Document document = (Document) item;
-            Object docValue = document.get(((org.dizitart.no2.filters.GreaterThanFilter) filter).getField());
+            Object docValue = document.get(((GreaterThanFilter) filter).getField());
             if (docValue instanceof Comparable) {
                 Comparable arg = (Comparable) docValue;
                 return arg.compareTo(comparable) > 0;
             } else {
                 throw new FilterException(
-                    ((org.dizitart.no2.filters.GreaterThanFilter) filter).getField() + " is not comparable");
+                    ((GreaterThanFilter) filter).getField() + " is not comparable");
             }
         } else {
             throw new FilterException(item + " is not comparable");
@@ -148,8 +148,8 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private boolean matchGreaterEqual(Object item, org.dizitart.no2.filters.Filter filter) {
-        Comparable comparable = ((org.dizitart.no2.filters.GreaterEqualFilter) filter).getComparable();
+    private boolean matchGreaterEqual(Object item, Filter filter) {
+        Comparable comparable = ((GreaterEqualFilter) filter).getComparable();
 
         if (item instanceof Number && comparable instanceof Number) {
             return compare((Number) item, (Number) comparable) >= 0;
@@ -158,12 +158,12 @@ class ElementMatchFilter extends NitriteFilter {
             return arg.compareTo(comparable) >= 0;
         } else if (item instanceof Document) {
             Document document = (Document) item;
-            Object docValue = document.get(((org.dizitart.no2.filters.GreaterEqualFilter) filter).getField());
+            Object docValue = document.get(((GreaterEqualFilter) filter).getField());
             if (docValue instanceof Comparable) {
                 Comparable arg = (Comparable) docValue;
                 return arg.compareTo(comparable) >= 0;
             } else {
-                throw new FilterException(((org.dizitart.no2.filters.GreaterEqualFilter) filter).getField() + " is not comparable");
+                throw new FilterException(((GreaterEqualFilter) filter).getField() + " is not comparable");
             }
         } else {
             throw new FilterException(item + " is not comparable");
@@ -171,8 +171,8 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private boolean matchLesserEqual(Object item, org.dizitart.no2.filters.Filter filter) {
-        Comparable comparable = ((org.dizitart.no2.filters.LesserEqualFilter) filter).getComparable();
+    private boolean matchLesserEqual(Object item, Filter filter) {
+        Comparable comparable = ((LesserEqualFilter) filter).getComparable();
 
         if (item instanceof Number && comparable instanceof Number) {
             return compare((Number) item, (Number) comparable) <= 0;
@@ -181,12 +181,12 @@ class ElementMatchFilter extends NitriteFilter {
             return arg.compareTo(comparable) <= 0;
         } else if (item instanceof Document) {
             Document document = (Document) item;
-            Object docValue = document.get(((org.dizitart.no2.filters.LesserEqualFilter) filter).getField());
+            Object docValue = document.get(((LesserEqualFilter) filter).getField());
             if (docValue instanceof Comparable) {
                 Comparable arg = (Comparable) docValue;
                 return arg.compareTo(comparable) <= 0;
             } else {
-                throw new FilterException(((org.dizitart.no2.filters.LesserEqualFilter) filter).getField() + " is not comparable");
+                throw new FilterException(((LesserEqualFilter) filter).getField() + " is not comparable");
             }
         } else {
             throw new FilterException(item + " is not comparable");
@@ -194,8 +194,8 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private boolean matchLesser(Object item, org.dizitart.no2.filters.Filter filter) {
-        Comparable comparable = ((org.dizitart.no2.filters.LesserThanFilter) filter).getComparable();
+    private boolean matchLesser(Object item, Filter filter) {
+        Comparable comparable = ((LesserThanFilter) filter).getComparable();
 
         if (item instanceof Number && comparable instanceof Number) {
             return compare((Number) item, (Number) comparable) < 0;
@@ -204,12 +204,12 @@ class ElementMatchFilter extends NitriteFilter {
             return arg.compareTo(comparable) < 0;
         } else if (item instanceof Document) {
             Document document = (Document) item;
-            Object docValue = document.get(((org.dizitart.no2.filters.LesserThanFilter) filter).getField());
+            Object docValue = document.get(((LesserThanFilter) filter).getField());
             if (docValue instanceof Comparable) {
                 Comparable arg = (Comparable) docValue;
                 return arg.compareTo(comparable) < 0;
             } else {
-                throw new FilterException(((org.dizitart.no2.filters.LesserThanFilter) filter).getField() + " is not comparable");
+                throw new FilterException(((LesserThanFilter) filter).getField() + " is not comparable");
             }
         } else {
             throw new FilterException(item + " is not comparable");
@@ -217,12 +217,12 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings("rawtypes")
-    private boolean matchIn(Object item, org.dizitart.no2.filters.Filter filter) {
-        Set<Comparable> values = ((org.dizitart.no2.filters.InFilter) filter).getComparableSet();
+    private boolean matchIn(Object item, Filter filter) {
+        Set<Comparable> values = ((InFilter) filter).getComparableSet();
         if (values != null) {
             if (item instanceof Document) {
                 Document document = (Document) item;
-                Object docValue = document.get(((org.dizitart.no2.filters.InFilter) filter).getField());
+                Object docValue = document.get(((InFilter) filter).getField());
                 if (docValue instanceof Comparable) {
                     return values.contains(docValue);
                 }
@@ -234,12 +234,12 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     @SuppressWarnings("rawtypes")
-    private boolean matchNotIn(Object item, org.dizitart.no2.filters.Filter filter) {
-        Set<Comparable> values = ((org.dizitart.no2.filters.NotInFilter) filter).getComparableSet();
+    private boolean matchNotIn(Object item, Filter filter) {
+        Set<Comparable> values = ((NotInFilter) filter).getComparableSet();
         if (values != null) {
             if (item instanceof Document) {
                 Document document = (Document) item;
-                Object docValue = document.get(((org.dizitart.no2.filters.NotInFilter) filter).getField());
+                Object docValue = document.get(((NotInFilter) filter).getField());
                 if (docValue instanceof Comparable) {
                     return !values.contains(docValue);
                 }
@@ -251,20 +251,20 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     private boolean matchRegex(Object item, Filter filter) {
-        String value = (String)((org.dizitart.no2.filters.RegexFilter) filter).getValue();
+        String value = (String)((RegexFilter) filter).getValue();
         if (item instanceof String) {
             Pattern pattern = Pattern.compile(value);
             Matcher matcher = pattern.matcher((String) item);
             return matcher.find();
         } else if (item instanceof Document) {
             Document document = (Document) item;
-            Object docValue = document.get(((org.dizitart.no2.filters.RegexFilter) filter).getField());
+            Object docValue = document.get(((RegexFilter) filter).getField());
             if (docValue instanceof String) {
                 Pattern pattern = Pattern.compile(value);
                 Matcher matcher = pattern.matcher((String) docValue);
                 return matcher.find();
             } else {
-                throw new FilterException(((org.dizitart.no2.filters.RegexFilter) filter).getField() + " is not a string");
+                throw new FilterException(((RegexFilter) filter).getField() + " is not a string");
             }
         } else {
             throw new FilterException(item + " is not a string");

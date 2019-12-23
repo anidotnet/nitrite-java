@@ -18,4 +18,5 @@ rootProject.name = 'nitrite-java'
 include 'nitrite-core'
 include 'nitrite-android-example'
 include 'nitrite'
+include 'rx-nitrite'
 

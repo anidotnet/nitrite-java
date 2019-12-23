@@ -60,6 +60,11 @@ public class Constants {
     public static final String META_MAP_NAME = "$nitrite_meta_map";
 
     /**
+     * The constant STORE_INFO.
+     */
+    public static final String STORE_INFO = "$nitrite_store_info";
+
+    /**
      * The constant RESERVED_NAMES.
      */
     public static final String[] RESERVED_NAMES = new String[] {
@@ -69,6 +74,7 @@ public class Constants {
         USER_MAP,
         OBJECT_STORE_NAME_SEPARATOR,
         META_MAP_NAME,
+        STORE_INFO
     };
 
     /**

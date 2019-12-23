@@ -158,7 +158,7 @@ class NitriteMVMap<Key, Value> implements NitriteMap<Key, Value> {
                 attributes = new Attributes(getName());
                 metaMap.put(getName(), attributes);
             }
-            attributes.setLastModifiedTime(System.currentTimeMillis());
+            attributes.set(Attributes.LAST_MODIFIED_TIME, Long.toString(System.currentTimeMillis()));
         }
     }
 }

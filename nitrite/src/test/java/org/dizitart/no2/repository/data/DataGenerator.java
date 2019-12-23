@@ -106,27 +106,22 @@ public class DataGenerator {
 
     private static String randomCompanyName() {
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("english.stop");
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 
-        String strLine;
-        int line = counter.incrementAndGet();
-        int count = 0;
-        try {
+        assert inputStream != null;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            String strLine;
+            int line = random.nextInt(570);
+            int count = 0;
             while ((strLine = br.readLine()) != null) {
                 if (count == line) {
-                    return strLine + " inc.";
+                    return strLine + System.nanoTime() + " inc.";
                 }
                 count++;
             }
         } catch (IOException e) {
             // ignore
-        } finally {
-            try {
-                br.close();
-            } catch (IOException e) {
-                // ignore
-            }
         }
+        // ignore
         return null;
     }
 

@@ -130,6 +130,12 @@ public class DocumentTest {
         assertEquals(doc.get("category.3"), "grocery");
     }
 
+    @Test
+    public void testPutNull() {
+        assertNotNull(doc.put("test", null));
+        assertNull(doc.get("test"));
+    }
+
     @Test(expected = InvalidOperationException.class)
     public void testPut() {
         doc.put(DOC_ID, "id");
