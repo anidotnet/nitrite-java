@@ -80,7 +80,7 @@ public class NitriteBuilderTest {
         builder.disableAutoCommit();
         builder.disableAutoCompact();
         builder.filePath(filePath);
-        builder.loadPlugin(CustomIndexer.class);
+        builder.loadPlugin(new CustomIndexer());
 
         Nitrite db = builder.openOrCreate();
         NitriteConfig config = builder.getNitriteConfig();

@@ -12,7 +12,9 @@ import org.dizitart.no2.store.NitriteStore;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Anindya Chatterjee.
@@ -33,24 +35,6 @@ public class PluginManager {
     public void load(NitritePlugin... plugins) {
         populatePlugins(plugins);
     }
-
-    @SafeVarargs
-    public final void load(Class<? extends NitritePlugin>... plugins) {
-        if (plugins != null) {
-            for (Class<? extends NitritePlugin> plugin : plugins) {
-                try {
-                    Constructor<? extends NitritePlugin> pluginConstructor = plugin.getDeclaredConstructor();
-                    pluginConstructor.setAccessible(true);
-                    NitritePlugin nitritePlugin = pluginConstructor.newInstance();
-                    load(nitritePlugin);
-                } catch (Throwable t) {
-                    log.error("Error while loading plugin " + plugin.getName(), t);
-                    throw new PluginException("failed to load plugin " + plugin.getName());
-                }
-            }
-        }
-    }
-
 
     public void findAndLoadPlugins() {
         Package[] packages = Package.getPackages();
@@ -86,6 +70,26 @@ public class PluginManager {
 
         if (nitriteStore != null) {
             initializePlugin(nitriteStore);
+        }
+    }
+
+    @SafeVarargs
+    private final void load(Class<? extends NitritePlugin>... pluginTypes) {
+        if (pluginTypes != null) {
+            for (Class<? extends NitritePlugin> pluginType : pluginTypes) {
+                try {
+                    if (NitriteMapper.class.isAssignableFrom(pluginType) && nitriteMapper != null) continue;
+                    if (NitriteStore.class.isAssignableFrom(pluginType) && nitriteStore != null) continue;
+
+                    Constructor<? extends NitritePlugin> pluginConstructor = pluginType.getDeclaredConstructor();
+                    pluginConstructor.setAccessible(true);
+                    NitritePlugin nitritePlugin = pluginConstructor.newInstance();
+                    load(nitritePlugin);
+                } catch (Throwable t) {
+                    log.error("Error while loading plugin " + pluginType.getName(), t);
+                    throw new PluginException("failed to load plugin " + pluginType.getName());
+                }
+            }
         }
     }
 

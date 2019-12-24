@@ -25,13 +25,11 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
 /**
  * @author Anindya Chatterjee
  */
-class NitriteDocument implements Document {
+class NitriteDocument extends LinkedHashMap<String, Object> implements Document {
     private static final long serialVersionUID = 1477462374L;
 
-    private LinkedHashMap<String, Object> bag;
-
-    NitriteDocument(LinkedHashMap<String, Object> objectMap) {
-        bag = objectMap;
+    NitriteDocument(Map<String, Object> objectMap) {
+        super(objectMap);
     }
 
     @Override
@@ -45,7 +43,7 @@ class NitriteDocument implements Document {
                 + " does not implement java.io.Serializable");
         }
 
-        bag.put(key, value);
+        super.put(key, value);
         return this;
     }
 
@@ -54,7 +52,7 @@ class NitriteDocument implements Document {
         if (key != null && !containsKey(key)) {
             return deepGet(key);
         }
-        return bag.get(key);
+        return super.get(key);
     }
 
     @Override
@@ -69,7 +67,7 @@ class NitriteDocument implements Document {
         try {
             if (!containsKey(DOC_ID)) {
                 id = newId().getIdValue();
-                bag.put(DOC_ID, id);
+                super.put(DOC_ID, id);
             } else {
                 id = (Long) get(DOC_ID);
             }
@@ -110,55 +108,37 @@ class NitriteDocument implements Document {
 
     @Override
     public boolean hasId() {
-        return bag.containsKey(DOC_ID);
+        return super.containsKey(DOC_ID);
     }
 
     @Override
     public void remove(String key) {
-        bag.remove(key);
+        super.remove(key);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Document clone() {
-        LinkedHashMap<String, Object> clone = (LinkedHashMap<String, Object>) bag.clone();
+        Map<String, Object> clone = (Map<String, Object>) super.clone();
         return new NitriteDocument(clone);
-    }
-
-    @Override
-    public int size() {
-        return bag.size();
     }
 
     @Override
     public Document putAll(Document document) {
         if (document instanceof NitriteDocument) {
-            bag.putAll(((NitriteDocument) document).bag);
+            super.putAll((NitriteDocument) document);
         }
         return this;
     }
 
     @Override
     public boolean containsKey(String key) {
-        return bag.containsKey(key);
+        return super.containsKey(key);
     }
 
     @Override
     public Iterator<KeyValuePair<String, Object>> iterator() {
-        return new PairIterator(bag.entrySet().iterator());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NitriteDocument that = (NitriteDocument) o;
-        return Objects.equals(bag, that.bag);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(bag);
+        return new PairIterator(super.entrySet().iterator());
     }
 
     private Set<String> getFieldsInternal(String prefix) {
@@ -304,13 +284,12 @@ class NitriteDocument implements Document {
 
     @Override
     public void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.writeObject(bag);
+        stream.defaultWriteObject();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        bag = (LinkedHashMap<String, Object>) stream.readObject();
+        stream.defaultReadObject();
     }
 
     private static class PairIterator implements Iterator<KeyValuePair<String, Object>> {

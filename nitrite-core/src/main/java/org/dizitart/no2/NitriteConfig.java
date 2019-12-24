@@ -139,22 +139,6 @@ public abstract class NitriteConfig {
     }
 
     /**
-     * Loads plugins from {@link NitritePlugin} classes.
-     *
-     * @param plugins the {@link NitritePlugin} classes.
-     * @return the {@link NitriteConfig} instance.
-     */
-    @SafeVarargs
-    public final NitriteConfig load(Class<? extends NitritePlugin>... plugins) {
-        if (configured) {
-            throw new InvalidOperationException("cannot load plugin after database" +
-                " initialization");
-        }
-        pluginManager.load(plugins);
-        return this;
-    }
-
-    /**
      * Finds an {@link Indexer} by indexType.
      *
      * @param indexType the type of {@link Indexer} to find.

@@ -209,18 +209,6 @@ public abstract class NitriteBuilder {
     }
 
     /**
-     * Loads plugins from {@link NitritePlugin} classes.
-     *
-     * @param plugins the {@link NitritePlugin} classes.
-     * @return the {@link NitriteBuilder} instance.
-     */
-    @SafeVarargs
-    public final NitriteBuilder loadPlugin(Class<? extends NitritePlugin>... plugins) {
-        this.nitriteConfig.load(plugins);
-        return this;
-    }
-
-    /**
      * Opens or creates a new nitrite database backed by mvstore. If it is an in-memory store,
      * then it will create a new one. If it is a file based store, and if the file does not
      * exists, then it will create a new file store and open; otherwise it will

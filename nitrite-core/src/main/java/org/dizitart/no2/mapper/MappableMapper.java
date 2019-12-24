@@ -38,6 +38,10 @@ public class MappableMapper implements NitriteMapper {
     @Override
     @SuppressWarnings("unchecked")
     public <Source, Target> Target convert(Source source, Class<Target> type) {
+        if (source == null) {
+            return null;
+        }
+
         if (isValue(source)) {
             return (Target) source;
         } else {
@@ -53,6 +57,10 @@ public class MappableMapper implements NitriteMapper {
 
     @SuppressWarnings("unchecked")
     private <Target> Target convertToObject(Document source, Class<Target> type) {
+        if (source == null) {
+            return null;
+        }
+
         if (Mappable.class.isAssignableFrom(type)) {
             Target item = newInstance(type, false);
             if (item == null) return null;
