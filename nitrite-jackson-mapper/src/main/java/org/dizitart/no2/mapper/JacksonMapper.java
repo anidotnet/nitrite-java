@@ -35,25 +35,15 @@ import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class JacksonMapper implements NitriteMapper {
-    private MappableMapper mappableMapper;
+public class JacksonMapper extends MappableMapper {
     private Set<Module> modules;
     private ObjectMapper objectMapper;
 
     public JacksonMapper() {
-        this(new MappableMapper());
-    }
-
-    public JacksonMapper(MappableMapper mappableMapper) {
-        this(new HashSet<>(), mappableMapper);
+        this(new HashSet<>());
     }
 
     public JacksonMapper(Set<Module> modules) {
-        this(modules, new MappableMapper());
-    }
-
-    public JacksonMapper(Set<Module> modules, MappableMapper mappableMapper) {
-        this.mappableMapper = mappableMapper;
         this.modules = modules;
         this.objectMapper = createObjectMapper();
     }
@@ -101,15 +91,19 @@ public class JacksonMapper implements NitriteMapper {
 
     @Override
     public boolean isValueType(Class<?> type) {
-        if (mappableMapper.isValueType(type)) return true;
+        if (super.isValueType(type)) return true;
         Object item = ObjectUtils.newInstance(type, false);
         return isValue(item);
     }
 
     @Override
     public boolean isValue(Object object) {
-        JsonNode node = objectMapper.convertValue(object, JsonNode.class);
-        return node != null && node.isValueNode();
+        try {
+            JsonNode node = objectMapper.convertValue(object, JsonNode.class);
+            return node != null && node.isValueNode();
+        } catch (Exception ex) {
+            throw new ObjectMappingException("error while checking for value type", ex);
+        }
     }
 
     @Override
@@ -117,32 +111,34 @@ public class JacksonMapper implements NitriteMapper {
 
     }
 
-    private <Target> Target convertToObject(Document source, Class<Target> type) {
-        if (Mappable.class.isAssignableFrom(type)) {
-            Target item = newInstance(type, false);
-            if (item == null) return null;
-
-            ((Mappable) item).read(this, source);
-            return item;
-        }
-
+    @Override
+    protected <Target> Target convertToObject(Document source, Class<Target> type) {
         try {
-            return objectMapper.convertValue(source, type);
-        } catch (IllegalArgumentException iae) {
-            log.error("Error while converting document to object ", iae);
-            if (iae.getCause() instanceof JsonMappingException) {
-                JsonMappingException jme = (JsonMappingException) iae.getCause();
-                if (jme.getMessage().contains("Cannot construct instance")) {
-                    throw new ObjectMappingException(jme.getMessage());
+            return super.convertToObject(source, type);
+        } catch (ObjectMappingException ome) {
+            try {
+                return objectMapper.convertValue(source, type);
+            } catch (IllegalArgumentException iae) {
+                log.error("Error while converting document to object ", iae);
+                if (iae.getCause() instanceof JsonMappingException) {
+                    JsonMappingException jme = (JsonMappingException) iae.getCause();
+                    if (jme.getMessage().contains("Cannot construct instance")) {
+                        throw new ObjectMappingException(jme.getMessage());
+                    }
                 }
+                throw iae;
             }
-            throw iae;
         }
     }
 
-    private <Source> Object convertToDocument(Source source) {
-        JsonNode node = objectMapper.convertValue(source, JsonNode.class);
-        return loadDocument(node);
+    @Override
+    protected <Source> Document convertToDocument(Source source) {
+        try {
+            return super.convertToDocument(source);
+        } catch (ObjectMappingException ome) {
+            JsonNode node = objectMapper.convertValue(source, JsonNode.class);
+            return loadDocument(node);
+        }
     }
 
     private Object convertValue(Object object) {

@@ -1,6 +1,7 @@
 package org.dizitart.no2.store;
 
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.index.BoundingBox;
 import org.dizitart.no2.plugin.NitritePlugin;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.store.events.StoreEventListener;
@@ -110,7 +111,7 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      * @param rTreeName the RTree name
      * @return the map.
      */
-    <Key, Value> NitriteRTree<Key, Value> openRTree(String rTreeName);
+    <Key extends BoundingBox, Value> NitriteRTree<Key, Value> openRTree(String rTreeName);
 
     /**
      * Removes a RTree from the store.

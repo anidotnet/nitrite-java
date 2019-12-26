@@ -129,8 +129,7 @@ public abstract class BaseObjectRepositoryTest {
             builder.disableAutoCompact();
         }
 
-        MappableMapper mapper = new MappableMapper();
-        JacksonMapper jacksonMapper = new JacksonMapper(mapper);
+        JacksonMapper jacksonMapper = new JacksonMapper();
         builder.loadPlugin(jacksonMapper);
 
         if (isProtected) {

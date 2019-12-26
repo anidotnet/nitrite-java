@@ -103,7 +103,7 @@ public class ObjectRepositoryTest {
         repository.insert(object);
         for (WithFinalField instance : repository.find()) {
             assertEquals(object.getName(), instance.getName());
-            assertEquals(0, instance.getNumber());
+            assertEquals(object.getNumber(), instance.getNumber());
         }
     }
 

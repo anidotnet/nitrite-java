@@ -19,12 +19,14 @@
 package org.dizitart.no2.test;
 
 import lombok.Data;
+import org.dizitart.no2.index.annotations.Id;
 
 /**
  * @author Anindya Chatterjee.
  */
 @Data
 class InternalClass {
+    @Id
     private long id;
     private String name;
 }

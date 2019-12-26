@@ -1,5 +1,6 @@
 package org.dizitart.no2.collection.operation;
 
+import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
@@ -79,6 +80,10 @@ class ReadOperations {
     private void prepareLogicalFilter(LogicalFilter logicalFilter) {
         List<Filter> filters = logicalFilter.getFilters();
         for (Filter filter : filters) {
+            if (filter instanceof NitriteFilter) {
+                NitriteFilter nitriteFilter = (NitriteFilter) filter;
+                nitriteFilter.setObjectFilter(logicalFilter.getObjectFilter());
+            }
             prepareFilter(filter);
         }
     }

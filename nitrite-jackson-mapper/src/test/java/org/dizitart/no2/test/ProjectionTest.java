@@ -47,13 +47,6 @@ public class ProjectionTest extends BaseObjectRepositoryTest {
     }
 
     @Test
-    public void testTotalCount() {
-        ReadableStream<SubEmployee> iterable = employeeRepository.find().limit(0, 5)
-                .project(SubEmployee.class);
-        assertEquals(iterable.size(), 10);
-    }
-
-    @Test
     public void testToString() {
         ReadableStream<SubEmployee> iterable = employeeRepository.find().limit(0, 5)
                 .project(SubEmployee.class);

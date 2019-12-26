@@ -56,7 +56,7 @@ public class MappableMapper implements NitriteMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <Target> Target convertToObject(Document source, Class<Target> type) {
+    protected <Target> Target convertToObject(Document source, Class<Target> type) {
         if (source == null) {
             return null;
         }
@@ -80,7 +80,7 @@ public class MappableMapper implements NitriteMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <Source> Document convertToDocument(Source source) {
+    protected <Source> Document convertToDocument(Source source) {
         if (source instanceof Mappable) {
             Mappable mappable = (Mappable) source;
             return mappable.write(this);

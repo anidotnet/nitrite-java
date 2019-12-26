@@ -20,6 +20,7 @@ package org.dizitart.no2.test.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.index.annotations.Id;
 
 /**
  * @author Anindya Chatterjee.
@@ -27,6 +28,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class WithCustomConstructor {
+    @Id
     private String name;
     private long number;
 

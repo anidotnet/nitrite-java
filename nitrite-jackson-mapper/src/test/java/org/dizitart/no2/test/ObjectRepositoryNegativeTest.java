@@ -73,12 +73,10 @@ public class ObjectRepositoryNegativeTest {
         // circular reference
         parent.setParent(object);
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithCircularReference instance = repository.getById(id);
-            assertEquals(instance.getName(), object.getName());
-            assertEquals(instance.getParent().getName(), object.getParent().getName());
-        }
+        repository.insert(object);
+        WithCircularReference instance = repository.getById("parent");
+        assertEquals(instance.getName(), object.getName());
+        assertEquals(instance.getParent().getName(), object.getParent().getName());
     }
 
     @Test(expected = ObjectMappingException.class)
@@ -87,12 +85,10 @@ public class ObjectRepositoryNegativeTest {
 
         WithCustomConstructor object = new WithCustomConstructor("test", 2L);
 
-        WriteResult result = repository.insert(object);
-        for (NitriteId id : result) {
-            WithCustomConstructor instance = repository.getById(id);
-            assertEquals(object.getName(), instance.getName());
-            assertEquals(object.getNumber(), instance.getNumber());
-        }
+        repository.insert(object);
+        WithCustomConstructor instance = repository.getById("test");
+        assertEquals(object.getName(), instance.getName());
+        assertEquals(object.getNumber(), instance.getNumber());
     }
 
     @Test(expected = InvalidIdException.class)
@@ -122,9 +118,9 @@ public class ObjectRepositoryNegativeTest {
 
     @Test(expected = InvalidOperationException.class)
     public void testFindResultRemove() {
-        ObjectRepository<String> repository = db.getRepository(String.class);
-        repository.insert("test");
-        ReadableStream<String> result = repository.find();
+        ObjectRepository<Employee> repository = db.getRepository(Employee.class);
+        repository.insert(DataGenerator.generateEmployee());
+        ReadableStream<Employee> result = repository.find();
         result.iterator().remove();
     }
 

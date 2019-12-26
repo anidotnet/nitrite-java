@@ -55,6 +55,8 @@ public abstract class FieldBasedFilter extends NitriteFilter {
     }
 
     public Object getValue() {
+        if (value == null) return null;
+
         if (getObjectFilter()) {
             NitriteMapper nitriteMapper = getNitriteConfig().nitriteMapper();
             validateSearchTerm(nitriteMapper, field, value);

@@ -20,6 +20,7 @@ package org.dizitart.no2.test.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dizitart.no2.index.annotations.Id;
 
 /**
  * @author Anindya Chatterjee.
@@ -28,5 +29,6 @@ import lombok.Setter;
 @Setter
 public class WithTransientField {
     private transient String name;
+    @Id
     private long number;
 }

@@ -30,8 +30,6 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode
 public class Note implements Serializable {
-    @Id
     @Getter @Setter private Long noteId;
-
     @Getter @Setter private String text;
 }

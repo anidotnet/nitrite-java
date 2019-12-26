@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.index.BoundingBox;
 import org.dizitart.no2.store.events.EventInfo;
 import org.dizitart.no2.store.events.StoreEventListener;
 import org.dizitart.no2.store.events.StoreEvents;
@@ -133,7 +134,7 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <Key, Value> NitriteRTree<Key, Value> openRTree(String name) {
+    public <Key extends BoundingBox, Value> NitriteRTree<Key, Value> openRTree(String name) {
         MVRTreeMap<Value> map = mvStore.openMap(name, new MVRTreeMap.Builder<>());
         return new NitriteMVRTreeMap(map, this);
     }

@@ -21,8 +21,12 @@ package org.dizitart.no2.repository.data;
 import lombok.Getter;
 import lombok.Setter;
 import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * @author Anindya Chatterjee.
@@ -47,5 +51,14 @@ public class WithFinalField implements Mappable {
     @Override
     public void read(NitriteMapper mapper, Document document) {
         name = document.get("name", String.class);
+        try {
+            Field field = getClass().getDeclaredField("number");
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+            field.set(this, document.get("number", Long.class));
+        } catch (Exception e) {
+            throw new ObjectMappingException("failed to set value");
+        }
     }
 }

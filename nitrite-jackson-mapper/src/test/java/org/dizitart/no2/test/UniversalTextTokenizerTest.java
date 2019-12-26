@@ -115,8 +115,7 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
             builder.disableAutoCompact();
         }
 
-        MappableMapper mappableMapper = new MappableMapper();
-        JacksonMapper jacksonMapper = new JacksonMapper(mappableMapper);
+        JacksonMapper jacksonMapper = new JacksonMapper();
         builder.loadPlugin(jacksonMapper);
 
         UniversalTextTokenizer tokenizer;

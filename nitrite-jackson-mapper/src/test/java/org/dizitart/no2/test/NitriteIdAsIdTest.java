@@ -52,8 +52,7 @@ public class NitriteIdAsIdTest {
 
     @Before
     public void before() {
-        MappableMapper mappableMapper = new MappableMapper();
-        JacksonMapper mapper = new JacksonMapper(mappableMapper);
+        JacksonMapper mapper = new JacksonMapper();
         db = NitriteBuilder.get().loadPlugin(mapper).filePath(fileName).openOrCreate();
         repo = db.getRepository(WithNitriteId.class);
     }

@@ -16,19 +16,13 @@
  *
  */
 
-package org.dizitart.no2.test.data;
-
-import lombok.Getter;
-import lombok.Setter;
-import org.dizitart.no2.index.annotations.Id;
+package org.dizitart.no2.spatial;
 
 /**
- * @author Anindya Chatterjee.
+ * @author Anindya Chatterjee
  */
-@Getter
-@Setter
-public class WithClassField {
-    @Id
-    private String name;
-    private Class<?> clazz;
+public enum EqualityType {
+    Exact,
+    Normalized,
+    Topological
 }

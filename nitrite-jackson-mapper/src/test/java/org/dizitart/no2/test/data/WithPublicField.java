@@ -18,10 +18,13 @@
 
 package org.dizitart.no2.test.data;
 
+import org.dizitart.no2.index.annotations.Id;
+
 /**
  * @author Anindya Chatterjee.
  */
 public class WithPublicField {
+    @Id
     public String name;
     public long number;
 }

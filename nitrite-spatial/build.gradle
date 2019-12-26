@@ -1,14 +1,27 @@
 plugins {
     id 'java'
+    id 'signing'
+    id 'maven'
+    id 'com.github.hauner.jarTest'
 }
 
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
-sourceCompatibility = 1.8
+jar {
+    archivesBaseName = 'nitrite-spatial'
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation project(path: ':nitrite-core', configuration: 'default')
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.locationtech.jts:jts-core:$jtsVersion"
+
+    testImplementation project(path: ':nitrite', configuration: 'default')
+    testImplementation project(path: ':nitrite-jackson-mapper', configuration: 'default')
+    testImplementation "junit:junit:$junitVersion"
 }
