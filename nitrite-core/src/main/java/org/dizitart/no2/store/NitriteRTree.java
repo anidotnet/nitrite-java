@@ -1,22 +1,17 @@
 package org.dizitart.no2.store;
 
-import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.ReadableStream;
-import org.dizitart.no2.index.BoundingBox;
-
-import java.util.Set;
 
 /**
  * @author Anindya Chatterjee.
  */
-public interface NitriteRTree<Key extends BoundingBox, Value> {
-    void add(Key key, Value value);
+public interface NitriteRTree<Key, Value> {
+    void add(Key key, NitriteId nitriteId);
 
-    void remove(Key key);
+    void remove(Key key, NitriteId nitriteId);
 
-    Set<KeyValuePair<Key, Value>> entries();
+    ReadableStream<NitriteId> findIntersectingKeys(Key key);
 
-    ReadableStream<Key> findIntersectingKeys(Key key);
-
-    ReadableStream<Key> findContainedKeys(Key key);
+    ReadableStream<NitriteId> findContainedKeys(Key key);
 }

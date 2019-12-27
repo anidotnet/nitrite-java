@@ -222,13 +222,4 @@ public class Constants {
      */
     public static final int HASH_KEY_LENGTH = 256;
 
-    /**
-     * The constant GEOMETRY_ID
-     * */
-    public static final String GEOMETRY_ID = "geometry:";
-
-    /**
-     * Field separator.
-     * */
-    public static final String FIELD_SEPARATOR = ".";
 }

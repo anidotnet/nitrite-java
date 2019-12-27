@@ -5,7 +5,6 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
 import org.dizitart.no2.exceptions.ValidationException;
-import org.dizitart.no2.store.IndexCatalog;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
 
@@ -23,14 +22,12 @@ import static org.dizitart.no2.common.util.ValidationUtils.*;
 @SuppressWarnings("rawtypes")
 public abstract class ComparableIndexer implements Indexer {
     private NitriteStore nitriteStore;
-    private IndexCatalog indexCatalog;
 
     abstract boolean isUnique();
 
     @Override
     public void initialize(NitriteConfig nitriteConfig) {
         this.nitriteStore = nitriteConfig.getNitriteStore();
-        this.indexCatalog = this.nitriteStore.getIndexCatalog();
     }
 
     @Override
@@ -71,7 +68,7 @@ public abstract class ComparableIndexer implements Indexer {
 
     @Override
     public void dropIndex(NitriteMap<NitriteId, Document> collection, String field) {
-        indexCatalog.dropIndexEntry(collection.getName(), field);
+        // no action required
     }
 
     public Set<NitriteId> findEqual(String collectionName, String field, Comparable value) {

@@ -116,6 +116,10 @@ public class MappableMapper implements NitriteMapper {
 
     }
 
+    protected void addValueType(Class<?> valueType) {
+        this.valueTypes.add(valueType);
+    }
+
     private Class<?> findConverterKey(Class<?> type) {
         if (typeConverterMap.containsKey(type)) return type;
         for (Class<?> aClass : typeConverterMap.keySet()) {

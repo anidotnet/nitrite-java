@@ -67,6 +67,22 @@ public class Iterables {
     }
 
     /**
+     * Converts an {@link Iterable} into a {@link Set}.
+     *
+     * @param <T>      the type parameter
+     * @param iterable the iterable
+     * @return the list containing all elements of the `iterable`.
+     */
+    public static <T> Set<T> toSet(Iterable<T> iterable) {
+        if (iterable instanceof Set) return (Set<T>) iterable;
+        Set<T> set = new LinkedHashSet<>();
+        for (T item : iterable) {
+            set.add(item);
+        }
+        return Collections.unmodifiableSet(set);
+    }
+
+    /**
      * Converts an {@link Iterable} of type `T` into an array of type `T`.
      *
      * @param <T>      the type parameter

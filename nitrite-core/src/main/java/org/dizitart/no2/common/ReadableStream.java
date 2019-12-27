@@ -4,6 +4,7 @@ import org.dizitart.no2.common.util.Iterables;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Anindya Chatterjee.
@@ -15,6 +16,10 @@ public interface ReadableStream<T> extends Iterable<T> {
 
     default List<T> toList() {
         return Iterables.toList(this);
+    }
+
+    default Set<T> toSet() {
+        return Iterables.toSet(this);
     }
 
     default boolean isEmpty() {

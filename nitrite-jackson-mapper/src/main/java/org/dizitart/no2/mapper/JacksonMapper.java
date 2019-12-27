@@ -18,8 +18,10 @@ package org.dizitart.no2.mapper;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
@@ -29,22 +31,26 @@ import org.dizitart.no2.exceptions.ObjectMappingException;
 import java.io.IOException;
 import java.util.*;
 
-import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
+import static org.dizitart.no2.common.util.Iterables.asList;
 
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
 public class JacksonMapper extends MappableMapper {
-    private Set<Module> modules;
+    private List<SimpleNitriteModule> modules;
+    private List<Class<?>> moduleTypes;
     private ObjectMapper objectMapper;
 
     public JacksonMapper() {
-        this(new HashSet<>());
+        this.modules = new ArrayList<>();
+        this.moduleTypes = new ArrayList<>();
+        this.objectMapper = createObjectMapper();
     }
 
-    public JacksonMapper(Set<Module> modules) {
-        this.modules = modules;
+    public JacksonMapper(SimpleNitriteModule... modules) {
+        this.modules = new ArrayList<>(asList(modules));
+        this.moduleTypes = new ArrayList<>();
         this.objectMapper = createObjectMapper();
     }
 
@@ -59,14 +65,21 @@ public class JacksonMapper extends MappableMapper {
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(new NitriteIdModule());
 
-        for (Module module : modules) {
+        this.modules.add(new NitriteIdModule());
+        for (SimpleNitriteModule module : modules) {
+            addValueType(module.getDataType());
             objectMapper.registerModule(module);
         }
 
         objectMapper.findAndRegisterModules();
         return objectMapper;
+    }
+
+    @Override
+    protected void addValueType(Class<?> valueType) {
+        super.addValueType(valueType);
+        this.moduleTypes.add(valueType);
     }
 
     @Override
@@ -77,7 +90,11 @@ public class JacksonMapper extends MappableMapper {
         }
 
         if (isValue(source)) {
-            return (Target) convertValue(source);
+            if (this.moduleTypes.contains(type)) {
+                return this.objectMapper.convertValue(source, type);
+            } else {
+                return (Target) convertValue(source);
+            }
         } else {
             if (Document.class.isAssignableFrom(type)) {
                 return (Target) convertToDocument(source);

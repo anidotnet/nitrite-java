@@ -16,27 +16,32 @@
  *
  */
 
-package org.dizitart.no2.mapper;
+package org.dizitart.no2.spatial.mapper;
 
-import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.mapper.SimpleNitriteModule;
+import org.locationtech.jts.geom.Geometry;
 
 /**
- * Class that registers capability of serializing {@code NitriteId} with the Jackson core.
+ * Class that registers capability of serializing {@code Geometry} objects with the Jackson core.
  *
- * @since 1.0.0
+ * @since 4.0.0
  * @author Anindya Chatterjee
  */
-public class NitriteIdModule extends SimpleNitriteModule {
+public class GeometryModule extends SimpleNitriteModule {
+    /**
+     * The constant GEOMETRY_ID
+     * */
+    public static final String GEOMETRY_ID = "geometry:";
 
     @Override
     public void setupModule(SetupContext context) {
-        addSerializer(NitriteId.class, new NitriteIdSerializer());
-        addDeserializer(NitriteId.class, new NitriteIdDeserializer());
+        addSerializer(Geometry.class, new GeometrySerializer());
+        addDeserializer(Geometry.class, new GeometryDeserializer());
         super.setupModule(context);
     }
 
     @Override
     public Class<?> getDataType() {
-        return NitriteId.class;
+        return Geometry.class;
     }
 }

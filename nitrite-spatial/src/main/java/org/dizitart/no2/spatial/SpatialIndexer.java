@@ -21,18 +21,15 @@ package org.dizitart.no2.spatial;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.ReadableStream;
+import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.index.BoundingBox;
 import org.dizitart.no2.index.Indexer;
-import org.dizitart.no2.store.IndexCatalog;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteRTree;
 import org.dizitart.no2.store.NitriteStore;
 import org.locationtech.jts.geom.Geometry;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  *
@@ -40,61 +37,75 @@ import java.util.concurrent.ConcurrentSkipListSet;
  * @author Anindya Chatterjee
  */
 public class SpatialIndexer implements Indexer {
-    private IndexCatalog indexCatalog;
+    public static final String SpatialIndex = "Spatial";
+
+    private NitriteMapper nitriteMapper;
     private NitriteStore nitriteStore;
 
-    public Set<NitriteId> findEqual(String collectionName, String field, Geometry geometry, EqualityType equalityType) {
-        Set<NitriteId> resultSet = new LinkedHashSet<>();
-        NitriteRTree<?, Geometry> indexMap = getIndexMap(collectionName, field);
-        for (KeyValuePair<?, Geometry> entry : indexMap.entries()) {
-            Geometry geom = entry.getValue();
-            SpatialKey key = entry.getKey();
-
-        }
+    public ReadableStream<NitriteId> findWithin(String collectionName, String field, Geometry geometry){
+        NitriteRTree<BoundingBox, Geometry> indexMap = getIndexMap(collectionName, field);
+        BoundingBox boundingBox = new NitriteBoundingBox(geometry);
+        return indexMap.findContainedKeys(boundingBox);
     }
 
-    public Set<NitriteId> findWithin(String collectionName, String field, Geometry geometry){
-
-    }
-
-    public Set<NitriteId> findIntersects(String collectionName, String field, Geometry geometry) {
-
+    public ReadableStream<NitriteId> findIntersects(String collectionName, String field, Geometry geometry) {
+        NitriteRTree<BoundingBox, Geometry> indexMap = getIndexMap(collectionName, field);
+        BoundingBox boundingBox = new NitriteBoundingBox(geometry);
+        return indexMap.findIntersectingKeys(boundingBox);
     }
 
     @Override
     public String getIndexType() {
-        return "Spatial";
+        return SpatialIndex;
     }
 
     @Override
     public void writeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
-
+        if (fieldValue == null) return;
+        NitriteRTree<BoundingBox, Geometry> indexMap = getIndexMap(collection.getName(), field);
+        Geometry geometry = parseGeometry(field, fieldValue);
+        BoundingBox boundingBox = new NitriteBoundingBox(geometry);
+        indexMap.add(boundingBox, nitriteId);
     }
 
     @Override
     public void removeIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object fieldValue) {
-
+        if (fieldValue == null) return;
+        NitriteRTree<BoundingBox, Geometry> indexMap = getIndexMap(collection.getName(), field);
+        Geometry geometry = parseGeometry(field, fieldValue);
+        BoundingBox boundingBox = new NitriteBoundingBox(geometry);
+        indexMap.remove(boundingBox, nitriteId);
     }
 
     @Override
     public void updateIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object newValue, Object oldValue) {
-
+        removeIndex(collection, nitriteId, field, oldValue);
+        writeIndex(collection, nitriteId, field, newValue);
     }
 
     @Override
     public void dropIndex(NitriteMap<NitriteId, Document> collection, String field) {
-
+        // no action required
     }
 
     @Override
     public void initialize(NitriteConfig nitriteConfig) {
         this.nitriteStore = nitriteConfig.getNitriteStore();
-        this.indexCatalog = this.nitriteStore.getIndexCatalog();
+        this.nitriteMapper = nitriteConfig.nitriteMapper();
     }
 
-    @SuppressWarnings("rawtypes")
-    private NitriteRTree<BoundingBox, ConcurrentSkipListSet<NitriteId>> getIndexMap(String collectionName, String field) {
+    private NitriteRTree<BoundingBox, Geometry> getIndexMap(String collectionName, String field) {
         String mapName = getIndexMapName(collectionName, field);
         return nitriteStore.openRTree(mapName);
+    }
+
+    private Geometry parseGeometry(String field, Object fieldValue) {
+        if (fieldValue == null) return null;
+        if (fieldValue instanceof String) {
+            return nitriteMapper.convert(fieldValue, Geometry.class);
+        } else if (fieldValue instanceof Geometry) {
+            return (Geometry) fieldValue;
+        }
+        throw new IndexingException("field " + field + " does not contain Geometry data");
     }
 }

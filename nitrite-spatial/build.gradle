@@ -18,6 +18,7 @@ repositories {
 
 dependencies {
     implementation project(path: ':nitrite-core', configuration: 'default')
+    implementation project(path: ':nitrite-jackson-mapper', configuration: 'default')
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.locationtech.jts:jts-core:$jtsVersion"
 

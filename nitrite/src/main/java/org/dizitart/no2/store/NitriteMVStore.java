@@ -136,7 +136,7 @@ public class NitriteMVStore implements NitriteStore {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <Key extends BoundingBox, Value> NitriteRTree<Key, Value> openRTree(String name) {
         MVRTreeMap<Value> map = mvStore.openMap(name, new MVRTreeMap.Builder<>());
-        return new NitriteMVRTreeMap(map, this);
+        return new NitriteMVRTreeMap(map);
     }
 
     @Override

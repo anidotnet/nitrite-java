@@ -18,13 +18,20 @@ package org.dizitart.no2.example.android;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import org.dizitart.no2.Nitrite;
+import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.events.CollectionEventListener;
+import org.dizitart.no2.common.util.Iterables;
+import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.repository.ObjectRepository;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
@@ -43,49 +50,47 @@ public class MainActivity extends AppCompatActivity {
         adapter = new UserAdapter(this);
         userList.setAdapter(adapter);
 
-//        if (db == null) {
-//            progressBar.setVisibility(View.VISIBLE);
-//            String fileName = getFilesDir().getPath() + "/test.db";
-//            Log.i("Nitrite", "Nitrite file - " + fileName);
-//            db = Nitrite.builder()
-//                .filePath(fileName)
-//                .openOrCreate("test-user", "test-password");
-//            repository = db.getRepository(User.class);
-//
-//            listener = changeInfo -> {
-//                Iterable<User> users = repository.find().project(User.class);
-//                adapter.setUsers(Iterables.toList(users));
-//                adapter.notifyDataSetChanged();
-//            };
-//
-//            repository.register(listener);
-//            progressBar.setVisibility(View.INVISIBLE);
-//            getUsers();
-//        }
+        if (db == null) {
+            progressBar.setVisibility(View.VISIBLE);
+            String fileName = getFilesDir().getPath() + "/test.db";
+            Log.i("Nitrite", "Nitrite file - " + fileName);
+            db = NitriteBuilder.get()
+                .filePath(fileName)
+                .openOrCreate("test-user", "test-password");
+            repository = db.getRepository(User.class);
+
+            listener = changeInfo -> {
+                Iterable<User> users = repository.find().project(User.class);
+                adapter.setUsers(Iterables.toList(users));
+                adapter.notifyDataSetChanged();
+            };
+
+            repository.subscribe(listener);
+            progressBar.setVisibility(View.INVISIBLE);
+            getUsers();
+        }
     }
 
     private void getUsers() {
-//        List<User> users = Iterables.toList(repository.find().project(User.class));
-//        if (users == null)
-//            users = new ArrayList<>();
-//
-//        adapter.setUsers(users);
-//        adapter.notifyDataSetChanged();
+        List<User> users = Iterables.toList(repository.find().project(User.class));
+
+        adapter.setUsers(users);
+        adapter.notifyDataSetChanged();
     }
 
     private void addUser() {
-//        User user = new User("user "+System.currentTimeMillis(), "");
-//        repository.insert(user);
+        User user = new User("user "+System.currentTimeMillis(), "");
+        repository.insert(user);
     }
 
     private void flushUsers() {
-//        repository.remove(Filter.ALL);
+        repository.remove(Filter.ALL);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        repository.deregister(listener);
+        repository.unsubscribe(listener);
     }
 
     @Override

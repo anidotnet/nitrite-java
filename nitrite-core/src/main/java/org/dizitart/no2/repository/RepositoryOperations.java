@@ -100,7 +100,7 @@ class RepositoryOperations {
                     if (idField.get(object) == null) {
                         NitriteId id = document.getId();
                         idField.set(object, id);
-                        document.put(idField.getName(), nitriteMapper.convert(id, NitriteId.class));
+                        document.put(idField.getName(), nitriteMapper.convert(id, Comparable.class));
                     } else if (!update) {
                         throw new InvalidIdException("auto generated id should not be set manually");
                     }
