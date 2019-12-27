@@ -6,7 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteBuilder;
+import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.mapper.Mappable;
+import org.dizitart.no2.mapper.NitriteMapper;
 import org.junit.Before;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -50,10 +53,22 @@ public class RxBaseTest {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    static class Employee {
+    static class Employee implements Mappable {
         @Id
         private String name;
         private Integer age;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument("name", name)
+                .put("age", age);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            name = document.get("name", String.class);
+            age = document.get("age", Integer.class);
+        }
     }
 
     static abstract class BaseSubscriber<T> implements Subscriber<T> {
