@@ -29,27 +29,28 @@ import org.dizitart.no2.common.util.ObjectUtils;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static org.dizitart.no2.common.util.Iterables.asList;
+import static org.dizitart.no2.common.util.Iterables.listOf;
 
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
 public class JacksonMapper extends MappableMapper {
-    private List<SimpleNitriteModule> modules;
+    private List<JacksonModule> jacksonModules;
     private List<Class<?>> moduleTypes;
     private ObjectMapper objectMapper;
 
     public JacksonMapper() {
-        this.modules = new ArrayList<>();
+        this.jacksonModules = new ArrayList<>();
         this.moduleTypes = new ArrayList<>();
         this.objectMapper = createObjectMapper();
     }
 
-    public JacksonMapper(SimpleNitriteModule... modules) {
-        this.modules = new ArrayList<>(asList(modules));
+    public JacksonMapper(JacksonModule... jacksonModules) {
+        this.jacksonModules = new ArrayList<>(listOf(jacksonModules));
         this.moduleTypes = new ArrayList<>();
         this.objectMapper = createObjectMapper();
     }
@@ -66,13 +67,10 @@ public class JacksonMapper extends MappableMapper {
         objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        this.modules.add(new NitriteIdModule());
-        for (SimpleNitriteModule module : modules) {
-            addValueType(module.getDataType());
-            objectMapper.registerModule(module);
+        this.jacksonModules.add(new NitriteIdModule());
+        for (JacksonModule jacksonModule : jacksonModules) {
+            loadJacksonModule(jacksonModule, objectMapper);
         }
-
-        objectMapper.findAndRegisterModules();
         return objectMapper;
     }
 
@@ -109,6 +107,8 @@ public class JacksonMapper extends MappableMapper {
     @Override
     public boolean isValueType(Class<?> type) {
         if (super.isValueType(type)) return true;
+        if (moduleTypes.contains(type)) return true;
+        if (type.isInterface() || Modifier.isAbstract(type.getModifiers())) return false;
         Object item = ObjectUtils.newInstance(type, false);
         return isValue(item);
     }
@@ -156,6 +156,13 @@ public class JacksonMapper extends MappableMapper {
             JsonNode node = objectMapper.convertValue(source, JsonNode.class);
             return loadDocument(node);
         }
+    }
+
+    private void loadJacksonModule(JacksonModule jacksonModule, ObjectMapper objectMapper) {
+        for (Class<?> dataType : jacksonModule.getDataTypes()) {
+            addValueType(dataType);
+        }
+        objectMapper.registerModule(jacksonModule.getModule());
     }
 
     private Object convertValue(Object object) {

@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static org.dizitart.no2.common.util.Iterables.asList;
+import static org.dizitart.no2.common.util.Iterables.listOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -162,8 +162,8 @@ public class MapperTest {
         Object companyId = document.get("companyId");
         assertTrue(companyId instanceof Document);
 
-        mappableMapper = new MappableMapper(asList(Company.CompanyId.class),
-            asList(Company.getConverter()));
+        mappableMapper = new MappableMapper(listOf(Company.CompanyId.class),
+            listOf(Company.getConverter()));
         document = mappableMapper.convert(company, Document.class);
         companyId = document.get("companyId");
         assertTrue(companyId instanceof Company.CompanyId);

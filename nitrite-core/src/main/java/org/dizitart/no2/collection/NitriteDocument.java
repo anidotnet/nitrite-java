@@ -17,7 +17,7 @@ import java.util.*;
 import static org.dizitart.no2.collection.NitriteId.createId;
 import static org.dizitart.no2.collection.NitriteId.newId;
 import static org.dizitart.no2.common.Constants.*;
-import static org.dizitart.no2.common.util.Iterables.asList;
+import static org.dizitart.no2.common.util.Iterables.listOf;
 import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -213,7 +213,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
 
                 return recursiveGet(array[index], Arrays.copyOfRange(remainingPath, 1, remainingPath.length));
             } else {
-                return decompose(asList(array), remainingPath);
+                return decompose(listOf(array), remainingPath);
             }
         }
 

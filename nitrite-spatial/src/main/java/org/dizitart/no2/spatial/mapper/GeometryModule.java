@@ -18,8 +18,14 @@
 
 package org.dizitart.no2.spatial.mapper;
 
-import org.dizitart.no2.mapper.SimpleNitriteModule;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.dizitart.no2.mapper.JacksonModule;
 import org.locationtech.jts.geom.Geometry;
+
+import java.util.List;
+
+import static org.dizitart.no2.common.util.Iterables.listOf;
 
 /**
  * Class that registers capability of serializing {@code Geometry} objects with the Jackson core.
@@ -27,21 +33,26 @@ import org.locationtech.jts.geom.Geometry;
  * @since 4.0.0
  * @author Anindya Chatterjee
  */
-public class GeometryModule extends SimpleNitriteModule {
+public class GeometryModule implements JacksonModule {
     /**
      * The constant GEOMETRY_ID
      * */
     public static final String GEOMETRY_ID = "geometry:";
 
     @Override
-    public void setupModule(SetupContext context) {
-        addSerializer(Geometry.class, new GeometrySerializer());
-        addDeserializer(Geometry.class, new GeometryDeserializer());
-        super.setupModule(context);
+    public List<Class<?>> getDataTypes() {
+        return listOf(Geometry.class);
     }
 
     @Override
-    public Class<?> getDataType() {
-        return Geometry.class;
+    public Module getModule() {
+        return new SimpleModule() {
+            @Override
+            public void setupModule(SetupContext context) {
+                addSerializer(Geometry.class, new GeometrySerializer());
+                addDeserializer(Geometry.class, new GeometryDeserializer());
+                super.setupModule(context);
+            }
+        };
     }
 }

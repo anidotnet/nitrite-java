@@ -32,6 +32,11 @@ class ObjectCursor<T> implements Cursor<T> {
     }
 
     @Override
+    public long size() {
+        return cursor.size();
+    }
+
+    @Override
     public <P> ReadableStream<P> project(Class<P> projectionType) {
         notNull(projectionType, "projection cannot be null");
         Document dummyDoc = emptyDocument(nitriteMapper, projectionType);

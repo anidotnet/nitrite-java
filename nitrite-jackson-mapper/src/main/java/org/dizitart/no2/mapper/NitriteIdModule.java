@@ -18,7 +18,13 @@
 
 package org.dizitart.no2.mapper;
 
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.dizitart.no2.collection.NitriteId;
+
+import java.util.List;
+
+import static org.dizitart.no2.common.util.Iterables.listOf;
 
 /**
  * Class that registers capability of serializing {@code NitriteId} with the Jackson core.
@@ -26,17 +32,22 @@ import org.dizitart.no2.collection.NitriteId;
  * @since 1.0.0
  * @author Anindya Chatterjee
  */
-public class NitriteIdModule extends SimpleNitriteModule {
+public class NitriteIdModule implements JacksonModule {
 
     @Override
-    public void setupModule(SetupContext context) {
-        addSerializer(NitriteId.class, new NitriteIdSerializer());
-        addDeserializer(NitriteId.class, new NitriteIdDeserializer());
-        super.setupModule(context);
+    public List<Class<?>> getDataTypes() {
+        return listOf(NitriteId.class);
     }
 
     @Override
-    public Class<?> getDataType() {
-        return NitriteId.class;
+    public Module getModule() {
+        return new SimpleModule() {
+            @Override
+            public void setupModule(SetupContext context) {
+                addSerializer(NitriteId.class, new NitriteIdSerializer());
+                addDeserializer(NitriteId.class, new NitriteIdDeserializer());
+                super.setupModule(context);
+            }
+        };
     }
 }

@@ -30,7 +30,7 @@ import java.util.*;
 
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.common.Constants.DOC_ID;
-import static org.dizitart.no2.common.util.Iterables.asList;
+import static org.dizitart.no2.common.util.Iterables.listOf;
 import static org.dizitart.no2.common.util.TestUtil.parse;
 import static org.junit.Assert.*;
 
@@ -192,7 +192,7 @@ public class DocumentTest {
                     .put("second", "other")
                 )
             )
-            .put("fifth", asList(
+            .put("fifth", listOf(
                 createDocument("first", "value")
                     .put("second", new Integer[]{1, 2, 3})
                     .put("third", createDocument("first", "value")

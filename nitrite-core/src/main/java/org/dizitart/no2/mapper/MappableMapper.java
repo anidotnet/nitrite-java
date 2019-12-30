@@ -7,7 +7,7 @@ import org.dizitart.no2.exceptions.ObjectMappingException;
 
 import java.util.*;
 
-import static org.dizitart.no2.common.util.Iterables.asList;
+import static org.dizitart.no2.common.util.Iterables.listOf;
 import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
 
 /**
@@ -22,11 +22,11 @@ public class MappableMapper implements NitriteMapper {
     }
 
     public MappableMapper(TypeConverter<?>... typeConverters) {
-        this(null, asList(typeConverters));
+        this(null, listOf(typeConverters));
     }
 
     public MappableMapper(Class<?>... valueTypes) {
-        this(asList(valueTypes), null);
+        this(listOf(valueTypes), null);
     }
 
     public MappableMapper(List<Class<?>> valueTypes, List<TypeConverter<?>> typeConverters) {

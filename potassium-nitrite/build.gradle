@@ -1,5 +1,22 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion"
+    }
+}
+
+
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.61'
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+    id 'signing'
+    id 'maven'
+    id 'com.github.hauner.jarTest'
+    id "org.jetbrains.dokka" version "$dokkaVersion"
 }
 
 
@@ -7,8 +24,23 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    archivesBaseName = 'potassium-nitrite'
+}
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation project(path: ':nitrite', configuration: 'default')
+    implementation project(path: ':nitrite-spatial', configuration: 'default')
+    implementation project(path: ':nitrite-jackson-mapper', configuration: 'default')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.threeten:threetenbp:$threeTenBpVersion"
 }
 
 compileKotlin {
@@ -16,4 +48,9 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+dokka {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
 }

@@ -112,7 +112,7 @@ public class Iterables {
     }
 
     @SafeVarargs
-    public static <T> List<T> asList(T... items) {
+    public static <T> List<T> listOf(T... items) {
         if (items != null) {
             return Arrays.asList(items);
         }

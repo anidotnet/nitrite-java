@@ -10,5 +10,10 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation project(path: ':nitrite-core', configuration: 'default')
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    implementation "commons-codec:commons-codec:$commonsCodecVersion"
+
+    testImplementation project(path: ':nitrite', configuration: 'default')
+    testImplementation "junit:junit:$junitVersion"
 }
