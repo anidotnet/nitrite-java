@@ -154,7 +154,7 @@ public class JacksonMapper extends MappableMapper {
             return super.convertToDocument(source);
         } catch (ObjectMappingException ome) {
             JsonNode node = objectMapper.convertValue(source, JsonNode.class);
-            return loadDocument(node);
+            return readDocument(node);
         }
     }
 
@@ -189,27 +189,27 @@ public class JacksonMapper extends MappableMapper {
         }
     }
 
-    private Document loadDocument(JsonNode node) {
+    private Document readDocument(JsonNode node) {
         Map<String, Object> objectMap = new LinkedHashMap<>();
         Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> entry = fields.next();
             String name = entry.getKey();
             JsonNode value = entry.getValue();
-            Object object = loadObject(value);
+            Object object = readObject(value);
             objectMap.put(name, object);
         }
 
         return Document.createDocument(objectMap);
     }
 
-    private Object loadObject(JsonNode node) {
+    private Object readObject(JsonNode node) {
         if (node == null)
             return null;
         try {
             switch (node.getNodeType()) {
                 case ARRAY:
-                    return loadArray(node);
+                    return readArray(node);
                 case BINARY:
                     return node.binaryValue();
                 case BOOLEAN:
@@ -221,7 +221,7 @@ public class JacksonMapper extends MappableMapper {
                     return node.numberValue();
                 case OBJECT:
                 case POJO:
-                    return loadDocument(node);
+                    return readDocument(node);
                 case STRING:
                     return node.textValue();
             }
@@ -232,14 +232,14 @@ public class JacksonMapper extends MappableMapper {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private List loadArray(JsonNode array) {
+    private List readArray(JsonNode array) {
         if (array.isArray()) {
             List list = new ArrayList();
             Iterator iterator = array.elements();
             while (iterator.hasNext()) {
                 Object element = iterator.next();
                 if (element instanceof JsonNode) {
-                    list.add(loadObject((JsonNode) element));
+                    list.add(readObject((JsonNode) element));
                 } else {
                     list.add(element);
                 }

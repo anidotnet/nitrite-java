@@ -36,7 +36,6 @@ import java.util.*;
 
 import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.util.Iterables.toArray;
-import static org.dizitart.no2.common.util.NumberUtils.compare;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
@@ -159,7 +158,7 @@ public class ObjectUtils {
                 return false;
             }
             // cast to Number and take care of boxing and compare
-            return compare((Number) o1, (Number) o2) == 0;
+            return NumberUtils.compare((Number) o1, (Number) o2) == 0;
         } else if (o1 instanceof Iterable && o2 instanceof Iterable) {
             Object[] arr1 = toArray((Iterable) o1);
             Object[] arr2 = toArray((Iterable) o2);
@@ -270,6 +269,18 @@ public class ObjectUtils {
             return ar.toArray();
         } else {
             return (Object[]) array;
+        }
+    }
+
+    public static <T extends Comparable<? super T>> int compare(T c1, T c2) {
+        if (c1 == c2) {
+            return 0;
+        } else if (c1 == null) {
+            return -1;
+        } else if (c2 == null) {
+            return 1;
+        } else {
+            return c1.compareTo(c2);
         }
     }
 
