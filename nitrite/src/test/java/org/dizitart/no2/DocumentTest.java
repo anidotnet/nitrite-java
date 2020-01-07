@@ -26,6 +26,7 @@ import org.dizitart.no2.exceptions.ValidationException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.*;
 import java.util.*;
 
 import static org.dizitart.no2.collection.Document.createDocument;
@@ -239,5 +240,25 @@ public class DocumentTest {
 
         number = document.get("fifth.1.fourth.0.second.1", Integer.class);
         assertEquals(number, 2);
+    }
+
+    @Test
+    public void testSerializability() throws IOException, ClassNotFoundException {
+        try(ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+                oos.writeObject(doc);
+                byte[] data = bos.toByteArray();
+
+                System.out.println(data.length);
+
+                try (ByteArrayInputStream bis = new ByteArrayInputStream(data)) {
+                    try (ObjectInputStream ois = new ObjectInputStream(bis)) {
+                        Document otherDoc = (Document) ois.readObject();
+
+                        assertEquals(doc, otherDoc);
+                    }
+                }
+            }
+        }
     }
 }

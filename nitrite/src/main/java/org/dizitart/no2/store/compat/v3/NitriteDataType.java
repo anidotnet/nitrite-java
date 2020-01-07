@@ -1,4 +1,4 @@
-package org.dizitart.no2.store.compat;
+package org.dizitart.no2.store.compat.v3;
 
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
@@ -1549,7 +1549,7 @@ class NitriteDataType extends ObjectDataType {
 //        private Object handleCompatibilityIssue(IllegalArgumentException iae) {
 //            if (iae.getCause() != null && iae.getCause() instanceof ClassCastException) {
 //                ClassCastException cce = (ClassCastException) iae.getCause();
-//                if (cce.getMessage().contains("org.dizitart.no2.store.compat.Compat$IndexType")) {
+//                if (cce.getMessage().contains("org.dizitart.no2.store.compat.v3.Compat$IndexType")) {
 //                    return null;
 //                }
 //            } else if (iae.getCause() != null && iae.getCause() instanceof StreamCorruptedException) {

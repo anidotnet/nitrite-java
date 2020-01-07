@@ -1,4 +1,4 @@
-package org.dizitart.no2.store.compat;
+package org.dizitart.no2.store.compat.v3;
 
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;

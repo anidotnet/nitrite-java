@@ -283,11 +283,19 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
+        stream.writeInt(size());
+        for (KeyValuePair<String, Object> keyValuePair : this) {
+            stream.writeObject(keyValuePair);
+        }
     }
 
+    @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
+        int size = stream.readInt();
+        for (int i = 0; i < size; i++) {
+            KeyValuePair<String, Object> keyValuePair = (KeyValuePair<String, Object>) stream.readObject();
+            super.put(keyValuePair.getKey(), keyValuePair.getValue());
+        }
     }
 
     private static class PairIterator implements Iterator<KeyValuePair<String, Object>> {

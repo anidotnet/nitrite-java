@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.NitriteIOException;
-import org.dizitart.no2.store.compat.MigrationUtil;
+import org.dizitart.no2.store.compat.v3.MigrationUtil;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 

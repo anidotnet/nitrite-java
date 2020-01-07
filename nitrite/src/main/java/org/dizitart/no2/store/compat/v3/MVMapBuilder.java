@@ -1,4 +1,4 @@
-package org.dizitart.no2.store.compat;
+package org.dizitart.no2.store.compat.v3;
 
 import org.h2.mvstore.MVMap;
 
