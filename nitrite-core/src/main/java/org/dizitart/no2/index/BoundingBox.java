@@ -1,11 +1,11 @@
 package org.dizitart.no2.index;
 
-import org.dizitart.no2.common.NitriteSerializable;
+import java.io.Serializable;
 
 /**
  * @author Anindya Chatterjee
  */
-public interface BoundingBox extends NitriteSerializable {
+public interface BoundingBox extends Serializable {
     float getMinX();
     float getMaxX();
     float getMinY();

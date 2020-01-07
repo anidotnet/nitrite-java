@@ -1,10 +1,9 @@
 package org.dizitart.no2.collection.meta;
 
-import org.dizitart.no2.common.NitriteSerializable;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0
  * @author Anindya Chatterjee
  */
-public class Attributes implements NitriteSerializable {
+public class Attributes implements Serializable {
     private static final long serialVersionUID = 1481284930L;
 
     public static final String CREATED_TIME = "createdTime";
@@ -49,14 +48,12 @@ public class Attributes implements NitriteSerializable {
         return attributes.get(key);
     }
 
-    @Override
-    public void writeObject(ObjectOutputStream stream) throws IOException {
+    private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.writeObject(attributes);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
         attributes = (Map<String, String>) stream.readObject();
     }
 }

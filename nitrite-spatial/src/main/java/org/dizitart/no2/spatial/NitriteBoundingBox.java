@@ -27,16 +27,14 @@ class NitriteBoundingBox implements BoundingBox {
         this.maxY = (float) env.getMaxY();
     }
 
-    @Override
-    public void writeObject(ObjectOutputStream stream) throws IOException {
+    private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.writeFloat(minX);
         stream.writeFloat(maxX);
         stream.writeFloat(minY);
         stream.writeFloat(maxY);
     }
 
-    @Override
-    public void readObject(ObjectInputStream stream) throws IOException {
+    private void readObject(ObjectInputStream stream) throws IOException {
         this.minX = stream.readFloat();
         this.maxX = stream.readFloat();
         this.minY = stream.readFloat();

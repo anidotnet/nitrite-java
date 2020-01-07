@@ -1,12 +1,12 @@
 package org.dizitart.no2.collection;
 
 import lombok.EqualsAndHashCode;
-import org.dizitart.no2.common.NitriteSerializable;
 import org.dizitart.no2.exceptions.InvalidIdException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.dizitart.no2.common.Constants.ID_PREFIX;
@@ -27,7 +27,7 @@ import static org.dizitart.no2.common.Constants.ID_SUFFIX;
  * @since 1.0
  */
 @EqualsAndHashCode
-public final class NitriteId implements Comparable<NitriteId>, NitriteSerializable {
+public final class NitriteId implements Comparable<NitriteId>, Serializable {
     private static final long serialVersionUID = 1477462375L;
     private static final AtomicLong counter = new AtomicLong(System.nanoTime());
 
@@ -91,13 +91,11 @@ public final class NitriteId implements Comparable<NitriteId>, NitriteSerializab
         return null;
     }
 
-    @Override
-    public void writeObject(ObjectOutputStream stream) throws IOException {
+    private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.writeLong(idValue);
     }
 
-    @Override
-    public void readObject(ObjectInputStream stream) throws IOException {
+    private void readObject(ObjectInputStream stream) throws IOException {
         idValue = stream.readLong();
     }
 }
