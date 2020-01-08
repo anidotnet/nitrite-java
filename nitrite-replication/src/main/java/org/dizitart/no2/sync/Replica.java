@@ -1,38 +1,52 @@
 package org.dizitart.no2.sync;
 
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
-
-import java.util.AbstractSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.sync.crdt.LastWriteWinMap;
+import org.dizitart.no2.sync.crdt.LastWriteWinRegister;
 
 /**
  * @author Anindya Chatterjee
  */
-public class Replica<E> extends AbstractSet<E> implements CollectionEventListener {
-    private String replicaId;
-    private final Set<Element<E>> additions = new HashSet<>();
-    private final Set<Element<E>> updates = new HashSet<>();
-    private final Set<Element<E>> tombstone = new HashSet<>();
+public class Replica implements CollectionEventListener, EventListener {
+    private LastWriteWinMap<NitriteId, Document> crdt;
+    private NitriteCollection collection;
 
-    public Replica(String replicaId) {
-        this.replicaId = replicaId;
+    public static ReplicaBuilder builder() {
+        return new ReplicaBuilder();
+    }
+
+    Replica(NitriteCollection collection,
+            NitriteMap<NitriteId, LastWriteWinRegister<Document>> nitriteMap) {
+        this.collection = collection;
+        this.crdt = new LastWriteWinMap<>(nitriteMap);
     }
 
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
-
+        Document document = (Document) eventInfo.getItem();
+        switch (eventInfo.getEventType()) {
+            case Insert:
+            case Update:
+                crdt.put(document.getId(), document, System.currentTimeMillis());
+                break;
+            case Remove:
+                crdt.remove(document.getId(), System.currentTimeMillis());
+                break;
+            case IndexStart:
+            case IndexEnd:
+                // nothing required
+                break;
+        }
     }
 
-    @Override
-    public Iterator<E> iterator() {
-        return null;
-    }
 
     @Override
-    public int size() {
-        return 0;
+    public void onEvent(ReplicationEvent event) {
+
     }
 }
