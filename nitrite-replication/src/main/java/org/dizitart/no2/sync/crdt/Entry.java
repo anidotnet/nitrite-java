@@ -15,21 +15,18 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Entry<Key, Value> implements Serializable {
-    private Key key;
+public class Entry<Value> implements Serializable {
     private Value value;
-    private Timestamp timestamp;
+    private long timestamp;
 
     private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.writeObject(key);
         stream.writeObject(value);
-        stream.writeObject(timestamp);
+        stream.writeLong(timestamp);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        key = (Key) stream.readObject();
         value = (Value) stream.readObject();
-        timestamp = (Timestamp) stream.readObject();
+        timestamp = stream.readLong();
     }
 }
