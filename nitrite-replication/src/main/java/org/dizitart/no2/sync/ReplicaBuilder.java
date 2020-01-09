@@ -1,15 +1,13 @@
 package org.dizitart.no2.sync;
 
-import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.repository.ObjectRepository;
-import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.store.NitriteStore;
-import org.dizitart.no2.sync.connection.*;
-import org.dizitart.no2.sync.crdt.LastWriteWinRegister;
+import org.dizitart.no2.sync.connection.AuthType;
+import org.dizitart.no2.sync.connection.ConnectionConfig;
+import org.dizitart.no2.sync.connection.TimeSpan;
+import org.dizitart.no2.sync.connection.WebSocketConfig;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +21,6 @@ public class ReplicaBuilder {
     private static final String REPLICA = "replica";
 
     private NitriteCollection collection;
-    private NitriteStore nitriteStore;
     private String replicationServer;
     private String jwtToken;
     private String basicToken;
@@ -46,11 +43,6 @@ public class ReplicaBuilder {
         return this;
     }
 
-    public ReplicaBuilder withStore(NitriteStore store) {
-        this.nitriteStore = store;
-        return this;
-    }
-
     public ReplicaBuilder auth(String authToken) {
         this.jwtToken = authToken;
         return this;
@@ -68,22 +60,12 @@ public class ReplicaBuilder {
 
     public Replica create() {
         if (collection != null) {
-            Attributes attributes = getAttributes();
-            String replicaName = getReplicaName(attributes);
-            saveAttributes(attributes);
+            Replica replica = new Replica(collection);
+            this.collection.subscribe(replica);
 
-            if (nitriteStore != null) {
-                NitriteMap<NitriteId, LastWriteWinRegister<Document>> replicaMap
-                    = nitriteStore.openMap(replicaName);
-                Replica replica = new Replica(collection, replicaMap);
-                this.collection.subscribe(replica);
-
-                ConnectionConfig connectionConfig = createConfig();
-                replica.connectionConfig(connectionConfig);
-                return replica;
-            } else {
-                throw new ReplicationException("no store has been configured");
-            }
+            ConnectionConfig connectionConfig = createConfig();
+            replica.connectionConfig(connectionConfig);
+            return replica;
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication");
         }

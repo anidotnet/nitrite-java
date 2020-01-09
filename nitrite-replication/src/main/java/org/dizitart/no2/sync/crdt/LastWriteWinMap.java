@@ -1,6 +1,9 @@
 package org.dizitart.no2.sync.crdt;
 
 import lombok.Data;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.Mutable;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.event.EventBus;
@@ -18,7 +21,7 @@ import java.util.concurrent.ExecutorService;
  * @author Anindya Chatterjee.
  */
 @Data
-public class LastWriteWinMap<Key, Value> {
+public class LastWriteWinMap<Key extends NitriteId, Value extends Document> {
     private NitriteMap<Key, LastWriteWinRegister<Value>> states;
     private EventBus<ReplicationEvent, EventListener> eventBus;
 

@@ -1,6 +1,7 @@
 package org.dizitart.no2.sync.crdt;
 
 import lombok.Data;
+import org.dizitart.no2.collection.Document;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,15 +12,15 @@ import java.io.Serializable;
  * @author Anindya Chatterjee
  */
 @Data
-public class LastWriteWinRegister<T> implements Serializable {
-    private Entry<T> state;
+public class LastWriteWinRegister<T extends Document> implements Serializable {
+    private T state;
 
-    public LastWriteWinRegister(T value, long timestamp) {
-        this.state = new Entry<>(value, timestamp);
+    public LastWriteWinRegister(T value) {
+        this.state = value;
     }
 
     public T get() {
-        return state.getValue();
+        return state;
     }
 
     public void set(T value, long timestamp) {
@@ -35,7 +36,7 @@ public class LastWriteWinRegister<T> implements Serializable {
     }
 
     private boolean applicable(long timestamp) {
-        return this.state.getTimestamp() <= timestamp;
+        return this.state.getLastModifiedSinceEpoch() <= timestamp;
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {

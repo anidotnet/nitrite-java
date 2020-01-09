@@ -5,12 +5,10 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
-import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.sync.connection.Connection;
 import org.dizitart.no2.sync.connection.ConnectionConfig;
 import org.dizitart.no2.sync.connection.ConnectionPool;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
-import org.dizitart.no2.sync.crdt.LastWriteWinRegister;
 import org.dizitart.no2.sync.event.EventListener;
 import org.dizitart.no2.sync.event.ReplicationEvent;
 
@@ -26,10 +24,9 @@ public class Replica implements CollectionEventListener, EventListener {
         return new ReplicaBuilder();
     }
 
-    Replica(NitriteCollection collection,
-            NitriteMap<NitriteId, LastWriteWinRegister<Document>> nitriteMap) {
+    Replica(NitriteCollection collection) {
         this.collection = collection;
-        this.crdt = new LastWriteWinMap<>(nitriteMap);
+        this.crdt = new LastWriteWinMap<>(collection);
     }
 
     @Override
