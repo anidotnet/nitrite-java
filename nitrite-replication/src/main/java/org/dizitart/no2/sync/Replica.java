@@ -6,13 +6,19 @@ import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.sync.connection.Connection;
+import org.dizitart.no2.sync.connection.ConnectionConfig;
+import org.dizitart.no2.sync.connection.ConnectionPool;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinRegister;
+import org.dizitart.no2.sync.event.EventListener;
+import org.dizitart.no2.sync.event.ReplicationEvent;
 
 /**
  * @author Anindya Chatterjee
  */
 public class Replica implements CollectionEventListener, EventListener {
+    private ConnectionConfig connectionConfig;
     private LastWriteWinMap<NitriteId, Document> crdt;
     private NitriteCollection collection;
 
@@ -32,10 +38,10 @@ public class Replica implements CollectionEventListener, EventListener {
         switch (eventInfo.getEventType()) {
             case Insert:
             case Update:
-                crdt.put(document.getId(), document, System.currentTimeMillis());
+                crdt.put(document.getId(), document, System.currentTimeMillis(), false);
                 break;
             case Remove:
-                crdt.remove(document.getId(), System.currentTimeMillis());
+                crdt.remove(document.getId(), System.currentTimeMillis(), false);
                 break;
             case IndexStart:
             case IndexEnd:
@@ -48,5 +54,13 @@ public class Replica implements CollectionEventListener, EventListener {
     @Override
     public void onEvent(ReplicationEvent event) {
 
+    }
+
+    public void connect() {
+        Connection connection = ConnectionPool.create().getConnection(connectionConfig);
+    }
+
+    void connectionConfig(ConnectionConfig config) {
+        this.connectionConfig = config;
     }
 }

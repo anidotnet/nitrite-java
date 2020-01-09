@@ -31,7 +31,6 @@ public class CollectionOperations {
     private EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private Lock readLock;
     private Lock writeLock;
-    private Attributes attributes;
 
     public CollectionOperations(String collectionName,
                                 NitriteMap<NitriteId, Document> nitriteMap,

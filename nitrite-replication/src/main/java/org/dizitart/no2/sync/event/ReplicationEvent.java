@@ -1,4 +1,4 @@
-package org.dizitart.no2.sync;
+package org.dizitart.no2.sync.event;
 
 import lombok.Data;
 import org.dizitart.no2.sync.crdt.LastWriteWinRegister;

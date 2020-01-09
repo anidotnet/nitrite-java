@@ -2,10 +2,17 @@ package org.dizitart.no2.sync.crdt;
 
 import lombok.Data;
 import org.dizitart.no2.common.KeyValuePair;
+import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+import org.dizitart.no2.common.event.EventBus;
+import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.sync.event.EventListener;
+import org.dizitart.no2.sync.event.EventType;
+import org.dizitart.no2.sync.event.ReplicationEvent;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author Anindya Chatterjee.
@@ -13,27 +20,38 @@ import java.util.Map;
 @Data
 public class LastWriteWinMap<Key, Value> {
     private NitriteMap<Key, LastWriteWinRegister<Value>> states;
+    private EventBus<ReplicationEvent, EventListener> eventBus;
 
     public LastWriteWinMap(NitriteMap<Key, LastWriteWinRegister<Value>> states) {
         this.states = states;
+        this.eventBus = new ReplicationEventBus();
     }
 
-    public void put(Key key, Value value, long timestamp) {
+    public void put(Key key, Value value, long timestamp, boolean remote) {
         LastWriteWinRegister<Value> entry = this.states.get(key);
         LastWriteWinRegister<Value> nEntry = new LastWriteWinRegister<>(value, timestamp);
 
         if (entry == null) {
             this.states.put(key, nEntry);
+            if (remote) {
+                alert(EventType.Addition, nEntry);
+            }
         } else {
             entry.merge(nEntry.getState());
             this.states.put(key, entry);
+            if (remote) {
+                alert(EventType.Update, entry);
+            }
         }
     }
 
-    public void remove(Key key, long timestamp) {
+    public void remove(Key key, long timestamp, boolean remote) {
         LastWriteWinRegister<Value> entry = this.states.get(key);
         if (entry != null) {
             entry.set(null, timestamp);
+            if (remote) {
+                alert(EventType.Remove, entry);
+            }
         }
     }
 
@@ -87,6 +105,35 @@ public class LastWriteWinMap<Key, Value> {
             } else {
                 tmp.merge(entry.getValue().getState());
             }
+        }
+    }
+
+    public void subscribe(EventListener eventListener) {
+        eventBus.register(eventListener);
+    }
+
+    public void unsubscribe(EventListener eventListener) {
+        eventBus.deregister(eventListener);
+    }
+
+    private void alert(EventType eventType, LastWriteWinRegister<Value> entry) {
+        ReplicationEvent event = new ReplicationEvent();
+        event.setEventType(eventType);
+        event.setEventInfo(entry);
+        eventBus.post(event);
+    }
+
+    private static class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, EventListener> {
+        @Override
+        public void post(ReplicationEvent eventInfo) {
+            for (final EventListener listener : getListeners()) {
+                getEventExecutor().submit(() -> listener.onEvent(eventInfo));
+            }
+        }
+
+        @Override
+        protected ExecutorService getEventExecutor() {
+            return ExecutorServiceManager.syncExecutor();
         }
     }
 }
