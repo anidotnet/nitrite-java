@@ -1,24 +1,19 @@
 package org.dizitart.no2.sync.crdt;
 
 import lombok.Data;
-import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
-import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
-import org.dizitart.no2.common.event.EventBus;
-import org.dizitart.no2.common.event.NitriteEventBus;
-import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.sync.event.EventListener;
 import org.dizitart.no2.sync.event.EventType;
 import org.dizitart.no2.sync.event.ReplicationEvent;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
+import static org.dizitart.no2.common.Constants.DOC_SOURCE;
+import static org.dizitart.no2.common.Constants.REPLICATOR;
 import static org.dizitart.no2.filters.Filter.byId;
 
 /**
@@ -29,9 +24,9 @@ public class LastWriteWinMap {
     private NitriteCollection collection;
     private NitriteMap<NitriteId, Long> tombstones;
 
-    public LastWriteWinMap(NitriteCollection collection, NitriteConfig config) {
+    public LastWriteWinMap(NitriteCollection collection, NitriteMap<NitriteId, Long> tombstones) {
         this.collection = collection;
-        this.tombstones = createTombstones(collection, config);
+        this.tombstones = tombstones;
     }
 
     public void put(Document value) {
@@ -44,9 +39,11 @@ public class LastWriteWinMap {
                 Long docModifiedTime = value.getLastModifiedSinceEpoch();
 
                 if (docModifiedTime >= tombstoneTime) {
+                    value.put(DOC_SOURCE, REPLICATOR);
                     collection.insert(value);
                 }
             } else {
+                value.put(DOC_SOURCE, REPLICATOR);
                 collection.insert(value);
             }
         } else {
@@ -54,7 +51,10 @@ public class LastWriteWinMap {
             Long newTime = value.getLastModifiedSinceEpoch();
 
             if (newTime > oldTime) {
+                entry.put(DOC_SOURCE, REPLICATOR);
                 collection.remove(byId(key));
+
+                value.put(DOC_SOURCE, REPLICATOR);
                 collection.insert(value);
             }
         }
@@ -63,13 +63,10 @@ public class LastWriteWinMap {
     public void remove(NitriteId key, long timestamp) {
         Document entry = collection.getById(key);
         if (entry != null) {
+            entry.put(DOC_SOURCE, REPLICATOR);
             collection.remove(byId(key));
             tombstones.put(key, timestamp);
         }
-    }
-
-    public Document get(NitriteId key) {
-        return collection.getById(key);
     }
 
 
@@ -92,39 +89,6 @@ public class LastWriteWinMap {
             } else {
                 tmp.merge(entry.getValue().getState());
             }
-        }
-    }
-
-    public void subscribe(EventListener eventListener) {
-        eventBus.register(eventListener);
-    }
-
-    public void unsubscribe(EventListener eventListener) {
-        eventBus.deregister(eventListener);
-    }
-
-    private void alert(EventType eventType, LastWriteWinRegister<Value> entry) {
-        ReplicationEvent event = new ReplicationEvent();
-        event.setEventType(eventType);
-        event.setEventInfo(entry);
-        eventBus.post(event);
-    }
-
-    private NitriteMap<NitriteId, Long> createTombstones(NitriteCollection collection, NitriteConfig config) {
-        return null;
-    }
-
-    private static class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, EventListener> {
-        @Override
-        public void post(ReplicationEvent eventInfo) {
-            for (final EventListener listener : getListeners()) {
-                getEventExecutor().submit(() -> listener.onEvent(eventInfo));
-            }
-        }
-
-        @Override
-        protected ExecutorService getEventExecutor() {
-            return ExecutorServiceManager.syncExecutor();
         }
     }
 }
