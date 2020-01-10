@@ -2,19 +2,17 @@ package org.dizitart.no2.sync.crdt;
 
 import lombok.Data;
 import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.sync.event.EventListener;
-import org.dizitart.no2.sync.event.EventType;
-import org.dizitart.no2.sync.event.ReplicationEvent;
 
 import java.util.Map;
 
-import static org.dizitart.no2.common.Constants.DOC_SOURCE;
-import static org.dizitart.no2.common.Constants.REPLICATOR;
+import static org.dizitart.no2.common.Constants.*;
 import static org.dizitart.no2.filters.Filter.byId;
+import static org.dizitart.no2.filters.FluentFilter.when;
 
 /**
  * @author Anindya Chatterjee.
@@ -29,7 +27,37 @@ public class LastWriteWinMap {
         this.tombstones = tombstones;
     }
 
-    public void put(Document value) {
+    public void merge(LastWriteWinState snapshot) {
+        if (snapshot.getChanges() != null) {
+            for (Document entry : snapshot.getChanges()) {
+                put(entry);
+            }
+        }
+
+        if (snapshot.getTombstones() != null) {
+            for (Map.Entry<NitriteId, Long> entry : snapshot.getTombstones().entrySet()) {
+                remove(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    public LastWriteWinState getChanges(Long since) {
+        LastWriteWinState state = new LastWriteWinState();
+
+        DocumentCursor cursor = collection.find(when(DOC_MODIFIED).gte(since));
+        state.getChanges().addAll(cursor.toSet());
+
+        for (KeyValuePair<NitriteId, Long> entry : tombstones.entries()) {
+            Long timestamp = entry.getValue();
+            if (timestamp >= since) {
+                state.getTombstones().put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return state;
+    }
+
+    private void put(Document value) {
         NitriteId key = value.getId();
 
         Document entry = collection.getById(key);
@@ -60,35 +88,12 @@ public class LastWriteWinMap {
         }
     }
 
-    public void remove(NitriteId key, long timestamp) {
+    private void remove(NitriteId key, long timestamp) {
         Document entry = collection.getById(key);
         if (entry != null) {
             entry.put(DOC_SOURCE, REPLICATOR);
             collection.remove(byId(key));
             tombstones.put(key, timestamp);
-        }
-    }
-
-
-    public void merge(Map<Key, LastWriteWinRegister<Value>> states) {
-        for (Map.Entry<Key, LastWriteWinRegister<Value>> entry : states.entrySet()) {
-            LastWriteWinRegister<Value> tmp = this.states.get(entry.getKey());
-            if (tmp == null) {
-                this.states.put(entry.getKey(), entry.getValue());
-            } else {
-                tmp.merge(entry.getValue().getState());
-            }
-        }
-    }
-
-    public void merge(NitriteMap<Key, LastWriteWinRegister<Value>> states) {
-        for (KeyValuePair<Key, LastWriteWinRegister<Value>> entry : states.entries()) {
-            LastWriteWinRegister<Value> tmp = this.states.get(entry.getKey());
-            if (tmp == null) {
-                this.states.put(entry.getKey(), entry.getValue());
-            } else {
-                tmp.merge(entry.getValue().getState());
-            }
         }
     }
 }

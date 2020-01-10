@@ -5,6 +5,7 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
+import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.sync.connection.Connection;
 import org.dizitart.no2.sync.connection.ConnectionConfig;
 import org.dizitart.no2.sync.connection.ConnectionPool;
@@ -12,21 +13,21 @@ import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.event.EventListener;
 import org.dizitart.no2.sync.event.ReplicationEvent;
 
+import static org.dizitart.no2.common.Constants.REPLICATOR;
+
 /**
  * @author Anindya Chatterjee
  */
 public class Replica implements CollectionEventListener, EventListener {
     private ConnectionConfig connectionConfig;
-    private LastWriteWinMap<NitriteId, Document> crdt;
-    private NitriteCollection collection;
+    private LastWriteWinMap crdt;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
     }
 
-    Replica(NitriteCollection collection) {
-        this.collection = collection;
-        this.crdt = new LastWriteWinMap<>(collection);
+    Replica(NitriteCollection collection, NitriteMap<NitriteId, Long> tombstones) {
+        this.crdt = new LastWriteWinMap(collection, tombstones);
     }
 
     @Override
@@ -38,6 +39,9 @@ public class Replica implements CollectionEventListener, EventListener {
                 crdt.put(document.getId(), document, System.currentTimeMillis(), false);
                 break;
             case Remove:
+                if (!REPLICATOR.equalsIgnoreCase(document.getSource())) {
+
+                }
                 crdt.remove(document.getId(), System.currentTimeMillis(), false);
                 break;
             case IndexStart:
@@ -55,6 +59,8 @@ public class Replica implements CollectionEventListener, EventListener {
 
     public void connect() {
         Connection connection = ConnectionPool.create().getConnection(connectionConfig);
+        connection.open();
+
     }
 
     void connectionConfig(ConnectionConfig config) {

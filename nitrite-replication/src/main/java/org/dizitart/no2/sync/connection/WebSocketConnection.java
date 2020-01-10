@@ -24,7 +24,7 @@ public class WebSocketConnection implements Connection {
     }
 
     @Override
-    public WebSocketConnection create() {
+    public void open() {
         try {
             WebSocketFactory factory = new WebSocketFactory();
             int connectTimeout = getTimeoutInMillis(config.getConnectTimeout());
@@ -41,10 +41,21 @@ public class WebSocketConnection implements Connection {
                 case None:
                     break;
             }
-            return this;
         } catch (IOException ioe) {
             throw new ReplicationException("failed to open a websocket connection to " + config.getUrl(), ioe);
         }
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        webSocket.sendText(message);
+    }
+
+    @Override
+    public void close() throws Exception {
+        webSocket.flush();
+        webSocket.clearListeners();
+        webSocket.disconnect();
     }
 
     private int getTimeoutInMillis(TimeSpan connectTimeout) {

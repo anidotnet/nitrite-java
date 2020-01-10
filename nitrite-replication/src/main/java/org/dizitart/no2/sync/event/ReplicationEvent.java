@@ -1,7 +1,7 @@
 package org.dizitart.no2.sync.event;
 
 import lombok.Data;
-import org.dizitart.no2.sync.crdt.LastWriteWinRegister;
+import org.dizitart.no2.sync.crdt.LastWriteWinState;
 
 /**
  * @author Anindya Chatterjee.
@@ -9,5 +9,5 @@ import org.dizitart.no2.sync.crdt.LastWriteWinRegister;
 @Data
 public class ReplicationEvent {
     private EventType eventType;
-    private LastWriteWinRegister<?> eventInfo;
+    private LastWriteWinState<?> eventInfo;
 }
