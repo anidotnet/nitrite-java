@@ -5,6 +5,8 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.KeyValuePair;
 
+import static org.dizitart.no2.common.Constants.DOC_ID;
+
 /**
  * An interface to specify filtering criteria during find operation. When
  * a filter is applied to a collection, based on the criteria it returns
@@ -173,6 +175,10 @@ public interface Filter {
      * A filter to select all elements.
      */
     Filter ALL = null;
+
+    static Filter byId(NitriteId nitriteId) {
+        return new EqualsFilter(DOC_ID, nitriteId.getIdValue());
+    }
 
     /**
      * Filters a document map and returns the set of {@link NitriteId}s of

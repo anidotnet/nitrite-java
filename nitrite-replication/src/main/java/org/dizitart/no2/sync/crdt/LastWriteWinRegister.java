@@ -3,48 +3,47 @@ package org.dizitart.no2.sync.crdt;
 import lombok.Data;
 import org.dizitart.no2.collection.Document;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import static org.dizitart.no2.common.Constants.DOC_MODIFIED;
 
 /**
  * @author Anindya Chatterjee
  */
 @Data
-public class LastWriteWinRegister<T extends Document> implements Serializable {
-    private T state;
+public class LastWriteWinRegister {
+    private Document state;
 
-    public LastWriteWinRegister(T value) {
+    public LastWriteWinRegister(Document value) {
         this.state = value;
     }
 
-    public T get() {
+    public LastWriteWinRegister(Document value, long timestamp) {
+        this.state = value;
+        this.state.put(DOC_MODIFIED, timestamp);
+    }
+
+    public Document get() {
         return state;
     }
 
-    public void set(T value, long timestamp) {
+    public void tombstone(long timestamp) {
         if (applicable(timestamp)) {
-            this.state = new Entry<>(value, timestamp);
+
         }
     }
 
-    public void merge(Entry<T> state) {
-        if (applicable(state.getTimestamp())) {
+    public void merge(Document state) {
+        if (applicable(state.getLastModifiedSinceEpoch())) {
             this.state = state;
+        }
+    }
+
+    public void set(Document value, long timestamp) {
+        if (applicable(timestamp)) {
+            this.state = value.clone().put(DOC_MODIFIED, timestamp);
         }
     }
 
     private boolean applicable(long timestamp) {
         return this.state.getLastModifiedSinceEpoch() <= timestamp;
-    }
-
-    private void writeObject(ObjectOutputStream stream) throws IOException {
-        stream.writeObject(state);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        state = (Entry<T>) stream.readObject();
     }
 }
