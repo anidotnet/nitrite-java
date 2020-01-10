@@ -48,6 +48,7 @@ public class WebSocketConnection implements Connection {
 
     @Override
     public void sendMessage(String message) {
+        // TODO: send in fragmented mode
         webSocket.sendText(message);
     }
 
