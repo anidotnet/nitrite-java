@@ -10,6 +10,7 @@ import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.repository.ObjectRepository;
+import org.dizitart.no2.store.NitriteStore;
 
 import java.io.Closeable;
 import java.util.Collection;
@@ -218,4 +219,11 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * @return the size.
      */
     long size();
+
+    /**
+     * Returns the {@link NitriteStore} instance for this collection.
+     *
+     * @return the {@link NitriteStore} instance.
+     * */
+    NitriteStore getStore();
 }

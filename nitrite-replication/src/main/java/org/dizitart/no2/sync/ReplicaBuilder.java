@@ -1,7 +1,6 @@
 package org.dizitart.no2.sync;
 
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.sync.connection.AuthType;
@@ -11,20 +10,18 @@ import org.dizitart.no2.sync.connection.WebSocketConfig;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Anindya Chatterjee.
  */
 public class ReplicaBuilder {
-    private static final String REPLICA = "replica";
-
     private NitriteCollection collection;
     private String replicationServer;
     private String jwtToken;
     private String basicToken;
     private TimeSpan connectTimeout = new TimeSpan(5, TimeUnit.SECONDS);
+    private Integer changesPerMessage = 10;
 
     ReplicaBuilder() {
     }
@@ -58,13 +55,21 @@ public class ReplicaBuilder {
         return this;
     }
 
+    public ReplicaBuilder changesPerMessage(Integer size) {
+        this.changesPerMessage = size;
+        return this;
+    }
+
     public Replica create() {
         if (collection != null) {
-            Replica replica = new Replica(collection);
-            this.collection.subscribe(replica);
-
             ConnectionConfig connectionConfig = createConfig();
-            replica.connectionConfig(connectionConfig);
+            ReplicationConfig config = new ReplicationConfig();
+            config.setCollection(collection);
+            config.setChangesPerMessage(changesPerMessage);
+            config.setConnectionConfig(connectionConfig);
+
+            Replica replica = new Replica(config);
+            this.collection.subscribe(replica);
             return replica;
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication");
@@ -95,27 +100,6 @@ public class ReplicaBuilder {
         } else {
             throw new ReplicationException("replication server url is required");
         }
-    }
-
-    private String getReplicaName(Attributes attributes) {
-        String replica = attributes.get(REPLICA);
-        if (StringUtils.isNullOrEmpty(replica)) {
-            replica = UUID.randomUUID().toString();
-            attributes.set(REPLICA, replica);
-        }
-        return replica;
-    }
-
-    private Attributes getAttributes() {
-        Attributes attributes = collection.getAttributes();
-        if (attributes == null) {
-            attributes = new Attributes();
-        }
-        return attributes;
-    }
-
-    private void saveAttributes(Attributes attributes) {
-        collection.setAttributes(attributes);
     }
 
     private String toHex(String arg) {

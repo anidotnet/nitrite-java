@@ -218,6 +218,11 @@ class NitriteCollectionImpl implements NitriteCollection {
     }
 
     @Override
+    public NitriteStore getStore() {
+        return nitriteStore;
+    }
+
+    @Override
     public void subscribe(CollectionEventListener listener) {
         checkOpened();
         notNull(listener, "listener cannot be null");

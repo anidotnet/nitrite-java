@@ -11,6 +11,7 @@ import org.dizitart.no2.filters.NitriteFilter;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.mapper.NitriteMapper;
+import org.dizitart.no2.store.NitriteStore;
 
 import java.util.Collection;
 
@@ -149,6 +150,11 @@ class DefaultObjectRepository<T> implements ObjectRepository<T> {
     @Override
     public long size() {
         return collection.size();
+    }
+
+    @Override
+    public NitriteStore getStore() {
+        return collection.getStore();
     }
 
     @Override
