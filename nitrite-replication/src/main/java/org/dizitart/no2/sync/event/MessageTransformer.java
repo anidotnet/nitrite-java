@@ -2,6 +2,7 @@ package org.dizitart.no2.sync.event;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.message.*;
 
@@ -9,13 +10,8 @@ import org.dizitart.no2.sync.message.*;
  * @author Anindya Chatterjee
  */
 public class MessageTransformer {
-    private ObjectMapper objectMapper;
 
-    public MessageTransformer() {
-        this.objectMapper = new ObjectMapper();
-    }
-
-    public DataGateMessage transform(String message) {
+    public DataGateMessage transform(ObjectMapper objectMapper, String message) {
         try {
             if (isChangeResponse(message)) {
                 return objectMapper.readValue(message, ChangeResponse.class);

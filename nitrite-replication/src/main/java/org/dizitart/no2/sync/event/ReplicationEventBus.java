@@ -1,5 +1,6 @@
 package org.dizitart.no2.sync.event;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.common.util.StringUtils;
@@ -36,8 +37,8 @@ public class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, Repli
         return ExecutorServiceManager.syncExecutor();
     }
 
-    public void handleMessage(String message) {
-        DataGateMessage msg = messageTransformer.transform(message);
+    public void handleMessage(ObjectMapper objectMapper, String message) {
+        DataGateMessage msg = messageTransformer.transform(objectMapper, message);
         validateMessage(msg);
         ReplicationEvent event = new ReplicationEvent(msg);
         post(event);

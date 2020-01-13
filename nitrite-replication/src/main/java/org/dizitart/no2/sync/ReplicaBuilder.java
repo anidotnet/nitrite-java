@@ -1,5 +1,6 @@
 package org.dizitart.no2.sync;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.repository.ObjectRepository;
@@ -20,12 +21,17 @@ public class ReplicaBuilder {
     private String replicationServer;
     private String jwtToken;
     private String basicToken;
-    private TimeSpan connectTimeout = new TimeSpan(5, TimeUnit.SECONDS);
-    private TimeSpan debounce = new TimeSpan(1, TimeUnit.SECONDS);
-    private Integer chunkSize = 10;
+    private TimeSpan connectTimeout;
+    private TimeSpan debounce;
+    private Integer chunkSize;
     private String userName;
+    private ObjectMapper objectMapper;
 
     ReplicaBuilder() {
+        chunkSize = 10;
+        connectTimeout = new TimeSpan(5, TimeUnit.SECONDS);
+        debounce = new TimeSpan(1, TimeUnit.SECONDS);
+        objectMapper = new ObjectMapper();
     }
 
     public ReplicaBuilder of(NitriteCollection collection) {
@@ -69,6 +75,11 @@ public class ReplicaBuilder {
         return this;
     }
 
+    public ReplicaBuilder objectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        return this;
+    }
+
     public Replica create() {
         if (collection != null) {
             ConnectionConfig connectionConfig = createConfig();
@@ -78,6 +89,7 @@ public class ReplicaBuilder {
             config.setConnectionConfig(connectionConfig);
             config.setUserName(userName);
             config.setDebounce(getTimeoutInMillis(debounce));
+            config.setObjectMapper(objectMapper);
 
             return new Replica(config);
         } else {

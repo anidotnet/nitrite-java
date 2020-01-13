@@ -1,10 +1,12 @@
 package org.dizitart.no2.sync.connection;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.event.ReplicationEventBus;
 
@@ -24,9 +26,11 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
 
     private WebSocket webSocket;
     private WebSocketConfig config;
+    private ObjectMapper objectMapper;
 
-    public WebSocketConnection(WebSocketConfig config) {
-        this.config = config;
+    public WebSocketConnection(ReplicationConfig replicationConfig) {
+        this.config = (WebSocketConfig) replicationConfig.getConnectionConfig();
+        this.objectMapper = replicationConfig.getObjectMapper();
     }
 
     @Override
@@ -70,8 +74,6 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
 
     @Override
     public void onTextMessage(WebSocket websocket, String text) {
-        eventBus.handleMessage(text);
+        eventBus.handleMessage(objectMapper, text);
     }
-
-
 }

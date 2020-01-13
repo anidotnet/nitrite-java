@@ -12,59 +12,87 @@ import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.store.NitriteStore;
-import org.dizitart.no2.sync.connection.Connection;
+import org.dizitart.no2.sync.connection.ConnectionAware;
+import org.dizitart.no2.sync.connection.ConnectionConfig;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
-import org.dizitart.no2.sync.event.ReplicationEvent;
 import org.dizitart.no2.sync.message.*;
 
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import static org.dizitart.no2.collection.meta.Attributes.LAST_SYNCED;
 
 /**
- * @author Anindya Chatterjee
+ * @author Anindya Chatterjee.
  */
 @Slf4j
-public class ReplicationOperation {
+public class LocalOperation implements ConnectionAware {
     private static final String TOMBSTONE = "tombstone";
 
-    private ReplicationConfig replicationConfig;
+    private ReplicationConfig config;
     private NitriteCollection collection;
-    private LastWriteWinMap crdt;
     private ObjectMapper objectMapper;
     private ExecutorService executorService;
+    private LastWriteWinMap crdt;
 
-    public ReplicationOperation(ReplicationConfig replicationConfig) {
-        this.replicationConfig = replicationConfig;
-        this.collection = replicationConfig.getCollection();
+    public LocalOperation(ReplicationConfig config) {
+        this.config = config;
+        this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = config.getObjectMapper();
         this.executorService = ExecutorServiceManager.syncExecutor();
     }
 
-    public void handleCollectionEvent(Connection connection, CollectionEventInfo<?> eventInfo) {
-        Document document = (Document) eventInfo.getItem();
+    @Override
+    public ConnectionConfig getConnectionConfig() {
+        return config.getConnectionConfig();
+    }
+
+    public void handleCollectionEvent(CollectionEventInfo<?> eventInfo) {
+        LastWriteWinState state = new LastWriteWinState();
+        Document document;
         switch (eventInfo.getEventType()) {
             case Insert:
-                break;
             case Update:
+                document = (Document) eventInfo.getItem();
+                state.setChanges(Collections.singleton(document));
                 break;
             case Remove:
+                document = (Document) eventInfo.getItem();
+                NitriteId nitriteId = document.getId();
+                Long deleteTime = document.getLastModifiedSinceEpoch();
+                state.setTombstones(Collections.singletonMap(nitriteId, deleteTime));
                 break;
             case IndexStart:
-                break;
             case IndexEnd:
                 break;
         }
+
+        String message = createFeedMessage(state);
+        getConnection().sendMessage(message);
+        saveLastSyncTime();
     }
 
-    public void handleReplicationEvent(ReplicationEvent event) {
-
+    private void saveLastSyncTime() {
+        Attributes attributes = getAttributes();
+        attributes.set(LAST_SYNCED, Long.toString(System.currentTimeMillis()));
+        saveAttributes(attributes);
     }
 
-    public void sendLocalChanges(Connection connection) {
+    private String createFeedMessage(LastWriteWinState state) {
+        try {
+            DataGateFeed feed = new DataGateFeed();
+            feed.setMessageInfo(createMessageInfo(MessageType.Feed));
+            feed.setState(state);
+            return objectMapper.writeValueAsString(feed);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create DataGateFeed message", e);
+        }
+    }
+
+    public void sendLocalChanges() {
         try {
             Long lastSyncTime = getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
@@ -74,34 +102,53 @@ public class ReplicationOperation {
                 boolean hasMore = true;
 
                 String initMessage = createChangeStart(uuid);
-                connection.sendMessage(initMessage);
+                getConnection().sendMessage(initMessage);
 
                 while (hasMore) {
-                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, replicationConfig.getChunkSize());
+                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
                     if (state.getChanges().size() == 0) {
                         hasMore = false;
                     }
 
                     if (hasMore) {
                         String message = createChangeContinue(uuid, state);
-                        connection.sendMessage(message);
+                        getConnection().sendMessage(message);
 
                         try {
-                            Thread.sleep(replicationConfig.getDebounce());
+                            Thread.sleep(config.getDebounce());
                         } catch (InterruptedException e) {
                             log.error("thread interrupted", e);
                         }
 
-                        start = start + replicationConfig.getChunkSize();
+                        start = start + config.getChunkSize();
                     }
                 }
 
                 String endMessage = createChangeEnd(uuid);
-                connection.sendMessage(endMessage);
+                getConnection().sendMessage(endMessage);
             });
         } catch (Exception e) {
             throw new ReplicationException("failed to send local changes message", e);
         }
+    }
+
+    private LastWriteWinMap createReplicatedDataType() {
+        Attributes attributes = getAttributes();
+        String tombstoneName = getTombstoneName(attributes);
+        saveAttributes(attributes);
+
+        NitriteStore store = collection.getStore();
+        NitriteMap<NitriteId, Long> tombstone = store.openMap(tombstoneName);
+        return new LastWriteWinMap(collection, tombstone);
+    }
+
+    private String getTombstoneName(Attributes attributes) {
+        String replica = attributes.get(TOMBSTONE);
+        if (StringUtils.isNullOrEmpty(replica)) {
+            replica = UUID.randomUUID().toString();
+            attributes.set(TOMBSTONE, replica);
+        }
+        return replica;
     }
 
     private String createChangeStart(String uuid) {
@@ -138,47 +185,14 @@ public class ReplicationOperation {
         }
     }
 
-
     private MessageInfo createMessageInfo(MessageType messageType) {
         MessageInfo messageInfo = new MessageInfo();
         messageInfo.setCollection(collection.getName());
         messageInfo.setMessageType(messageType);
-        messageInfo.setServer(replicationConfig.getConnectionConfig().getUrl());
+        messageInfo.setServer(config.getConnectionConfig().getUrl());
         messageInfo.setTimestamp(System.currentTimeMillis());
-        messageInfo.setUserName(replicationConfig.getUserName());
+        messageInfo.setUserName(config.getUserName());
         return messageInfo;
-    }
-
-    private LastWriteWinMap createReplicatedDataType() {
-        Attributes attributes = getAttributes();
-        String tombstoneName = getTombstoneName(attributes);
-        saveAttributes(attributes);
-
-        NitriteStore store = collection.getStore();
-        NitriteMap<NitriteId, Long> tombstone = store.openMap(tombstoneName);
-        return new LastWriteWinMap(collection, tombstone);
-    }
-
-    private String getTombstoneName(Attributes attributes) {
-        String replica = attributes.get(TOMBSTONE);
-        if (StringUtils.isNullOrEmpty(replica)) {
-            replica = UUID.randomUUID().toString();
-            attributes.set(TOMBSTONE, replica);
-        }
-        return replica;
-    }
-
-    private Attributes getAttributes() {
-        Attributes attributes = collection.getAttributes();
-        if (attributes == null) {
-            attributes = new Attributes();
-            saveAttributes(attributes);
-        }
-        return attributes;
-    }
-
-    private void saveAttributes(Attributes attributes) {
-        collection.setAttributes(attributes);
     }
 
     private Long getLastSyncTime() {
@@ -193,5 +207,18 @@ public class ReplicationOperation {
                 throw new ReplicationException("failed to retrieve last sync time for " + collection.getName(), nfe);
             }
         }
+    }
+
+    private Attributes getAttributes() {
+        Attributes attributes = collection.getAttributes();
+        if (attributes == null) {
+            attributes = new Attributes();
+            saveAttributes(attributes);
+        }
+        return attributes;
+    }
+
+    private void saveAttributes(Attributes attributes) {
+        collection.setAttributes(attributes);
     }
 }

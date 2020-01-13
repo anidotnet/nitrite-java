@@ -40,6 +40,7 @@ public class Attributes implements Serializable {
     }
 
     public Attributes set(String key, String value) {
+        attributes.put(LAST_MODIFIED_TIME, Long.toString(System.currentTimeMillis()));
         attributes.put(key, value);
         return this;
     }

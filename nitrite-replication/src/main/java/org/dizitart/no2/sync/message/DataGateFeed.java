@@ -9,5 +9,5 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
 @Data
 public class DataGateFeed implements DataGateMessage {
     private MessageInfo messageInfo;
-    private LastWriteWinState snapshot;
+    private LastWriteWinState state;
 }

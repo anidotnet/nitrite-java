@@ -1,6 +1,7 @@
 package org.dizitart.no2.sync.connection;
 
 import com.neovisionaries.ws.client.WebSocket;
+import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 
 import java.util.Map;
@@ -21,16 +22,20 @@ public class ConnectionPool {
         return instance;
     }
 
-    public Connection getConnection(ConnectionConfig connectionConfig) {
+    public Connection getConnection(ReplicationConfig config) {
+        ConnectionConfig connectionConfig = config.getConnectionConfig();
+
         if (connectionConfig instanceof WebSocketConfig) {
-            WebSocketConfig webSocketConfig = (WebSocketConfig) connectionConfig;
-            return openWebsocketConnection(webSocketConfig);
+            return openWebsocketConnection(config);
         }
 
-        throw new ReplicationException("failed to open a connection to remote server, wrong connection details provided");
+        throw new ReplicationException("failed to get a connection to remote server, wrong connection details provided");
     }
 
-    private WebSocketConnection openWebsocketConnection(WebSocketConfig webSocketConfig) {
+    private WebSocketConnection openWebsocketConnection(ReplicationConfig config) {
+        ConnectionConfig connectionConfig = config.getConnectionConfig();
+        WebSocketConfig webSocketConfig = (WebSocketConfig) connectionConfig;
+
         if (pool.containsKey(webSocketConfig.getUrl())) {
             WebSocketConnection webSocketConnection = (WebSocketConnection) pool.get(webSocketConfig.getUrl());
             WebSocket webSocket = webSocketConnection.getWebSocket();
@@ -38,13 +43,15 @@ public class ConnectionPool {
                 return webSocketConnection;
             } else {
                 pool.remove(webSocketConfig.getUrl());
-                WebSocketConnection newConnection = new WebSocketConnection(webSocketConfig);
+                WebSocketConnection newConnection = new WebSocketConnection(config);
                 pool.put(webSocketConfig.getUrl(), newConnection);
+                newConnection.open();
                 return newConnection;
             }
         } else {
-            WebSocketConnection newConnection = new WebSocketConnection(webSocketConfig);
+            WebSocketConnection newConnection = new WebSocketConnection(config);
             pool.put(webSocketConfig.getUrl(), newConnection);
+            newConnection.open();
             return newConnection;
         }
     }
