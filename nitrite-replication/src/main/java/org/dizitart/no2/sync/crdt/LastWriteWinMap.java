@@ -41,16 +41,19 @@ public class LastWriteWinMap {
         }
     }
 
-    public LastWriteWinState getChanges(Long since) {
+    public LastWriteWinState getChangesSince(Long since, int offset, int size) {
         LastWriteWinState state = new LastWriteWinState();
 
-        DocumentCursor cursor = collection.find(when(DOC_MODIFIED).gte(since));
+        DocumentCursor cursor = collection.find(when(DOC_MODIFIED).gte(since)).limit(offset, size);
         state.getChanges().addAll(cursor.toSet());
 
-        for (KeyValuePair<NitriteId, Long> entry : tombstones.entries()) {
-            Long timestamp = entry.getValue();
-            if (timestamp >= since) {
-                state.getTombstones().put(entry.getKey(), entry.getValue());
+        if (offset == 0) {
+            // don't repeat for other offsets
+            for (KeyValuePair<NitriteId, Long> entry : tombstones.entries()) {
+                Long timestamp = entry.getValue();
+                if (timestamp >= since) {
+                    state.getTombstones().put(entry.getKey(), entry.getValue());
+                }
             }
         }
 

@@ -8,6 +8,5 @@ import lombok.Data;
 @Data
 public class LocalChangeStart implements DataGateMessage {
     private MessageInfo messageInfo;
-    private Integer size;
     private String uuid;
 }

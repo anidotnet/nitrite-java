@@ -18,7 +18,6 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.event.ReplicationEvent;
 import org.dizitart.no2.sync.message.*;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -66,44 +65,49 @@ public class ReplicationOperation {
     }
 
     public void sendLocalChanges(Connection connection) {
-        List<LastWriteWinState> changes = getLocalChanges();
-
-        executorService.submit(() -> {
-            String uuid = UUID.randomUUID().toString();
-            String initMessage = createChangeStart(uuid, changes.size());
-            connection.sendMessage(initMessage);
-
-            for (LastWriteWinState change : changes) {
-                String message = createChangeContinue(uuid, change);
-                connection.sendMessage(message);
-
-                try {
-                    Thread.sleep(replicationConfig.getDebounce());
-                } catch (InterruptedException e) {
-                    log.error("thread interrupted", e);
-                }
-            }
-
-            String endMessage = createChangeEnd(uuid);
-            connection.sendMessage(endMessage);
-        });
-    }
-
-    public List<LastWriteWinState> getLocalChanges() {
         try {
             Long lastSyncTime = getLastSyncTime();
-            LastWriteWinState changes = crdt.getChanges(lastSyncTime);
-            return changes.split(replicationConfig.getChunkSize());
+            String uuid = UUID.randomUUID().toString();
+
+            executorService.submit(() -> {
+                int start = 0;
+                boolean hasMore = true;
+
+                String initMessage = createChangeStart(uuid);
+                connection.sendMessage(initMessage);
+
+                while (hasMore) {
+                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, replicationConfig.getChunkSize());
+                    if (state.getChanges().size() == 0) {
+                        hasMore = false;
+                    }
+
+                    if (hasMore) {
+                        String message = createChangeContinue(uuid, state);
+                        connection.sendMessage(message);
+
+                        try {
+                            Thread.sleep(replicationConfig.getDebounce());
+                        } catch (InterruptedException e) {
+                            log.error("thread interrupted", e);
+                        }
+
+                        start = start + replicationConfig.getChunkSize();
+                    }
+                }
+
+                String endMessage = createChangeEnd(uuid);
+                connection.sendMessage(endMessage);
+            });
         } catch (Exception e) {
-            throw new ReplicationException("failed to create local changes message", e);
+            throw new ReplicationException("failed to send local changes message", e);
         }
     }
 
-    private String createChangeStart(String uuid, Integer size) {
+    private String createChangeStart(String uuid) {
         try {
             LocalChangeStart message = new LocalChangeStart();
             message.setMessageInfo(createMessageInfo(MessageType.LocalChangeStart));
-            message.setSize(size);
             message.setUuid(uuid);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
@@ -134,13 +138,6 @@ public class ReplicationOperation {
         }
     }
 
-    private ReplicationStart createMessage(LastWriteWinState changes) {
-        MessageInfo messageInfo = createMessageInfo(MessageType.ReplicationStart);
-        ReplicationStart start = new ReplicationStart();
-        start.setMessageInfo(messageInfo);
-        start.setState(changes);
-        return start;
-    }
 
     private MessageInfo createMessageInfo(MessageType messageType) {
         MessageInfo messageInfo = new MessageInfo();

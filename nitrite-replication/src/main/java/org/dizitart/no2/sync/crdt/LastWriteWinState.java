@@ -18,28 +18,4 @@ public class LastWriteWinState {
         changes = new LinkedHashSet<>();
         tombstones = new LinkedHashMap<>();
     }
-
-    private LastWriteWinState(Set<Document> changes) {
-        this.changes = changes;
-    }
-
-    public List<LastWriteWinState> split(int chunkSize) {
-        List<LastWriteWinState> list = new ArrayList<>();
-        LastWriteWinState currSet = new LastWriteWinState(new HashSet<>());
-        for (Document change : changes) {
-            if (currSet.changes.size() == chunkSize) {
-                list.add(currSet);
-                currSet = new LastWriteWinState(new HashSet<>());
-            }
-            currSet.changes.add(change);
-        }
-        list.add(currSet);
-
-        // add tombstones to the first element
-        if (list.size() > 0) {
-            list.get(0).tombstones = tombstones;
-        }
-
-        return list;
-    }
 }
