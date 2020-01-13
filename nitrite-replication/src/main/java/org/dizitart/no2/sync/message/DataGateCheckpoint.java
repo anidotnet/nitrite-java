@@ -7,6 +7,6 @@ import lombok.Data;
  */
 @Data
 public class DataGateCheckpoint implements DataGateMessage {
-    private MessageType messageType;
+    private MessageInfo messageInfo;
     private Long timestamp;
 }

@@ -10,5 +10,5 @@ public class WebSocketConfig implements ConnectionConfig {
     private String url;
     private String authToken;
     private AuthType authType;
-    private TimeSpan connectTimeout;
+    private Integer connectTimeout;
 }

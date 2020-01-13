@@ -11,5 +11,7 @@ import org.dizitart.no2.sync.connection.ConnectionConfig;
 public class ReplicationConfig {
     private NitriteCollection collection;
     private ConnectionConfig connectionConfig;
-    private Integer changesPerMessage;
+    private Integer chunkSize;
+    private String userName;
+    private Integer debounce;
 }

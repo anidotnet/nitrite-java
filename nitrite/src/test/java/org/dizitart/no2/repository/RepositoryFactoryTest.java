@@ -28,6 +28,7 @@ import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexOptions;
+import org.dizitart.no2.store.NitriteStore;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -166,6 +167,11 @@ public class RepositoryFactoryTest {
         @Override
         public long size() {
             return 0;
+        }
+
+        @Override
+        public NitriteStore getStore() {
+            return null;
         }
 
         @Override

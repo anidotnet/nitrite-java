@@ -21,7 +21,9 @@ public class ReplicaBuilder {
     private String jwtToken;
     private String basicToken;
     private TimeSpan connectTimeout = new TimeSpan(5, TimeUnit.SECONDS);
-    private Integer changesPerMessage = 10;
+    private TimeSpan debounce = new TimeSpan(1, TimeUnit.SECONDS);
+    private Integer chunkSize = 10;
+    private String userName;
 
     ReplicaBuilder() {
     }
@@ -40,13 +42,15 @@ public class ReplicaBuilder {
         return this;
     }
 
-    public ReplicaBuilder auth(String authToken) {
+    public ReplicaBuilder jwtAuth(String userName, String authToken) {
         this.jwtToken = authToken;
+        this.userName = userName;
         return this;
     }
 
-    public ReplicaBuilder auth(String userName, String password) {
+    public ReplicaBuilder basicAuth(String userName, String password) {
         this.basicToken = toHex(userName + ":" + password);
+        this.userName = userName;
         return this;
     }
 
@@ -55,8 +59,13 @@ public class ReplicaBuilder {
         return this;
     }
 
-    public ReplicaBuilder changesPerMessage(Integer size) {
-        this.changesPerMessage = size;
+    public ReplicaBuilder chunkSize(Integer size) {
+        this.chunkSize = size;
+        return this;
+    }
+
+    public ReplicaBuilder debounce(TimeSpan timeSpan) {
+        this.debounce = timeSpan;
         return this;
     }
 
@@ -65,12 +74,12 @@ public class ReplicaBuilder {
             ConnectionConfig connectionConfig = createConfig();
             ReplicationConfig config = new ReplicationConfig();
             config.setCollection(collection);
-            config.setChangesPerMessage(changesPerMessage);
+            config.setChunkSize(chunkSize);
             config.setConnectionConfig(connectionConfig);
+            config.setUserName(userName);
+            config.setDebounce(getTimeoutInMillis(debounce));
 
-            Replica replica = new Replica(config);
-            this.collection.subscribe(replica);
-            return replica;
+            return new Replica(config);
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication");
         }
@@ -81,7 +90,7 @@ public class ReplicaBuilder {
             if (replicationServer.startsWith("ws")) {
                 WebSocketConfig webSocketConfig = new WebSocketConfig();
                 webSocketConfig.setUrl(replicationServer);
-                webSocketConfig.setConnectTimeout(connectTimeout);
+                webSocketConfig.setConnectTimeout(getTimeoutInMillis(connectTimeout));
 
                 if (!StringUtils.isNullOrEmpty(jwtToken)) {
                     webSocketConfig.setAuthType(AuthType.Jwt);
@@ -104,5 +113,9 @@ public class ReplicaBuilder {
 
     private String toHex(String arg) {
         return String.format("%040x", new BigInteger(1, arg.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private int getTimeoutInMillis(TimeSpan connectTimeout) {
+        return Math.toIntExact(connectTimeout.getTimeUnit().toMillis(connectTimeout.getTime()));
     }
 }

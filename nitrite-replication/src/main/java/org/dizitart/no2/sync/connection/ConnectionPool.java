@@ -17,7 +17,7 @@ public class ConnectionPool {
         pool = new ConcurrentHashMap<>();
     }
 
-    public static ConnectionPool create() {
+    public static ConnectionPool getInstance() {
         return instance;
     }
 

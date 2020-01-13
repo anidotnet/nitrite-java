@@ -4,15 +4,17 @@ import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.sync.connection.Connection;
 import org.dizitart.no2.sync.connection.ConnectionPool;
-import org.dizitart.no2.sync.crdt.LastWriteWinMap;
+import org.dizitart.no2.sync.event.ReplicationEvent;
+import org.dizitart.no2.sync.event.ReplicationEventBus;
+import org.dizitart.no2.sync.event.ReplicationEventListener;
 
 /**
  * @author Anindya Chatterjee
  */
-public class Replica implements CollectionEventListener {
+public class Replica implements CollectionEventListener, ReplicationEventListener {
     private ReplicationConfig replicationConfig;
-    private LastWriteWinMap crdt;
     private ReplicationOperation operation;
+    private Connection connection;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
@@ -23,14 +25,37 @@ public class Replica implements CollectionEventListener {
         this.operation = new ReplicationOperation(replicationConfig);
     }
 
-    @Override
-    public void onEvent(CollectionEventInfo<?> eventInfo) {
-        operation.handleCollectionEvent(eventInfo);
-    }
-
     public void connect() {
-        Connection connection = ConnectionPool.create().getConnection(replicationConfig.getConnectionConfig());
+        connection = ConnectionPool.getInstance().getConnection(replicationConfig.getConnectionConfig());
         connection.open();
 
+        operation.sendLocalChanges(connection);
+
+        replicationConfig.getCollection().subscribe(this);
+        ReplicationEventBus.getInstance().register(this);
+
+        connection.sendAndReceive();
+
+        //TODO: create LocalOperations & RemoteOperations and divide the tasks
+    }
+
+    public void disconnect() {
+        replicationConfig.getCollection().unsubscribe(this);
+        ReplicationEventBus.getInstance().deregister(this);
+    }
+
+    @Override
+    public String getName() {
+        return replicationConfig.getCollection().getName();
+    }
+
+    @Override
+    public void onEvent(CollectionEventInfo<?> eventInfo) {
+        operation.handleCollectionEvent(connection, eventInfo);
+    }
+
+    @Override
+    public void onEvent(ReplicationEvent event) {
+        operation.handleReplicationEvent(event);
     }
 }

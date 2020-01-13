@@ -1,9 +1,12 @@
 package org.dizitart.no2.sync.connection;
 
 import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.dizitart.no2.sync.ReplicationException;
+import org.dizitart.no2.sync.event.ReplicationEventBus;
 
 import java.io.IOException;
 
@@ -11,7 +14,10 @@ import java.io.IOException;
  * @author Anindya Chatterjee
  */
 @Data
-public class WebSocketConnection implements Connection {
+@EqualsAndHashCode(callSuper = true)
+class WebSocketConnection extends WebSocketAdapter implements Connection {
+    private static final ReplicationEventBus eventBus = ReplicationEventBus.getInstance();
+
     private static final String AUTHORIZATION = "Authorization";
     private static final String BASIC = "Basic ";
     private static final String BEARER = "Bearer ";
@@ -27,8 +33,7 @@ public class WebSocketConnection implements Connection {
     public void open() {
         try {
             WebSocketFactory factory = new WebSocketFactory();
-            int connectTimeout = getTimeoutInMillis(config.getConnectTimeout());
-            factory.setConnectionTimeout(connectTimeout);
+            factory.setConnectionTimeout(config.getConnectTimeout());
             webSocket = factory.createSocket(config.getUrl());
 
             switch (config.getAuthType()) {
@@ -47,19 +52,26 @@ public class WebSocketConnection implements Connection {
     }
 
     @Override
+    public void sendAndReceive() {
+        webSocket.addListener(this);
+    }
+
+    @Override
     public void sendMessage(String message) {
-        // TODO: send in fragmented mode
         webSocket.sendText(message);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         webSocket.flush();
         webSocket.clearListeners();
         webSocket.disconnect();
     }
 
-    private int getTimeoutInMillis(TimeSpan connectTimeout) {
-        return Math.toIntExact(connectTimeout.getTimeUnit().toMillis(connectTimeout.getTime()));
+    @Override
+    public void onTextMessage(WebSocket websocket, String text) {
+        eventBus.handleMessage(text);
     }
+
+
 }

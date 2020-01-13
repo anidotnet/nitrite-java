@@ -4,10 +4,10 @@ import lombok.Data;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 
 /**
- * @author Anindya Chatterjee.
+ * @author Anindya Chatterjee
  */
 @Data
-public class DataGateFeed implements DataGateMessage {
+public class ReplicationStart implements DataGateMessage {
     private MessageInfo messageInfo;
-    private LastWriteWinState snapshot;
+    private LastWriteWinState state;
 }
