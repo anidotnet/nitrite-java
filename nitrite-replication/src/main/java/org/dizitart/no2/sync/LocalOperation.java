@@ -63,6 +63,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
 
     public void sendConnect() {
         try {
+            getConnection().connect();
             Connect connect = new Connect();
             connect.setMessageInfo(createMessageInfo(MessageType.Connect));
             connect.setReplicaId(replicaId);

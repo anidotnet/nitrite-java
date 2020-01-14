@@ -3,14 +3,13 @@ package org.dizitart.no2.sync.connection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
+import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.event.ReplicationEventBus;
-
-import java.io.IOException;
 
 /**
  * @author Anindya Chatterjee
@@ -50,8 +49,19 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
                 case None:
                     break;
             }
-        } catch (IOException ioe) {
-            throw new ReplicationException("failed to open a websocket connection to " + config.getUrl(), ioe);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to open a websocket connection to " + config.getUrl(), e);
+        }
+    }
+
+    @Override
+    public void connect() {
+        try {
+            if (!webSocket.isOpen()) {
+                webSocket.connect();
+            }
+        } catch (WebSocketException e) {
+            throw new ReplicationException("failed to connect to " + config.getUrl(), e);
         }
     }
 
