@@ -1,5 +1,6 @@
 package org.dizitart.no2.sync;
 
+import lombok.Getter;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
@@ -24,6 +25,8 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;
     private Set<NitriteId> replicatedEntries;
+
+    @Getter
     private String replicaId;
 
     public static ReplicaBuilder builder() {

@@ -5,7 +5,7 @@ package org.dizitart.no2.sync.connection;
  */
 public interface ConnectionConfig {
     String getUrl();
-    TimeSpan getConnectTimeout();
+    Integer getConnectTimeout();
     AuthType getAuthType();
     String getAuthToken();
 }

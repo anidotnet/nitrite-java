@@ -23,7 +23,9 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
     implementation "com.neovisionaries:nv-websocket-client:$websocketVersion"
 
+    testImplementation project(path: ':nitrite', configuration: 'default')
     testImplementation "io.undertow:undertow-core:$undertowVersion"
+    testImplementation "junit:junit:$junitVersion"
 }
 
 test {
