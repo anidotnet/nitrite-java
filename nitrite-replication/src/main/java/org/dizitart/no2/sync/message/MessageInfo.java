@@ -12,4 +12,5 @@ public class MessageInfo {
     private Long timestamp;
     private MessageType messageType;
     private String server;
+    private String replicaId;
 }

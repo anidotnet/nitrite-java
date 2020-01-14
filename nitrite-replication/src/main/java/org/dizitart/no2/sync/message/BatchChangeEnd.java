@@ -6,7 +6,7 @@ import lombok.Data;
  * @author Anindya Chatterjee
  */
 @Data
-public class LocalChangeEnd implements DataGateMessage {
+public class BatchChangeEnd implements DataGateMessage {
     private MessageInfo messageInfo;
     private String uuid;
 }

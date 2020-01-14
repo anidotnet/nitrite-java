@@ -2,7 +2,6 @@ package org.dizitart.no2.sync.event;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.message.*;
 
@@ -13,12 +12,14 @@ public class MessageTransformer {
 
     public DataGateMessage transform(ObjectMapper objectMapper, String message) {
         try {
-            if (isChangeResponse(message)) {
-                return objectMapper.readValue(message, ChangeResponse.class);
+            if (isBatchChangeStart(message)) {
+                return objectMapper.readValue(message, BatchChangeStart.class);
+            } else if (isBatchChangeContinue(message)) {
+                return objectMapper.readValue(message, BatchChangeContinue.class);
+            } else if (isBatchChangeEnd(message)) {
+                return objectMapper.readValue(message, BatchChangeEnd.class);
             } else if (isFeed(message)) {
                 return objectMapper.readValue(message, DataGateFeed.class);
-            } else if (isCheckpoint(message)) {
-                return objectMapper.readValue(message, DataGateCheckpoint.class);
             }
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to transform message from server", e);
@@ -26,15 +27,19 @@ public class MessageTransformer {
         return null;
     }
 
-    private boolean isChangeResponse(String message) {
-        return message.contains(MessageType.ChangeResponse.code());
+    private boolean isBatchChangeStart(String message) {
+        return message.contains(MessageType.BatchChangeStart.code());
+    }
+
+    private boolean isBatchChangeContinue(String message) {
+        return message.contains(MessageType.BatchChangeContinue.code());
+    }
+
+    private boolean isBatchChangeEnd(String message) {
+        return message.contains(MessageType.BatchChangeEnd.code());
     }
 
     private boolean isFeed(String message) {
         return message.contains(MessageType.Feed.code());
-    }
-
-    private boolean isCheckpoint(String message) {
-        return message.contains(MessageType.Checkpoint.code());
     }
 }

@@ -6,14 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.events.CollectionEventInfo;
-import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
-import org.dizitart.no2.common.util.StringUtils;
-import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.store.NitriteStore;
 import org.dizitart.no2.sync.connection.ConnectionAware;
-import org.dizitart.no2.sync.connection.ConnectionConfig;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
@@ -22,22 +16,20 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import static org.dizitart.no2.collection.meta.Attributes.LAST_SYNCED;
-
 /**
  * @author Anindya Chatterjee.
  */
 @Slf4j
-public class LocalOperation implements ConnectionAware {
-    private static final String TOMBSTONE = "tombstone";
-
+class LocalOperation implements ConnectionAware, ReplicationOperation {
     private ReplicationConfig config;
     private NitriteCollection collection;
     private ObjectMapper objectMapper;
     private ExecutorService executorService;
     private LastWriteWinMap crdt;
+    private String replicaId;
 
-    public LocalOperation(ReplicationConfig config) {
+    public LocalOperation(String replicaId, ReplicationConfig config) {
+        this.replicaId = replicaId;
         this.config = config;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
@@ -46,49 +38,50 @@ public class LocalOperation implements ConnectionAware {
     }
 
     @Override
-    public ConnectionConfig getConnectionConfig() {
-        return config.getConnectionConfig();
+    public ReplicationConfig getConfig() {
+        return config;
     }
 
-    public void handleCollectionEvent(CollectionEventInfo<?> eventInfo) {
+    @Override
+    public NitriteCollection getCollection() {
+        return collection;
+    }
+
+    public void handleInsertEvent(Document document) {
         LastWriteWinState state = new LastWriteWinState();
-        Document document;
-        switch (eventInfo.getEventType()) {
-            case Insert:
-            case Update:
-                document = (Document) eventInfo.getItem();
-                state.setChanges(Collections.singleton(document));
-                break;
-            case Remove:
-                document = (Document) eventInfo.getItem();
-                NitriteId nitriteId = document.getId();
-                Long deleteTime = document.getLastModifiedSinceEpoch();
-                state.setTombstones(Collections.singletonMap(nitriteId, deleteTime));
-                break;
-            case IndexStart:
-            case IndexEnd:
-                break;
-        }
-
-        String message = createFeedMessage(state);
-        getConnection().sendMessage(message);
-        saveLastSyncTime();
+        state.setChanges(Collections.singleton(document));
+        sendChangeMessage(state);
     }
 
-    private void saveLastSyncTime() {
-        Attributes attributes = getAttributes();
-        attributes.set(LAST_SYNCED, Long.toString(System.currentTimeMillis()));
-        saveAttributes(attributes);
+    public void handleRemoveEvent(Document document) {
+        LastWriteWinState state = new LastWriteWinState();
+        NitriteId nitriteId = document.getId();
+        Long deleteTime = document.getLastModifiedSinceEpoch();
+        state.setTombstones(Collections.singletonMap(nitriteId, deleteTime));
+        sendChangeMessage(state);
     }
 
-    private String createFeedMessage(LastWriteWinState state) {
+    public void sendConnect() {
         try {
-            DataGateFeed feed = new DataGateFeed();
-            feed.setMessageInfo(createMessageInfo(MessageType.Feed));
-            feed.setState(state);
-            return objectMapper.writeValueAsString(feed);
-        } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create DataGateFeed message", e);
+            Connect connect = new Connect();
+            connect.setMessageInfo(createMessageInfo(MessageType.Connect));
+            connect.setReplicaId(replicaId);
+            String message = objectMapper.writeValueAsString(connect);
+            getConnection().sendMessage(message);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to send Connect message for " + replicaId, e);
+        }
+    }
+
+    public void sendDisconnect() {
+        try {
+            Connect connect = new Connect();
+            connect.setMessageInfo(createMessageInfo(MessageType.Disconnect));
+            connect.setReplicaId(replicaId);
+            String message = objectMapper.writeValueAsString(connect);
+            getConnection().sendMessage(message);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to send Disconnect message for " + replicaId, e);
         }
     }
 
@@ -101,8 +94,12 @@ public class LocalOperation implements ConnectionAware {
                 int start = 0;
                 boolean hasMore = true;
 
-                String initMessage = createChangeStart(uuid);
-                getConnection().sendMessage(initMessage);
+                try {
+                    String initMessage = createChangeStart(uuid);
+                    getConnection().sendMessage(initMessage);
+                } catch (Exception e) {
+                    log.error("Error while sending BatchChangeStart for " + replicaId, e);
+                }
 
                 while (hasMore) {
                     LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
@@ -111,8 +108,12 @@ public class LocalOperation implements ConnectionAware {
                     }
 
                     if (hasMore) {
-                        String message = createChangeContinue(uuid, state);
-                        getConnection().sendMessage(message);
+                        try {
+                            String message = createChangeContinue(uuid, state);
+                            getConnection().sendMessage(message);
+                        } catch (Exception e) {
+                            log.error("Error while sending BatchChangeContinue for " + replicaId, e);
+                        }
 
                         try {
                             Thread.sleep(config.getDebounce());
@@ -124,64 +125,60 @@ public class LocalOperation implements ConnectionAware {
                     }
                 }
 
-                String endMessage = createChangeEnd(uuid);
-                getConnection().sendMessage(endMessage);
+                try {
+                    String endMessage = createChangeEnd(uuid);
+                    getConnection().sendMessage(endMessage);
+                } catch (Exception e) {
+                    log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+                }
             });
         } catch (Exception e) {
-            throw new ReplicationException("failed to send local changes message", e);
+            throw new ReplicationException("failed to send local changes message for " + replicaId, e);
         }
     }
 
-    private LastWriteWinMap createReplicatedDataType() {
-        Attributes attributes = getAttributes();
-        String tombstoneName = getTombstoneName(attributes);
-        saveAttributes(attributes);
-
-        NitriteStore store = collection.getStore();
-        NitriteMap<NitriteId, Long> tombstone = store.openMap(tombstoneName);
-        return new LastWriteWinMap(collection, tombstone);
-    }
-
-    private String getTombstoneName(Attributes attributes) {
-        String replica = attributes.get(TOMBSTONE);
-        if (StringUtils.isNullOrEmpty(replica)) {
-            replica = UUID.randomUUID().toString();
-            attributes.set(TOMBSTONE, replica);
+    private String createFeedMessage(LastWriteWinState state) {
+        try {
+            DataGateFeed feed = new DataGateFeed();
+            feed.setMessageInfo(createMessageInfo(MessageType.Feed));
+            feed.setChanges(state);
+            return objectMapper.writeValueAsString(feed);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create DataGateFeed message", e);
         }
-        return replica;
     }
 
     private String createChangeStart(String uuid) {
         try {
-            LocalChangeStart message = new LocalChangeStart();
-            message.setMessageInfo(createMessageInfo(MessageType.LocalChangeStart));
+            BatchChangeStart message = new BatchChangeStart();
+            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeStart));
             message.setUuid(uuid);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create LocalChangeStart message", e);
+            throw new ReplicationException("failed to create BatchChangeStart message", e);
         }
     }
 
     private String createChangeContinue(String uuid, LastWriteWinState state) {
         try {
-            LocalChangeContinue message = new LocalChangeContinue();
-            message.setMessageInfo(createMessageInfo(MessageType.LocalChangeContinue));
-            message.setState(state);
+            BatchChangeContinue message = new BatchChangeContinue();
+            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeContinue));
+            message.setChanges(state);
             message.setUuid(uuid);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create LocalChangeContinue message", e);
+            throw new ReplicationException("failed to create BatchChangeContinue message", e);
         }
     }
 
     private String createChangeEnd(String uuid) {
         try {
-            LocalChangeEnd message = new LocalChangeEnd();
-            message.setMessageInfo(createMessageInfo(MessageType.LocalChangeEnd));
+            BatchChangeEnd message = new BatchChangeEnd();
+            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeEnd));
             message.setUuid(uuid);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create LocalChangeEnd message", e);
+            throw new ReplicationException("failed to create BatchChangeEnd message", e);
         }
     }
 
@@ -192,33 +189,18 @@ public class LocalOperation implements ConnectionAware {
         messageInfo.setServer(config.getConnectionConfig().getUrl());
         messageInfo.setTimestamp(System.currentTimeMillis());
         messageInfo.setUserName(config.getUserName());
+        messageInfo.setReplicaId(replicaId);
         return messageInfo;
     }
 
-    private Long getLastSyncTime() {
-        Attributes attributes = getAttributes();
-        String syncTimeStr = attributes.get(LAST_SYNCED);
-        if (StringUtils.isNullOrEmpty(syncTimeStr)) {
-            return Long.MIN_VALUE;
-        } else {
-            try {
-                return Long.parseLong(syncTimeStr);
-            } catch (NumberFormatException nfe) {
-                throw new ReplicationException("failed to retrieve last sync time for " + collection.getName(), nfe);
-            }
+    private void sendChangeMessage(LastWriteWinState changes) {
+        try {
+            String message = createFeedMessage(changes);
+            getConnection().sendMessage(message);
+            saveLastSyncTime();
+        } catch (Exception e) {
+            log.error("Error while sending DataGateFeed for " + replicaId, e);
+            throw new ReplicationException("failed to send DataGateFeed message for " + replicaId, e);
         }
-    }
-
-    private Attributes getAttributes() {
-        Attributes attributes = collection.getAttributes();
-        if (attributes == null) {
-            attributes = new Attributes();
-            saveAttributes(attributes);
-        }
-        return attributes;
-    }
-
-    private void saveAttributes(Attributes attributes) {
-        collection.setAttributes(attributes);
     }
 }

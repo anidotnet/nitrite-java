@@ -92,7 +92,6 @@ public abstract class BaseExternalTest {
             document.remove(DOC_REVISION);
             document.remove(DOC_MODIFIED);
             document.remove(DOC_SOURCE);
-            document.remove(DOC_SYNCED);
         }
         return documents;
     }

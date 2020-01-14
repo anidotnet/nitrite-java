@@ -183,31 +183,6 @@ public class Constants {
     public static final String DOC_SOURCE = "_source";
 
     /**
-     * The constant DOC_SYNCED.
-     */
-    public static final String DOC_SYNCED = "_synced";
-
-    /**
-     * The constant DELETED_ITEM.
-     */
-    public static final String DELETED_ITEM = "deletedItem";
-
-    /**
-     * The constant DELETED_ID.
-     */
-    public static final String DELETED_ID = DELETED_ITEM + "." + DOC_ID;
-
-    /**
-     * The constant COLLECTION.
-     */
-    public static final String COLLECTION = "collection";
-
-    /**
-     * The constant DELETE_TIME.
-     */
-    public static final String DELETE_TIME = "deleteTime";
-
-    /**
      * The constant KEY_OBJ_SEPARATOR.
      * */
     public static final String KEY_OBJ_SEPARATOR = "+";

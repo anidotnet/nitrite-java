@@ -7,7 +7,7 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  * @author Anindya Chatterjee.
  */
 @Data
-public class DataGateFeed implements DataGateMessage {
+public class DataGateFeed implements DataGateMessage, ChangeMessage {
     private MessageInfo messageInfo;
-    private LastWriteWinState state;
+    private LastWriteWinState changes;
 }
