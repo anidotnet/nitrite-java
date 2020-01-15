@@ -8,8 +8,8 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  */
 @Data
 public class BatchChangeContinue implements BatchMessage, ChangeMessage {
-    private MessageInfo messageInfo;
-    private LastWriteWinState changes;
+    private MessageHeader messageHeader;
+    private LastWriteWinState feed;
     private String uuid;
     private Integer batchSize;
     private Integer debounce;

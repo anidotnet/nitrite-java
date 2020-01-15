@@ -59,11 +59,11 @@ public class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, Repli
             throw new ReplicationException("empty message received from server");
         }
 
-        if (message.getMessageInfo() == null) {
+        if (message.getMessageHeader() == null) {
             throw new ReplicationException("message received from server does not have message info");
         }
 
-        if (StringUtils.isNullOrEmpty(message.getMessageInfo().getCollection())) {
+        if (StringUtils.isNullOrEmpty(message.getMessageHeader().getCollection())) {
             throw new ReplicationException("message received from server does not have collection name");
         }
     }

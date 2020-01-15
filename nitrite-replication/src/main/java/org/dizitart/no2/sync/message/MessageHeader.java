@@ -6,7 +6,7 @@ import lombok.Data;
  * @author Anindya Chatterjee
  */
 @Data
-public class MessageInfo {
+public class MessageHeader {
     private String collection;
     private String userName;
     private Long timestamp;

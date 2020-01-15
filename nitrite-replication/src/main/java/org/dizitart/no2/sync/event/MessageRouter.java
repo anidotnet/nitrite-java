@@ -32,7 +32,7 @@ public class MessageRouter {
     }
 
     public void dispatch(ReplicationEvent replicationEvent) {
-        String collection = replicationEvent.getMessage().getMessageInfo().getCollection();
+        String collection = replicationEvent.getMessage().getMessageHeader().getCollection();
         Set<ReplicationEventListener> eventListeners = registry.get(collection);
 
         if (eventListeners != null) {

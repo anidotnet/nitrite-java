@@ -6,5 +6,5 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  * @author Anindya Chatterjee
  */
 public interface ChangeMessage {
-    LastWriteWinState getChanges();
+    LastWriteWinState getFeed();
 }

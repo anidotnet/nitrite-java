@@ -88,6 +88,7 @@ public class MockDataGateServer {
 
     private void handleMessage(WebSocketChannel channel, BufferedTextMessage message) throws JsonProcessingException {
         String data = message.getData();
+        log.info("Message received - " + data);
         if (data.contains(MessageType.Connect.code()) || data.contains(MessageType.Disconnect.code())) {
             Connect connect = objectMapper.readValue(data, Connect.class);
             handleConnect(channel, connect);
@@ -107,12 +108,12 @@ public class MockDataGateServer {
     }
 
     protected void handleConnect(WebSocketChannel channel, Connect connect) {
-        log.info("Connect message received " + connect);
+        log.debug("Connect message received " + connect);
         String replicaId = connect.getReplicaId();
-        String userName = connect.getMessageInfo().getUserName();
-        String collection = userName + "@" + connect.getMessageInfo().getCollection();
+        String userName = connect.getMessageHeader().getUserName();
+        String collection = userName + "@" + connect.getMessageHeader().getCollection();
 
-        if (connect.getMessageInfo().getMessageType() == MessageType.Connect) {
+        if (connect.getMessageHeader().getMessageType() == MessageType.Connect) {
             if (collectionReplicaMap.containsKey(collection)) {
                 List<String> replicas = collectionReplicaMap.get(collection);
                 if (!replicas.contains(replicaId)) {
@@ -141,19 +142,19 @@ public class MockDataGateServer {
                 LastWriteWinMap replica = createCrdt(collection);
                 replicaStore.put(collection, replica);
             }
-        } else if (connect.getMessageInfo().getMessageType() == MessageType.Disconnect) {
+        } else if (connect.getMessageHeader().getMessageType() == MessageType.Disconnect) {
             collectionReplicaMap.get(collection).remove(replicaId);
             userReplicaMap.get(userName).remove(replicaId);
         }
     }
 
     protected void handleDataGateFeed(WebSocketChannel channel, DataGateFeed feed) {
-        log.info("DataGateFeed message received " + feed);
-        String userName = feed.getMessageInfo().getUserName();
-        String collection = userName + "@" + feed.getMessageInfo().getCollection();
+        log.debug("DataGateFeed message received " + feed);
+        String userName = feed.getMessageHeader().getUserName();
+        String collection = userName + "@" + feed.getMessageHeader().getCollection();
 
         LastWriteWinMap replica = replicaStore.get(collection);
-        replica.merge(feed.getChanges());
+        replica.merge(feed.getFeed());
 
         try {
             String message = objectMapper.writeValueAsString(feed);
@@ -164,30 +165,30 @@ public class MockDataGateServer {
     }
 
     protected void handleBatchChangeEnd(WebSocketChannel channel, BatchChangeEnd batchChangeEnd) {
-        log.info("BatchChangeEnd message received " + batchChangeEnd);
+        log.debug("BatchChangeEnd message received " + batchChangeEnd);
         Long lastSync = batchChangeEnd.getLastSynced();
         Integer batchSize = batchChangeEnd.getBatchSize();
         Integer debounce = batchChangeEnd.getDebounce();
-        String replicaId = batchChangeEnd.getMessageInfo().getReplicaId();
-        String userName = batchChangeEnd.getMessageInfo().getUserName();
-        String collection = userName + "@" + batchChangeEnd.getMessageInfo().getCollection();
+        String replicaId = batchChangeEnd.getMessageHeader().getReplicaId();
+        String userName = batchChangeEnd.getMessageHeader().getUserName();
+        String collection = userName + "@" + batchChangeEnd.getMessageHeader().getCollection();
 
 
         LastWriteWinMap replica = replicaStore.get(collection);
-        sendLocalChanges(batchChangeEnd.getMessageInfo().getCollection(), userName, lastSync,
+        sendLocalChanges(batchChangeEnd.getMessageHeader().getCollection(), userName, lastSync,
             batchSize, debounce, replica, channel, replicaId);
     }
 
     protected void handleBatchChangeContinue(WebSocketChannel channel, BatchChangeContinue batchChangeContinue) {
-        log.info("BatchChangeContinue message received " + batchChangeContinue);
+        log.debug("BatchChangeContinue message received " + batchChangeContinue);
         DataGateFeed feed =  new DataGateFeed();
 
-        String userName = batchChangeContinue.getMessageInfo().getUserName();
-        String collection = userName + "@" + batchChangeContinue.getMessageInfo().getCollection();
-        String replicaId = batchChangeContinue.getMessageInfo().getReplicaId();
+        String userName = batchChangeContinue.getMessageHeader().getUserName();
+        String collection = userName + "@" + batchChangeContinue.getMessageHeader().getCollection();
+        String replicaId = batchChangeContinue.getMessageHeader().getReplicaId();
 
-        feed.setMessageInfo(createMessageInfo(MessageType.Feed, collection, userName, replicaId));
-        feed.setChanges(batchChangeContinue.getChanges());
+        feed.setMessageHeader(createMessageInfo(MessageType.Feed, collection, userName, replicaId));
+        feed.setFeed(batchChangeContinue.getFeed());
 
         try {
             String message = objectMapper.writeValueAsString(feed);
@@ -198,7 +199,7 @@ public class MockDataGateServer {
     }
 
     protected void handleBatchChangeStart(WebSocketChannel channel, BatchChangeStart batchChangeStart) {
-        log.info("BatchChangeStart message received " + batchChangeStart);
+        log.debug("BatchChangeStart message received " + batchChangeStart);
     }
 
     public void stop() {
@@ -283,7 +284,7 @@ public class MockDataGateServer {
                                      Integer chunkSize, Integer debounce) {
         try {
             BatchChangeStart message = new BatchChangeStart();
-            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeStart,
+            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeStart,
                 collection, userName, replicaId));
             message.setUuid(uuid);
             message.setBatchSize(chunkSize);
@@ -299,9 +300,9 @@ public class MockDataGateServer {
                                         Integer chunkSize, Integer debounce) {
         try {
             BatchChangeContinue message = new BatchChangeContinue();
-            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeContinue,
+            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeContinue,
                 collection, userName, replicaId));
-            message.setChanges(state);
+            message.setFeed(state);
             message.setUuid(uuid);
             message.setBatchSize(chunkSize);
             message.setDebounce(debounce);
@@ -316,7 +317,7 @@ public class MockDataGateServer {
                                    Integer chunkSize, Integer debounce) {
         try {
             BatchChangeEnd message = new BatchChangeEnd();
-            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeEnd,
+            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeEnd,
                 collection, userName, replicaId));
             message.setUuid(uuid);
             message.setLastSynced(lastSyncTime);
@@ -328,15 +329,15 @@ public class MockDataGateServer {
         }
     }
 
-    private MessageInfo createMessageInfo(MessageType messageType, String collection,
-                                          String userName, String replicaId) {
-        MessageInfo messageInfo = new MessageInfo();
-        messageInfo.setCollection(collection);
-        messageInfo.setMessageType(messageType);
-        messageInfo.setServer("ws://127.0.0.1:9090");
-        messageInfo.setTimestamp(System.currentTimeMillis());
-        messageInfo.setUserName(userName);
-        messageInfo.setReplicaId(replicaId);
-        return messageInfo;
+    private MessageHeader createMessageInfo(MessageType messageType, String collection,
+                                            String userName, String replicaId) {
+        MessageHeader messageHeader = new MessageHeader();
+        messageHeader.setCollection(collection);
+        messageHeader.setMessageType(messageType);
+        messageHeader.setServer("ws://127.0.0.1:9090");
+        messageHeader.setTimestamp(System.currentTimeMillis());
+        messageHeader.setUserName(userName);
+        messageHeader.setReplicaId(replicaId);
+        return messageHeader;
     }
 }

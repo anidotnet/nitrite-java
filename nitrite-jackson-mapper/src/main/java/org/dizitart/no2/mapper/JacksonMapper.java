@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
@@ -41,6 +43,8 @@ import static org.dizitart.no2.common.util.Iterables.listOf;
 public class JacksonMapper extends MappableMapper {
     private List<JacksonModule> jacksonModules;
     private List<Class<?>> moduleTypes;
+
+    @Getter(AccessLevel.PROTECTED)
     private ObjectMapper objectMapper;
 
     public JacksonMapper() {

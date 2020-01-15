@@ -7,7 +7,7 @@ import lombok.Data;
  */
 @Data
 public class BatchChangeStart implements BatchMessage {
-    private MessageInfo messageInfo;
+    private MessageHeader messageHeader;
     private String uuid;
     private Integer batchSize;
     private Integer debounce;

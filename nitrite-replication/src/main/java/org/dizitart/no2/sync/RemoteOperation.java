@@ -32,7 +32,7 @@ class RemoteOperation implements ConnectionAware, ReplicationOperation {
     }
 
     public void handleReplicationEvent(ReplicationEvent event) {
-        switch (event.getMessage().getMessageInfo().getMessageType()) {
+        switch (event.getMessage().getMessageHeader().getMessageType()) {
             case BatchChangeStart:
                 handleBatchChangeStart((BatchChangeStart) event.getMessage());
                 break;
@@ -53,7 +53,7 @@ class RemoteOperation implements ConnectionAware, ReplicationOperation {
     }
 
     private void handleBatchChangeContinue(BatchChangeContinue message) {
-        LastWriteWinState state = message.getChanges();
+        LastWriteWinState state = message.getFeed();
         crdt.merge(state);
     }
 
@@ -62,7 +62,7 @@ class RemoteOperation implements ConnectionAware, ReplicationOperation {
     }
 
     private void handleFeed(DataGateFeed message) {
-        LastWriteWinState state = message.getChanges();
+        LastWriteWinState state = message.getFeed();
         crdt.merge(state);
         saveLastSyncTime();
     }

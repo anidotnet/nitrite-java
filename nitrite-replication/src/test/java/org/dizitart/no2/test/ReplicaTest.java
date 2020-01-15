@@ -16,7 +16,8 @@ import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertTrue;
+import static org.dizitart.no2.collection.Document.createDocument;
+import static org.junit.Assert.*;
 
 /**
  * @author Anindya Chatterjee
@@ -43,8 +44,10 @@ public class ReplicaTest {
             .filePath(dbFile)
             .openOrCreate();
         NitriteCollection collection = db.getCollection("replicate-test");
-        Document document = Document.createDocument().put("firstName", "Anindya")
-            .put("lastName", "Chatterjee");
+        Document document = createDocument().put("firstName", "Anindya")
+            .put("lastName", "Chatterjee")
+            .put("address", createDocument("street", "1234 Abcd Street")
+                .put("pin", 123456));
         collection.insert(document);
 
         Replica replica = Replica.builder()
@@ -54,18 +57,31 @@ public class ReplicaTest {
             .create();
 
         replica.connect();
-        System.out.println("replica connected");
         collection.remove(document);
         await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().size() == 1);
-        await().atMost(5, SECONDS).until(() -> server.getUserReplicaMap().size() == 1);
-        await().atMost(5, SECONDS).until(() -> server.getUserReplicaMap().containsKey("anidotnet"));
-        await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().containsKey("anidotnet@replicate-test"));
-        await().atMost(5, SECONDS).until(() -> {
-            LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
-            Document doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
-            return doc == null;
-        });
+        assertEquals(server.getUserReplicaMap().size(), 1);
+        assertTrue(server.getUserReplicaMap().containsKey("anidotnet"));
+        assertTrue(server.getCollectionReplicaMap().containsKey("anidotnet@replicate-test"));
+        LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
+        Document doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        assertNull(doc);
 
+        collection.insert(document);
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
+        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        assertEquals(document, doc);
+
+        replica.disconnect();
+
+        collection.remove(document);
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
+        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        assertEquals(document, doc);
+
+        replica.connect();
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
+        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        assertNull(doc);
     }
 
     public static String getRandomTempDbFile() {

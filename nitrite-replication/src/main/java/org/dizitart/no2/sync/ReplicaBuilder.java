@@ -8,6 +8,7 @@ import org.dizitart.no2.sync.connection.AuthType;
 import org.dizitart.no2.sync.connection.ConnectionConfig;
 import org.dizitart.no2.sync.connection.TimeSpan;
 import org.dizitart.no2.sync.connection.WebSocketConfig;
+import org.dizitart.no2.sync.module.DocumentModule;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +33,7 @@ public class ReplicaBuilder {
         connectTimeout = new TimeSpan(5, TimeUnit.SECONDS);
         debounce = new TimeSpan(1, TimeUnit.SECONDS);
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new DocumentModule());
     }
 
     public ReplicaBuilder of(NitriteCollection collection) {

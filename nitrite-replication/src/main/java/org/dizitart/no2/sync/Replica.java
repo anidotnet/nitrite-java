@@ -108,11 +108,11 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             throw new ReplicationException("null event received for " + replicaId);
         } else if (event.getMessage() == null) {
             throw new ReplicationException("null message received for " + replicaId);
-        } else if (event.getMessage().getMessageInfo() == null) {
+        } else if (event.getMessage().getMessageHeader() == null) {
             throw new ReplicationException("invalid message info received for " + replicaId);
-        } else if (StringUtils.isNullOrEmpty(event.getMessage().getMessageInfo().getCollection())) {
+        } else if (StringUtils.isNullOrEmpty(event.getMessage().getMessageHeader().getCollection())) {
             throw new ReplicationException("invalid message info received for " + replicaId);
-        } else if (event.getMessage().getMessageInfo().getMessageType() == null) {
+        } else if (event.getMessage().getMessageHeader().getMessageType() == null) {
             throw new ReplicationException("invalid message type received for " + replicaId);
         }
     }
@@ -121,11 +121,11 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
         DataGateMessage message = event.getMessage();
         if (message instanceof ChangeMessage) {
             ChangeMessage feed = (ChangeMessage) message;
-            for (Document change : feed.getChanges().getChanges()) {
+            for (Document change : feed.getFeed().getChanges()) {
                 replicatedEntries.add(change.getId());
             }
 
-            for (Long id : feed.getChanges().getTombstones().keySet()) {
+            for (Long id : feed.getFeed().getTombstones().keySet()) {
                 replicatedEntries.add(NitriteId.createId(id));
             }
         }

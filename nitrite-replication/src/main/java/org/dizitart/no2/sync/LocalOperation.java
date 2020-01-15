@@ -64,7 +64,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     public void sendConnect() {
         try {
             Connect connect = new Connect();
-            connect.setMessageInfo(createMessageInfo(MessageType.Connect));
+            connect.setMessageHeader(createMessageInfo(MessageType.Connect));
             connect.setReplicaId(replicaId);
             String message = objectMapper.writeValueAsString(connect);
             getConnection().sendMessage(message);
@@ -76,7 +76,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     public void sendDisconnect() {
         try {
             Connect connect = new Connect();
-            connect.setMessageInfo(createMessageInfo(MessageType.Disconnect));
+            connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
             connect.setReplicaId(replicaId);
             String message = objectMapper.writeValueAsString(connect);
             getConnection().sendMessage(message);
@@ -140,8 +140,8 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     private String createFeedMessage(LastWriteWinState state) {
         try {
             DataGateFeed feed = new DataGateFeed();
-            feed.setMessageInfo(createMessageInfo(MessageType.Feed));
-            feed.setChanges(state);
+            feed.setMessageHeader(createMessageInfo(MessageType.Feed));
+            feed.setFeed(state);
             return objectMapper.writeValueAsString(feed);
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to create DataGateFeed message", e);
@@ -151,7 +151,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     private String createChangeStart(String uuid) {
         try {
             BatchChangeStart message = new BatchChangeStart();
-            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeStart));
+            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeStart));
             message.setUuid(uuid);
             message.setBatchSize(config.getChunkSize());
             message.setDebounce(config.getDebounce());
@@ -164,8 +164,8 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     private String createChangeContinue(String uuid, LastWriteWinState state) {
         try {
             BatchChangeContinue message = new BatchChangeContinue();
-            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeContinue));
-            message.setChanges(state);
+            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeContinue));
+            message.setFeed(state);
             message.setUuid(uuid);
             message.setBatchSize(config.getChunkSize());
             message.setDebounce(config.getDebounce());
@@ -178,7 +178,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     private String createChangeEnd(String uuid, Long lastSyncTime) {
         try {
             BatchChangeEnd message = new BatchChangeEnd();
-            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeEnd));
+            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeEnd));
             message.setUuid(uuid);
             message.setLastSynced(lastSyncTime);
             message.setBatchSize(config.getChunkSize());
@@ -189,15 +189,15 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         }
     }
 
-    private MessageInfo createMessageInfo(MessageType messageType) {
-        MessageInfo messageInfo = new MessageInfo();
-        messageInfo.setCollection(collection.getName());
-        messageInfo.setMessageType(messageType);
-        messageInfo.setServer(config.getConnectionConfig().getUrl());
-        messageInfo.setTimestamp(System.currentTimeMillis());
-        messageInfo.setUserName(config.getUserName());
-        messageInfo.setReplicaId(replicaId);
-        return messageInfo;
+    private MessageHeader createMessageInfo(MessageType messageType) {
+        MessageHeader messageHeader = new MessageHeader();
+        messageHeader.setCollection(collection.getName());
+        messageHeader.setMessageType(messageType);
+        messageHeader.setServer(config.getConnectionConfig().getUrl());
+        messageHeader.setTimestamp(System.currentTimeMillis());
+        messageHeader.setUserName(config.getUserName());
+        messageHeader.setReplicaId(replicaId);
+        return messageHeader;
     }
 
     private void sendChangeMessage(LastWriteWinState changes) {
