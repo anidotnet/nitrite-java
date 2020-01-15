@@ -39,8 +39,7 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
             factory.setConnectionTimeout(config.getConnectTimeout());
             webSocket = factory.createSocket(config.getUrl())
                 .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
-                .addListener(this)
-                .connect();
+                .addListener(this);
 
             switch (config.getAuthType()) {
                 case Basic:
@@ -52,6 +51,8 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
                 case None:
                     break;
             }
+
+            webSocket.connect();
         } catch (Exception e) {
             throw new ReplicationException("failed to open a websocket connection to " + config.getUrl(), e);
         }

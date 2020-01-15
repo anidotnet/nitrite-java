@@ -4,13 +4,18 @@ import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.sync.Replica;
+import org.dizitart.no2.sync.crdt.LastWriteWinMap;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.UUID;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -27,8 +32,13 @@ public class ReplicaTest {
         server.buildAndStartServer(9090, "127.0.0.1");
     }
 
+    @After
+    public void cleanUp() {
+        server.stop();
+    }
+
     @Test
-    public void testReplica() throws InterruptedException {
+    public void testReplica() {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -46,7 +56,16 @@ public class ReplicaTest {
         replica.connect();
         System.out.println("replica connected");
         collection.remove(document);
-        Thread.sleep(5000);
+        await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().size() == 1);
+        await().atMost(5, SECONDS).until(() -> server.getUserReplicaMap().size() == 1);
+        await().atMost(5, SECONDS).until(() -> server.getUserReplicaMap().containsKey("anidotnet"));
+        await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().containsKey("anidotnet@replicate-test"));
+        await().atMost(5, SECONDS).until(() -> {
+            LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
+            Document doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+            return doc == null;
+        });
+
     }
 
     public static String getRandomTempDbFile() {

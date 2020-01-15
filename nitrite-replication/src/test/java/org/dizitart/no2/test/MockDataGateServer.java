@@ -14,14 +14,15 @@ import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
+import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.websocket;
@@ -38,6 +39,12 @@ public class MockDataGateServer {
     private Map<String, LastWriteWinMap> replicaStore = new HashMap<>();
     private Undertow undertow;
     private Nitrite db;
+    private ExecutorService executorService;
+
+    public MockDataGateServer() {
+        executorService = ExecutorServiceManager.commonPool();
+        db = NitriteBuilder.get().openOrCreate();
+    }
 
     public void buildAndStartServer(int port, String host) {
         undertow = Undertow.builder()
@@ -77,14 +84,6 @@ public class MockDataGateServer {
         if (authorization.equals("Bearer abcd")) return;
 
         throw new SecurityException("invalid token");
-    }
-
-    public LastWriteWinMap createCrdt(String collection) {
-        db = NitriteBuilder.get().openOrCreate();
-        NitriteCollection nc = db.getCollection(collection);
-        NitriteMap<NitriteId, Long> nitriteMap =
-            db.getConfig().getNitriteStore().openMap(collection + "-replica");
-        return new LastWriteWinMap(nc, nitriteMap);
     }
 
     private void handleMessage(WebSocketChannel channel, BufferedTextMessage message) throws JsonProcessingException {
@@ -156,23 +155,62 @@ public class MockDataGateServer {
         LastWriteWinMap replica = replicaStore.get(collection);
         replica.merge(feed.getChanges());
 
-
+        try {
+            String message = objectMapper.writeValueAsString(feed);
+            broadcast(message, channel);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to broadcast DataGateFeed", e);
+        }
     }
 
     protected void handleBatchChangeEnd(WebSocketChannel channel, BatchChangeEnd batchChangeEnd) {
-//        log.info("BatchChangeEnd message received " + batchChangeEnd);
+        log.info("BatchChangeEnd message received " + batchChangeEnd);
+        Long lastSync = batchChangeEnd.getLastSynced();
+        Integer batchSize = batchChangeEnd.getBatchSize();
+        Integer debounce = batchChangeEnd.getDebounce();
+        String replicaId = batchChangeEnd.getMessageInfo().getReplicaId();
+        String userName = batchChangeEnd.getMessageInfo().getUserName();
+        String collection = userName + "@" + batchChangeEnd.getMessageInfo().getCollection();
+
+
+        LastWriteWinMap replica = replicaStore.get(collection);
+        sendLocalChanges(batchChangeEnd.getMessageInfo().getCollection(), userName, lastSync,
+            batchSize, debounce, replica, channel, replicaId);
     }
 
     protected void handleBatchChangeContinue(WebSocketChannel channel, BatchChangeContinue batchChangeContinue) {
-//        log.info("BatchChangeContinue message received " + batchChangeContinue);
+        log.info("BatchChangeContinue message received " + batchChangeContinue);
+        DataGateFeed feed =  new DataGateFeed();
+
+        String userName = batchChangeContinue.getMessageInfo().getUserName();
+        String collection = userName + "@" + batchChangeContinue.getMessageInfo().getCollection();
+        String replicaId = batchChangeContinue.getMessageInfo().getReplicaId();
+
+        feed.setMessageInfo(createMessageInfo(MessageType.Feed, collection, userName, replicaId));
+        feed.setChanges(batchChangeContinue.getChanges());
+
+        try {
+            String message = objectMapper.writeValueAsString(feed);
+            broadcast(message, channel);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to broadcast DataGateFeed", e);
+        }
     }
 
     protected void handleBatchChangeStart(WebSocketChannel channel, BatchChangeStart batchChangeStart) {
-//        log.info("BatchChangeStart message received " + batchChangeStart);
+        log.info("BatchChangeStart message received " + batchChangeStart);
     }
 
     public void stop() {
+        db.close();
         undertow.stop();
+    }
+
+    private LastWriteWinMap createCrdt(String collection) {
+        NitriteCollection nc = db.getCollection(collection);
+        NitriteMap<NitriteId, Long> nitriteMap =
+            db.getConfig().getNitriteStore().openMap(collection + "-replica");
+        return new LastWriteWinMap(nc, nitriteMap);
     }
 
     private void broadcast(String message, WebSocketChannel channel) {
@@ -181,5 +219,124 @@ public class MockDataGateServer {
                 WebSockets.sendText(message, ch, null);
             }
         }
+    }
+
+    private void sendLocalChanges(String collection, String userName,
+                                  Long lastSyncTime, Integer chunkSize,
+                                  Integer debounce, LastWriteWinMap crdt,
+                                  WebSocketChannel channel, String replicaId) {
+        try {
+            String uuid = UUID.randomUUID().toString();
+
+            executorService.submit(() -> {
+                int start = 0;
+                boolean hasMore = true;
+
+                try {
+                    String initMessage = createChangeStart(uuid, collection, userName,
+                        replicaId, chunkSize, debounce);
+                    WebSockets.sendText(initMessage, channel, null);
+                } catch (Exception e) {
+                    log.error("Error while sending BatchChangeStart to " + replicaId, e);
+                }
+
+                while (hasMore) {
+                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, chunkSize);
+                    if (state.getChanges().size() == 0) {
+                        hasMore = false;
+                    }
+
+                    if (hasMore) {
+                        try {
+                            String message = createChangeContinue(uuid, state, collection, userName,
+                                replicaId, chunkSize, debounce);
+                            WebSockets.sendText(message, channel, null);
+                        } catch (Exception e) {
+                            log.error("Error while sending BatchChangeContinue for " + replicaId, e);
+                        }
+
+                        try {
+                            Thread.sleep(debounce);
+                        } catch (InterruptedException e) {
+                            log.error("thread interrupted", e);
+                        }
+
+                        start = start + chunkSize;
+                    }
+                }
+
+                try {
+                    String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
+                        replicaId, chunkSize, debounce);
+                    WebSockets.sendText(endMessage, channel, null);
+                } catch (Exception e) {
+                    log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+                }
+            });
+        } catch (Exception e) {
+            throw new ReplicationException("failed to send local changes message for " + replicaId, e);
+        }
+    }
+
+    private String createChangeStart(String uuid,
+                                     String collection, String userName, String replicaId,
+                                     Integer chunkSize, Integer debounce) {
+        try {
+            BatchChangeStart message = new BatchChangeStart();
+            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeStart,
+                collection, userName, replicaId));
+            message.setUuid(uuid);
+            message.setBatchSize(chunkSize);
+            message.setDebounce(debounce);
+            return objectMapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create BatchChangeStart message", e);
+        }
+    }
+
+    private String createChangeContinue(String uuid, LastWriteWinState state,
+                                        String collection, String userName, String replicaId,
+                                        Integer chunkSize, Integer debounce) {
+        try {
+            BatchChangeContinue message = new BatchChangeContinue();
+            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeContinue,
+                collection, userName, replicaId));
+            message.setChanges(state);
+            message.setUuid(uuid);
+            message.setBatchSize(chunkSize);
+            message.setDebounce(debounce);
+            return objectMapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create BatchChangeContinue message", e);
+        }
+    }
+
+    private String createChangeEnd(String uuid, Long lastSyncTime,
+                                   String collection, String userName, String replicaId,
+                                   Integer chunkSize, Integer debounce) {
+        try {
+            BatchChangeEnd message = new BatchChangeEnd();
+            message.setMessageInfo(createMessageInfo(MessageType.BatchChangeEnd,
+                collection, userName, replicaId));
+            message.setUuid(uuid);
+            message.setLastSynced(lastSyncTime);
+            message.setBatchSize(chunkSize);
+            message.setDebounce(debounce);
+            return objectMapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create BatchChangeEnd message", e);
+        }
+    }
+
+    private MessageInfo createMessageInfo(MessageType messageType, String collection,
+                                          String userName, String replicaId) {
+        MessageInfo messageInfo = new MessageInfo();
+        messageInfo.setCollection(collection);
+        messageInfo.setMessageType(messageType);
+        messageInfo.setServer("ws://127.0.0.1:9090");
+        messageInfo.setTimestamp(System.currentTimeMillis());
+        messageInfo.setUserName(userName);
+        messageInfo.setReplicaId(replicaId);
+        return messageInfo;
     }
 }

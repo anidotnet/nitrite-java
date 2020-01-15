@@ -126,7 +126,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
                 }
 
                 try {
-                    String endMessage = createChangeEnd(uuid);
+                    String endMessage = createChangeEnd(uuid, lastSyncTime);
                     getConnection().sendMessage(endMessage);
                 } catch (Exception e) {
                     log.error("Error while sending BatchChangeEnd for " + replicaId, e);
@@ -153,6 +153,8 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
             BatchChangeStart message = new BatchChangeStart();
             message.setMessageInfo(createMessageInfo(MessageType.BatchChangeStart));
             message.setUuid(uuid);
+            message.setBatchSize(config.getChunkSize());
+            message.setDebounce(config.getDebounce());
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to create BatchChangeStart message", e);
@@ -165,17 +167,22 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
             message.setMessageInfo(createMessageInfo(MessageType.BatchChangeContinue));
             message.setChanges(state);
             message.setUuid(uuid);
+            message.setBatchSize(config.getChunkSize());
+            message.setDebounce(config.getDebounce());
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to create BatchChangeContinue message", e);
         }
     }
 
-    private String createChangeEnd(String uuid) {
+    private String createChangeEnd(String uuid, Long lastSyncTime) {
         try {
             BatchChangeEnd message = new BatchChangeEnd();
             message.setMessageInfo(createMessageInfo(MessageType.BatchChangeEnd));
             message.setUuid(uuid);
+            message.setLastSynced(lastSyncTime);
+            message.setBatchSize(config.getChunkSize());
+            message.setDebounce(config.getDebounce());
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to create BatchChangeEnd message", e);
