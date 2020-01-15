@@ -124,7 +124,10 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             for (Document change : feed.getChanges().getChanges()) {
                 replicatedEntries.add(change.getId());
             }
-            replicatedEntries.addAll(feed.getChanges().getTombstones().keySet());
+
+            for (Long id : feed.getChanges().getTombstones().keySet()) {
+                replicatedEntries.add(NitriteId.createId(id));
+            }
         }
     }
 }

@@ -57,13 +57,12 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         LastWriteWinState state = new LastWriteWinState();
         NitriteId nitriteId = document.getId();
         Long deleteTime = document.getLastModifiedSinceEpoch();
-        state.setTombstones(Collections.singletonMap(nitriteId, deleteTime));
+        state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
         sendChangeMessage(state);
     }
 
     public void sendConnect() {
         try {
-            getConnection().connect();
             Connect connect = new Connect();
             connect.setMessageInfo(createMessageInfo(MessageType.Connect));
             connect.setReplicaId(replicaId);

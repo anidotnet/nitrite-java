@@ -28,7 +28,7 @@ public class ReplicaTest {
     }
 
     @Test
-    public void testReplica() {
+    public void testReplica() throws InterruptedException {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -45,6 +45,8 @@ public class ReplicaTest {
 
         replica.connect();
         System.out.println("replica connected");
+        collection.remove(document);
+        Thread.sleep(5000);
     }
 
     public static String getRandomTempDbFile() {

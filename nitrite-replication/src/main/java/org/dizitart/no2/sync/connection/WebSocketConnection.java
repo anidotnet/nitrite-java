@@ -3,7 +3,7 @@ package org.dizitart.no2.sync.connection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
-import com.neovisionaries.ws.client.WebSocketException;
+import com.neovisionaries.ws.client.WebSocketExtension;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,7 +37,10 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
         try {
             WebSocketFactory factory = new WebSocketFactory();
             factory.setConnectionTimeout(config.getConnectTimeout());
-            webSocket = factory.createSocket(config.getUrl());
+            webSocket = factory.createSocket(config.getUrl())
+                .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
+                .addListener(this)
+                .connect();
 
             switch (config.getAuthType()) {
                 case Basic:
@@ -51,17 +54,6 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
             }
         } catch (Exception e) {
             throw new ReplicationException("failed to open a websocket connection to " + config.getUrl(), e);
-        }
-    }
-
-    @Override
-    public void connect() {
-        try {
-            if (!webSocket.isOpen()) {
-                webSocket.connect();
-            }
-        } catch (WebSocketException e) {
-            throw new ReplicationException("failed to connect to " + config.getUrl(), e);
         }
     }
 

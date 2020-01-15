@@ -35,8 +35,8 @@ public class LastWriteWinMap {
         }
 
         if (snapshot.getTombstones() != null) {
-            for (Map.Entry<NitriteId, Long> entry : snapshot.getTombstones().entrySet()) {
-                remove(entry.getKey(), entry.getValue());
+            for (Map.Entry<Long, Long> entry : snapshot.getTombstones().entrySet()) {
+                remove(NitriteId.createId(entry.getKey()), entry.getValue());
             }
         }
     }
@@ -52,7 +52,7 @@ public class LastWriteWinMap {
             for (KeyValuePair<NitriteId, Long> entry : tombstones.entries()) {
                 Long timestamp = entry.getValue();
                 if (timestamp >= since) {
-                    state.getTombstones().put(entry.getKey(), entry.getValue());
+                    state.getTombstones().put(entry.getKey().getIdValue(), entry.getValue());
                 }
             }
         }

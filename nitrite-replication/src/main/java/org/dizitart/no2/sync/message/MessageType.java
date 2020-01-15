@@ -1,5 +1,7 @@
 package org.dizitart.no2.sync.message;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * @author Anindya Chatterjee.
  */
@@ -17,12 +19,13 @@ public enum MessageType {
         this.code = code;
     }
 
+    @JsonValue
     public String code() {
         return code;
     }
 
     @Override
     public String toString() {
-        return code();
+        return code;
     }
 }
