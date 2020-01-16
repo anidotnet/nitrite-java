@@ -11,6 +11,6 @@ public class MessageHeader {
     private String userName;
     private Long timestamp;
     private MessageType messageType;
-    private String server;
+    private String source;
     private String replicaId;
 }

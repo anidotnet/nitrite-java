@@ -15,6 +15,7 @@ import org.dizitart.no2.sync.message.*;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Anindya Chatterjee.
@@ -27,6 +28,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     private ExecutorService executorService;
     private LastWriteWinMap crdt;
     private String replicaId;
+    private AtomicBoolean isConnected;
 
     public LocalOperation(String replicaId, ReplicationConfig config) {
         this.replicaId = replicaId;
@@ -35,6 +37,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         this.crdt = createReplicatedDataType();
         this.objectMapper = config.getObjectMapper();
         this.executorService = ExecutorServiceManager.syncExecutor();
+        this.isConnected = new AtomicBoolean(false);
     }
 
     @Override
@@ -48,104 +51,100 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     }
 
     public void handleInsertEvent(Document document) {
-        LastWriteWinState state = new LastWriteWinState();
-        state.setChanges(Collections.singleton(document));
-        sendChangeMessage(state);
+        executorService.submit(() -> {
+            LastWriteWinState state = new LastWriteWinState();
+            state.setChanges(Collections.singleton(document));
+            sendChangeMessage(state);
+        });
     }
 
     public void handleRemoveEvent(Document document) {
-        LastWriteWinState state = new LastWriteWinState();
-        NitriteId nitriteId = document.getId();
-        Long deleteTime = document.getLastModifiedSinceEpoch();
-        state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
-        sendChangeMessage(state);
+        executorService.submit(() -> {
+            LastWriteWinState state = new LastWriteWinState();
+            NitriteId nitriteId = document.getId();
+            Long deleteTime = document.getLastModifiedSinceEpoch();
+            state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
+            sendChangeMessage(state);
+        });
     }
 
     public void sendConnect() {
-        try {
-            Connect connect = new Connect();
-            connect.setMessageHeader(createMessageInfo(MessageType.Connect));
-            connect.setReplicaId(replicaId);
-            String message = objectMapper.writeValueAsString(connect);
-            getConnection().sendMessage(message);
-        } catch (Exception e) {
-            throw new ReplicationException("failed to send Connect message for " + replicaId, e);
-        }
+        executorService.submit(() -> {
+            try {
+                Connect connect = new Connect();
+                connect.setMessageHeader(createMessageInfo(MessageType.Connect));
+                connect.setReplicaId(replicaId);
+                String message = objectMapper.writeValueAsString(connect);
+                getConnection().sendMessage(message);
+                isConnected.compareAndSet(false, true);
+            } catch (Exception e) {
+                log.error("failed to send Connect message for " + replicaId, e);
+            }
+        });
     }
 
     public void sendDisconnect() {
-        try {
-            Connect connect = new Connect();
-            connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
-            connect.setReplicaId(replicaId);
-            String message = objectMapper.writeValueAsString(connect);
-            getConnection().sendMessage(message);
-        } catch (Exception e) {
-            throw new ReplicationException("failed to send Disconnect message for " + replicaId, e);
-        }
+        executorService.submit(() -> {
+            try {
+                Connect connect = new Connect();
+                connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
+                connect.setReplicaId(replicaId);
+                String message = objectMapper.writeValueAsString(connect);
+                getConnection().sendMessage(message);
+                isConnected.compareAndSet(true, false);
+            } catch (Exception e) {
+                log.error("failed to send Disconnect message for " + replicaId, e);
+            }
+        });
     }
 
     public void sendLocalChanges() {
-        try {
+        executorService.submit(() -> {
+            if (!isConnected.get()) return;
+
+            int start = 0;
+            boolean hasMore = true;
             Long lastSyncTime = getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
 
-            executorService.submit(() -> {
-                int start = 0;
-                boolean hasMore = true;
+            try {
+                String initMessage = createChangeStart(uuid);
+                getConnection().sendMessage(initMessage);
+            } catch (Exception e) {
+                log.error("Error while sending BatchChangeStart for " + replicaId, e);
+            }
 
-                try {
-                    String initMessage = createChangeStart(uuid);
-                    getConnection().sendMessage(initMessage);
-                } catch (Exception e) {
-                    log.error("Error while sending BatchChangeStart for " + replicaId, e);
+            while (hasMore) {
+                LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
+                if (state.getChanges().size() == 0) {
+                    hasMore = false;
                 }
 
-                while (hasMore) {
-                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
-                    if (state.getChanges().size() == 0) {
-                        hasMore = false;
+                if (hasMore) {
+                    try {
+                        String message = createChangeContinue(uuid, state);
+                        getConnection().sendMessage(message);
+                    } catch (Exception e) {
+                        log.error("Error while sending BatchChangeContinue for " + replicaId, e);
                     }
 
-                    if (hasMore) {
-                        try {
-                            String message = createChangeContinue(uuid, state);
-                            getConnection().sendMessage(message);
-                        } catch (Exception e) {
-                            log.error("Error while sending BatchChangeContinue for " + replicaId, e);
-                        }
-
-                        try {
-                            Thread.sleep(config.getDebounce());
-                        } catch (InterruptedException e) {
-                            log.error("thread interrupted", e);
-                        }
-
-                        start = start + config.getChunkSize();
+                    try {
+                        Thread.sleep(config.getDebounce());
+                    } catch (InterruptedException e) {
+                        log.error("thread interrupted", e);
                     }
-                }
 
-                try {
-                    String endMessage = createChangeEnd(uuid, lastSyncTime);
-                    getConnection().sendMessage(endMessage);
-                } catch (Exception e) {
-                    log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+                    start = start + config.getChunkSize();
                 }
-            });
-        } catch (Exception e) {
-            throw new ReplicationException("failed to send local changes message for " + replicaId, e);
-        }
-    }
+            }
 
-    private String createFeedMessage(LastWriteWinState state) {
-        try {
-            DataGateFeed feed = new DataGateFeed();
-            feed.setMessageHeader(createMessageInfo(MessageType.Feed));
-            feed.setFeed(state);
-            return objectMapper.writeValueAsString(feed);
-        } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create DataGateFeed message", e);
-        }
+            try {
+                String endMessage = createChangeEnd(uuid, lastSyncTime);
+                getConnection().sendMessage(endMessage);
+            } catch (Exception e) {
+                log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+            }
+        });
     }
 
     private String createChangeStart(String uuid) {
@@ -193,7 +192,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(collection.getName());
         messageHeader.setMessageType(messageType);
-        messageHeader.setServer(config.getConnectionConfig().getUrl());
+        messageHeader.setSource(replicaId);
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(config.getUserName());
         messageHeader.setReplicaId(replicaId);
@@ -202,12 +201,24 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
 
     private void sendChangeMessage(LastWriteWinState changes) {
         try {
-            String message = createFeedMessage(changes);
-            getConnection().sendMessage(message);
-            saveLastSyncTime();
+            if (isConnected.get()) {
+                String message = createFeedMessage(changes);
+                getConnection().sendMessage(message);
+                saveLastSyncTime();
+            }
         } catch (Exception e) {
             log.error("Error while sending DataGateFeed for " + replicaId, e);
-            throw new ReplicationException("failed to send DataGateFeed message for " + replicaId, e);
+        }
+    }
+
+    private String createFeedMessage(LastWriteWinState state) {
+        try {
+            DataGateFeed feed = new DataGateFeed();
+            feed.setMessageHeader(createMessageInfo(MessageType.Feed));
+            feed.setFeed(state);
+            return objectMapper.writeValueAsString(feed);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create DataGateFeed message", e);
         }
     }
 }

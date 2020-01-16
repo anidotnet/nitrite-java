@@ -14,7 +14,6 @@ import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
@@ -23,6 +22,7 @@ import org.dizitart.no2.sync.message.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.websocket;
@@ -42,7 +42,7 @@ public class MockDataGateServer {
     private ExecutorService executorService;
 
     public MockDataGateServer() {
-        executorService = ExecutorServiceManager.commonPool();
+        executorService = Executors.newCachedThreadPool();
         db = NitriteBuilder.get().openOrCreate();
     }
 
@@ -54,57 +54,10 @@ public class MockDataGateServer {
         undertow.start();
     }
 
-    private PathHandler getWebSocketHandler() {
-        return path()
-            .addPrefixPath("/datagate", websocket((exchange, channel) -> {
-                Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
-                validateAuth(requestHeaders);
-
-                channel.getReceiveSetter().set(new AbstractReceiveListener() {
-                    @Override
-                    protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
-                        try {
-                            handleMessage(channel, message);
-                        } catch (Exception e) {
-                            log.error("Error while handling message at server", e);
-                        }
-                    }
-                });
-
-                channel.resumeReceives();
-            }));
-    }
-
-    private void validateAuth(Map<String, List<String>> requestHeaders) {
-        if (!requestHeaders.containsKey("Authorization")) {
-            throw new SecurityException("connection not authorized");
-        }
-
-        String authorization = requestHeaders.get("Authorization").get(0);
-        if (authorization.equals("Bearer abcd")) return;
-
-        throw new SecurityException("invalid token");
-    }
-
-    private void handleMessage(WebSocketChannel channel, BufferedTextMessage message) throws JsonProcessingException {
-        String data = message.getData();
-        log.info("Message received - " + data);
-        if (data.contains(MessageType.Connect.code()) || data.contains(MessageType.Disconnect.code())) {
-            Connect connect = objectMapper.readValue(data, Connect.class);
-            handleConnect(channel, connect);
-        } else if (data.contains(MessageType.BatchChangeStart.code())) {
-            BatchChangeStart batchChangeStart = objectMapper.readValue(data, BatchChangeStart.class);
-            handleBatchChangeStart(channel, batchChangeStart);
-        } else if (data.contains(MessageType.BatchChangeContinue.code())) {
-            BatchChangeContinue batchChangeContinue = objectMapper.readValue(data, BatchChangeContinue.class);
-            handleBatchChangeContinue(channel, batchChangeContinue);
-        } else if (data.contains(MessageType.BatchChangeEnd.code())) {
-            BatchChangeEnd batchChangeEnd = objectMapper.readValue(data, BatchChangeEnd.class);
-            handleBatchChangeEnd(channel, batchChangeEnd);
-        } else if (data.contains(MessageType.Feed.code())) {
-            DataGateFeed feed = objectMapper.readValue(data, DataGateFeed.class);
-            handleDataGateFeed(channel, feed);
-        }
+    public void stop() {
+        db.close();
+        undertow.stop();
+        executorService.shutdown();
     }
 
     protected void handleConnect(WebSocketChannel channel, Connect connect) {
@@ -186,6 +139,8 @@ public class MockDataGateServer {
         String userName = batchChangeContinue.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeContinue.getMessageHeader().getCollection();
         String replicaId = batchChangeContinue.getMessageHeader().getReplicaId();
+        LastWriteWinMap replica = replicaStore.get(collection);
+        replica.merge(batchChangeContinue.getFeed());
 
         feed.setMessageHeader(createMessageInfo(MessageType.Feed, collection, userName, replicaId));
         feed.setFeed(batchChangeContinue.getFeed());
@@ -202,9 +157,57 @@ public class MockDataGateServer {
         log.debug("BatchChangeStart message received " + batchChangeStart);
     }
 
-    public void stop() {
-        db.close();
-        undertow.stop();
+    private PathHandler getWebSocketHandler() {
+        return path()
+            .addPrefixPath("/datagate", websocket((exchange, channel) -> {
+                Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
+                validateAuth(requestHeaders);
+
+                channel.getReceiveSetter().set(new AbstractReceiveListener() {
+                    @Override
+                    protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
+                        try {
+                            handleMessage(channel, message);
+                        } catch (Exception e) {
+                            log.error("Error while handling message at server", e);
+                        }
+                    }
+                });
+
+                channel.resumeReceives();
+            }));
+    }
+
+    private void validateAuth(Map<String, List<String>> requestHeaders) {
+        if (!requestHeaders.containsKey("Authorization")) {
+            throw new SecurityException("connection not authorized");
+        }
+
+        String authorization = requestHeaders.get("Authorization").get(0);
+        if (authorization.equals("Bearer abcd")) return;
+
+        throw new SecurityException("invalid token");
+    }
+
+    private void handleMessage(WebSocketChannel channel, BufferedTextMessage message) throws JsonProcessingException {
+        String data = message.getData();
+//        log.info("Message received - " + data);
+        if (data.contains(MessageType.Connect.code()) || data.contains(MessageType.Disconnect.code())) {
+            Connect connect = objectMapper.readValue(data, Connect.class);
+            handleConnect(channel, connect);
+        } else if (data.contains(MessageType.BatchChangeStart.code())) {
+            BatchChangeStart batchChangeStart = objectMapper.readValue(data, BatchChangeStart.class);
+            handleBatchChangeStart(channel, batchChangeStart);
+        } else if (data.contains(MessageType.BatchChangeContinue.code())) {
+            BatchChangeContinue batchChangeContinue = objectMapper.readValue(data, BatchChangeContinue.class);
+            handleBatchChangeContinue(channel, batchChangeContinue);
+        } else if (data.contains(MessageType.BatchChangeEnd.code())) {
+            BatchChangeEnd batchChangeEnd = objectMapper.readValue(data, BatchChangeEnd.class);
+            handleBatchChangeEnd(channel, batchChangeEnd);
+        } else if (data.contains(MessageType.Feed.code())) {
+            DataGateFeed feed = objectMapper.readValue(data, DataGateFeed.class);
+            handleDataGateFeed(channel, feed);
+        }
     }
 
     private LastWriteWinMap createCrdt(String collection) {
@@ -334,7 +337,7 @@ public class MockDataGateServer {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(collection);
         messageHeader.setMessageType(messageType);
-        messageHeader.setServer("ws://127.0.0.1:9090");
+        messageHeader.setSource("ws://127.0.0.1:9090");
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
         messageHeader.setReplicaId(replicaId);

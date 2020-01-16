@@ -53,7 +53,6 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
 
     public void disconnect() {
         localOperation.sendDisconnect();
-        replicationConfig.getCollection().unsubscribe(this);
         ReplicationEventBus.getInstance().deregister(this);
     }
 

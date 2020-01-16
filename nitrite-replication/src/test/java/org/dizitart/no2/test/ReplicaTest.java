@@ -39,7 +39,7 @@ public class ReplicaTest {
     }
 
     @Test
-    public void testReplica() {
+    public void testReplica() throws InterruptedException {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -57,14 +57,20 @@ public class ReplicaTest {
             .create();
 
         replica.connect();
-        collection.remove(document);
+
         await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().size() == 1);
         assertEquals(server.getUserReplicaMap().size(), 1);
         assertTrue(server.getUserReplicaMap().containsKey("anidotnet"));
         assertTrue(server.getCollectionReplicaMap().containsKey("anidotnet@replicate-test"));
         LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
         Document doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        assertEquals(document, doc);
+
+        collection.remove(document);
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
+        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
         assertNull(doc);
+        assertEquals(collection.size(), 0);
 
         collection.insert(document);
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
@@ -72,16 +78,15 @@ public class ReplicaTest {
         assertEquals(document, doc);
 
         replica.disconnect();
-
         collection.remove(document);
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
         doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
         assertEquals(document, doc);
-
-        replica.connect();
-        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
-        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
-        assertNull(doc);
+//
+//        replica.connect();
+//        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
+//        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+//        assertNull(doc);
     }
 
     public static String getRandomTempDbFile() {

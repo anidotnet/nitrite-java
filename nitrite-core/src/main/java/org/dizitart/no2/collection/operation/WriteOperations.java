@@ -60,13 +60,13 @@ class WriteOperations {
             }
 
             Document item = document.clone();
+            log.debug("Inserting document {} in {}", item, nitriteMap.getName());
             Document already = nitriteMap.putIfAbsent(nitriteId, item);
-            log.debug("Inserting document {} in {}", document, nitriteMap.getName());
 
             if (already != null) {
+                log.warn("Another document {} already exists with same id {}", already, nitriteId);
                 // rollback changes
                 nitriteMap.put(nitriteId, already);
-                log.debug("Another document already exists with id {}", nitriteId);
                 throw new UniqueConstraintException("id constraint violation, " +
                     "entry with same id already exists in " + nitriteMap.getName());
             } else {

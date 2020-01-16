@@ -7,6 +7,7 @@ import com.neovisionaries.ws.client.WebSocketExtension;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.event.ReplicationEventBus;
@@ -15,6 +16,7 @@ import org.dizitart.no2.sync.event.ReplicationEventBus;
  * @author Anindya Chatterjee
  */
 @Data
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 class WebSocketConnection extends WebSocketAdapter implements Connection {
     private static final ReplicationEventBus eventBus = ReplicationEventBus.getInstance();
@@ -65,6 +67,7 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
 
     @Override
     public void sendMessage(String message) {
+        log.info("Sending message {}", message);
         webSocket.sendText(message);
     }
 
