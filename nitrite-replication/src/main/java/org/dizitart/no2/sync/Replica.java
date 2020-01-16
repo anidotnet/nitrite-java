@@ -1,6 +1,5 @@
 package org.dizitart.no2.sync;
 
-import lombok.Getter;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
@@ -15,7 +14,6 @@ import org.dizitart.no2.sync.message.DataGateMessage;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Anindya Chatterjee
@@ -26,17 +24,13 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
     private RemoteOperation remoteOperation;
     private Set<NitriteId> replicatedEntries;
 
-    @Getter
-    private String replicaId;
-
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
     }
 
     Replica(ReplicationConfig config) {
-        this.replicaId = UUID.randomUUID().toString();
         this.replicationConfig = config;
-        this.localOperation = new LocalOperation(replicaId, replicationConfig);
+        this.localOperation = new LocalOperation(replicationConfig);
         this.remoteOperation = new RemoteOperation(replicationConfig);
         this.replicatedEntries = new LinkedHashSet<>();
     }
@@ -93,6 +87,9 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
     @Override
     public void onEvent(ReplicationEvent event) {
         validateEvent(event);
+        if (event.getMessage().getMessageHeader().getReplicaId().equals(getReplicaId())) {
+            return;
+        }
         trackReplicatedEntries(event);
         remoteOperation.handleReplicationEvent(event);
     }
@@ -102,17 +99,21 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
         return replicationConfig;
     }
 
+    public String getReplicaId() {
+        return localOperation.getReplicaId();
+    }
+
     private void validateEvent(ReplicationEvent event) {
         if (event == null) {
-            throw new ReplicationException("null event received for " + replicaId);
+            throw new ReplicationException("a null event received for " + getReplicaId());
         } else if (event.getMessage() == null) {
-            throw new ReplicationException("null message received for " + replicaId);
+            throw new ReplicationException("a null message received for " + getReplicaId());
         } else if (event.getMessage().getMessageHeader() == null) {
-            throw new ReplicationException("invalid message info received for " + replicaId);
+            throw new ReplicationException("invalid message info received for " + getReplicaId());
         } else if (StringUtils.isNullOrEmpty(event.getMessage().getMessageHeader().getCollection())) {
-            throw new ReplicationException("invalid message info received for " + replicaId);
+            throw new ReplicationException("invalid message info received for " + getReplicaId());
         } else if (event.getMessage().getMessageHeader().getMessageType() == null) {
-            throw new ReplicationException("invalid message type received for " + replicaId);
+            throw new ReplicationException("invalid message type received for " + getReplicaId());
         }
     }
 

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.sync.connection.ConnectionAware;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
@@ -17,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.dizitart.no2.collection.meta.Attributes.REPLICA;
+
 /**
  * @author Anindya Chatterjee.
  */
@@ -27,11 +30,9 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
     private ObjectMapper objectMapper;
     private ExecutorService executorService;
     private LastWriteWinMap crdt;
-    private String replicaId;
     private AtomicBoolean isConnected;
 
-    public LocalOperation(String replicaId, ReplicationConfig config) {
-        this.replicaId = replicaId;
+    public LocalOperation(ReplicationConfig config) {
         this.config = config;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
@@ -50,6 +51,14 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         return collection;
     }
 
+    public String getReplicaId() {
+        Attributes attributes = getAttributes();
+        if (!attributes.hasKey(Attributes.REPLICA)) {
+            attributes.set(REPLICA, UUID.randomUUID().toString());
+        }
+        return attributes.get(Attributes.REPLICA);
+    }
+
     public void handleInsertEvent(Document document) {
         executorService.submit(() -> {
             LastWriteWinState state = new LastWriteWinState();
@@ -63,37 +72,39 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
             LastWriteWinState state = new LastWriteWinState();
             NitriteId nitriteId = document.getId();
             Long deleteTime = document.getLastModifiedSinceEpoch();
+            crdt.getTombstones().put(nitriteId, deleteTime);
+
             state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
             sendChangeMessage(state);
         });
     }
 
     public void sendConnect() {
+        isConnected.set(true);
         executorService.submit(() -> {
             try {
                 Connect connect = new Connect();
                 connect.setMessageHeader(createMessageInfo(MessageType.Connect));
-                connect.setReplicaId(replicaId);
+                connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
                 getConnection().sendMessage(message);
-                isConnected.compareAndSet(false, true);
             } catch (Exception e) {
-                log.error("failed to send Connect message for " + replicaId, e);
+                log.error("failed to send Connect message for " + getReplicaId(), e);
             }
         });
     }
 
     public void sendDisconnect() {
+        isConnected.set(false);
         executorService.submit(() -> {
             try {
                 Connect connect = new Connect();
                 connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
-                connect.setReplicaId(replicaId);
+                connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
                 getConnection().sendMessage(message);
-                isConnected.compareAndSet(true, false);
             } catch (Exception e) {
-                log.error("failed to send Disconnect message for " + replicaId, e);
+                log.error("failed to send Disconnect message for " + getReplicaId(), e);
             }
         });
     }
@@ -111,12 +122,12 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
                 String initMessage = createChangeStart(uuid);
                 getConnection().sendMessage(initMessage);
             } catch (Exception e) {
-                log.error("Error while sending BatchChangeStart for " + replicaId, e);
+                log.error("Error while sending BatchChangeStart for " + getReplicaId(), e);
             }
 
             while (hasMore) {
                 LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
-                if (state.getChanges().size() == 0) {
+                if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
                     hasMore = false;
                 }
 
@@ -125,7 +136,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
                         String message = createChangeContinue(uuid, state);
                         getConnection().sendMessage(message);
                     } catch (Exception e) {
-                        log.error("Error while sending BatchChangeContinue for " + replicaId, e);
+                        log.error("Error while sending BatchChangeContinue for " + getReplicaId(), e);
                     }
 
                     try {
@@ -142,7 +153,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
                 String endMessage = createChangeEnd(uuid, lastSyncTime);
                 getConnection().sendMessage(endMessage);
             } catch (Exception e) {
-                log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+                log.error("Error while sending BatchChangeEnd for " + getReplicaId(), e);
             }
         });
     }
@@ -192,10 +203,10 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(collection.getName());
         messageHeader.setMessageType(messageType);
-        messageHeader.setSource(replicaId);
+        messageHeader.setSource(getReplicaId());
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(config.getUserName());
-        messageHeader.setReplicaId(replicaId);
+        messageHeader.setReplicaId(getReplicaId());
         return messageHeader;
     }
 
@@ -207,7 +218,7 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
                 saveLastSyncTime();
             }
         } catch (Exception e) {
-            log.error("Error while sending DataGateFeed for " + replicaId, e);
+            log.error("Error while sending DataGateFeed for " + getReplicaId(), e);
         }
     }
 

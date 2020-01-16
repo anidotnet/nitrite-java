@@ -10,15 +10,13 @@ import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 
 import java.util.UUID;
 
-import static org.dizitart.no2.collection.meta.Attributes.LAST_SYNCED;
+import static org.dizitart.no2.collection.meta.Attributes.*;
 import static org.dizitart.no2.common.Constants.INTERNAL_NAME_SEPARATOR;
 
 /**
  * @author Anindya Chatterjee
  */
 interface ReplicationOperation {
-    String TOMBSTONE = "tombstone";
-
     NitriteCollection getCollection();
 
     default Attributes getAttributes() {

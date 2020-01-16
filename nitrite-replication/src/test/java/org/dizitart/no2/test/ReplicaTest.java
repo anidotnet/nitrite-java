@@ -39,7 +39,7 @@ public class ReplicaTest {
     }
 
     @Test
-    public void testReplica() throws InterruptedException {
+    public void testReplica() {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -82,11 +82,11 @@ public class ReplicaTest {
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
         doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
         assertEquals(document, doc);
-//
-//        replica.connect();
-//        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
-//        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
-//        assertNull(doc);
+
+        replica.connect();
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
+        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        assertNull(doc);
     }
 
     public static String getRandomTempDbFile() {

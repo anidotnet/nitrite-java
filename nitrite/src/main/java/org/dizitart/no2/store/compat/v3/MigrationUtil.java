@@ -132,7 +132,7 @@ public class MigrationUtil {
         }
 
         if (value.getUuid() != null) {
-            attributes.set(Attributes.UUID, value.getUuid());
+            attributes.set(Attributes.UNIQUE_ID, value.getUuid());
         }
         return attributes;
     }

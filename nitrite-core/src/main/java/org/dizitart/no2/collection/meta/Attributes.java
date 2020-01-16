@@ -19,24 +19,26 @@ public class Attributes implements Serializable {
     public static final String CREATED_TIME = "createdTime";
     public static final String LAST_MODIFIED_TIME = "lastModifiedTime";
     public static final String OWNER = "owner";
-    public static final String UUID = "uuid";
+    public static final String UNIQUE_ID = "uuid";
     public static final String LAST_SYNCED = "lastSynced";
     public static final String SYNC_LOCK = "syncLock";
     public static final String EXPIRY_WAIT = "expiryWait";
+    public static final String TOMBSTONE = "tombstone";
+    public static final String REPLICA = "replica";
 
     private Map<String, String> attributes;
 
     public Attributes() {
         attributes = new ConcurrentHashMap<>();
         set(CREATED_TIME, Long.toString(System.currentTimeMillis()));
-        set(UUID, java.util.UUID.randomUUID().toString());
+        set(UNIQUE_ID, java.util.UUID.randomUUID().toString());
     }
 
     public Attributes(String collection) {
         attributes = new ConcurrentHashMap<>();
         set(OWNER, collection);
         set(CREATED_TIME, Long.toString(System.currentTimeMillis()));
-        set(UUID, java.util.UUID.randomUUID().toString());
+        set(UNIQUE_ID, java.util.UUID.randomUUID().toString());
     }
 
     public Attributes set(String key, String value) {
@@ -47,6 +49,10 @@ public class Attributes implements Serializable {
 
     public String get(String key) {
         return attributes.get(key);
+    }
+
+    public boolean hasKey(String key) {
+        return attributes.containsKey(key);
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {

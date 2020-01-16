@@ -126,9 +126,8 @@ public class MockDataGateServer {
         String userName = batchChangeEnd.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeEnd.getMessageHeader().getCollection();
 
-
         LastWriteWinMap replica = replicaStore.get(collection);
-        sendLocalChanges(batchChangeEnd.getMessageHeader().getCollection(), userName, lastSync,
+        sendChanges(batchChangeEnd.getMessageHeader().getCollection(), userName, lastSync,
             batchSize, debounce, replica, channel, replicaId);
     }
 
@@ -226,10 +225,10 @@ public class MockDataGateServer {
         }
     }
 
-    private void sendLocalChanges(String collection, String userName,
-                                  Long lastSyncTime, Integer chunkSize,
-                                  Integer debounce, LastWriteWinMap crdt,
-                                  WebSocketChannel channel, String replicaId) {
+    private void sendChanges(String collection, String userName,
+                             Long lastSyncTime, Integer chunkSize,
+                             Integer debounce, LastWriteWinMap crdt,
+                             WebSocketChannel channel, String replicaId) {
         try {
             String uuid = UUID.randomUUID().toString();
 
@@ -338,7 +337,7 @@ public class MockDataGateServer {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(collection);
         messageHeader.setMessageType(messageType);
-        messageHeader.setSource("ws://127.0.0.1:9090");
+        messageHeader.setSource(replicaId);
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
         messageHeader.setReplicaId(replicaId);
