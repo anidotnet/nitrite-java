@@ -220,6 +220,7 @@ public class MockDataGateServer {
     private void broadcast(String message, WebSocketChannel channel) {
         for (WebSocketChannel ch : channel.getPeerConnections()) {
             if (ch != channel) {
+                //FIXME: fix broadcasting
                 WebSockets.sendText(message, ch, null);
             }
         }
