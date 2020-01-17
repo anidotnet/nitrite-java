@@ -9,6 +9,7 @@ import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.store.NitriteMap;
 
 import java.text.Collator;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -47,7 +48,9 @@ class DocumentCursorImpl implements DocumentCursor {
 
     @Override
     public Iterator<Document> iterator() {
-        return new DocumentCursorIterator(readableStream.iterator());
+        Iterator<NitriteId> iterator = readableStream == null ? Collections.emptyIterator()
+            : readableStream.iterator();
+        return new DocumentCursorIterator(iterator);
     }
 
     private class DocumentCursorIterator implements Iterator<Document> {

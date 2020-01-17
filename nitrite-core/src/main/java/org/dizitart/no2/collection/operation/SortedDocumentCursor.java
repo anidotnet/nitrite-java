@@ -38,7 +38,9 @@ class SortedDocumentCursor implements ReadableStream<NitriteId> {
 
     @Override
     public Iterator<NitriteId> iterator() {
-        return new SortedDocumentIterator(field, sortOrder, collator, nullOrder, readableStream.iterator(), nitriteMap);
+        Iterator<NitriteId> iterator = readableStream == null ? Collections.emptyIterator()
+            : readableStream.iterator();
+        return new SortedDocumentIterator(field, sortOrder, collator, nullOrder, iterator, nitriteMap);
     }
 
     static class SortedDocumentIterator implements Iterator<NitriteId> {

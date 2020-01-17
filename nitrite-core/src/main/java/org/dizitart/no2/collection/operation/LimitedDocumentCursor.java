@@ -5,6 +5,7 @@ import org.dizitart.no2.common.LimitedIterator;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.ValidationException;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -30,6 +31,8 @@ class LimitedDocumentCursor implements ReadableStream<NitriteId> {
 
     @Override
     public Iterator<NitriteId> iterator() {
-        return new LimitedIterator<>(readableStream.iterator(), offset, size);
+        Iterator<NitriteId> iterator = readableStream == null ? Collections.emptyIterator()
+            : readableStream.iterator();
+        return new LimitedIterator<>(iterator, offset, size);
     }
 }

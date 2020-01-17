@@ -7,6 +7,7 @@ import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.filters.Filter;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -24,7 +25,9 @@ class FilteredReadableStream implements ReadableStream<NitriteId> {
 
     @Override
     public Iterator<NitriteId> iterator() {
-        return new FilteredIterator(readableStream.iterator(), filter);
+        Iterator<KeyValuePair<NitriteId, Document>> iterator = readableStream == null ? Collections.emptyIterator()
+            : readableStream.iterator();
+        return new FilteredIterator(iterator, filter);
     }
 
     static class FilteredIterator implements Iterator<NitriteId> {

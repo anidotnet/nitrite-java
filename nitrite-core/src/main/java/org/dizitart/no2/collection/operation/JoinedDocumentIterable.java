@@ -8,6 +8,7 @@ import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.store.NitriteMap;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -36,7 +37,9 @@ class JoinedDocumentIterable implements ReadableStream<Document> {
 
     @Override
     public Iterator<Document> iterator() {
-        return new JoinedDocumentIterator(readableStream.iterator());
+        Iterator<NitriteId> iterator = readableStream == null ? Collections.emptyIterator()
+            : readableStream.iterator();
+        return new JoinedDocumentIterator(iterator);
     }
 
     @Override

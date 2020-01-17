@@ -5,6 +5,7 @@ import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.WriteResult;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,6 +34,8 @@ class WriteResultImpl implements WriteResult {
 
     @Override
     public Iterator<NitriteId> iterator() {
-        return nitriteIdList.iterator();
+        Iterator<NitriteId> iterator = nitriteIdList == null ? Collections.emptyIterator()
+            : nitriteIdList.iterator();
+        return iterator;
     }
 }

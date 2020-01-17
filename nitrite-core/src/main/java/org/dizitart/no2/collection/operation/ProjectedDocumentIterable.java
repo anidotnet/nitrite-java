@@ -7,6 +7,7 @@ import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.store.NitriteMap;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -27,7 +28,9 @@ class ProjectedDocumentIterable implements ReadableStream<Document> {
 
     @Override
     public Iterator<Document> iterator() {
-        return new ProjectedDocumentIterator(readableStream.iterator());
+        Iterator<NitriteId> iterator = readableStream == null ? Collections.emptyIterator()
+            : readableStream.iterator();
+        return new ProjectedDocumentIterator(iterator);
     }
 
     @Override
