@@ -26,11 +26,11 @@ import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexType;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.common.util.DocumentUtils.isSimilar;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.dizitart.no2.index.IndexOptions.indexOptions;
 import static org.junit.Assert.*;
 
@@ -40,17 +40,17 @@ public class CollectionUpdateTest extends BaseCollectionTest {
     public void testUpdate() {
         insert();
 
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 1);
         for (Document document : cursor) {
             assertEquals(document.get("lastName"), "ln1");
         }
 
-        WriteResult updateResult = collection.update(when("firstName").eq("fn1"),
+        WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
                 createDocument("lastName", "new-last-name"));
         assertEquals(updateResult.getAffectedCount(), 1);
 
-        cursor = collection.find(when("firstName").eq("fn1"));
+        cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 1);
         for (Document document : cursor) {
             assertEquals(document.get("lastName"), "new-last-name");
@@ -76,62 +76,62 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         assertEquals(writeResult.getAffectedCount(), 1);
         assertEquals(collection.size(), 4);
 
-        Document document = collection.find(when("lastName").eq("ln4"))
+        Document document = collection.find(where("lastName").eq("ln4"))
                 .firstOrNull();
-        assertEquals(document, update);
+        assertTrue(isSimilar(document, update, "lastName"));
     }
 
     @Test
     public void testOptionUpsert() {
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 0);
 
-        WriteResult updateResult = collection.update(when("firstName").eq("fn1"),
+        WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
                 doc1, UpdateOptions.updateOptions(true));
         assertEquals(updateResult.getAffectedCount(), 1);
 
-        cursor = collection.find(when("firstName").eq("fn1"));
+        cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 1);
         for (Document document : cursor) {
-            Assert.assertEquals(document, doc1);
+            assertTrue(isSimilar(document, doc1, "firstName", "lastName", "birthDay", "data", "list", "body"));
         }
     }
 
     @Test
     public void testUpdateMultiple() {
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 0);
 
         insert();
 
         Document document = createDocument("lastName", "newLastName1");
-        WriteResult updateResult = collection.update(when("firstName").eq("fn1").not(),
+        WriteResult updateResult = collection.update(where("firstName").eq("fn1").not(),
                 document);
         assertEquals(updateResult.getAffectedCount(), 2);
 
-        cursor = collection.find(when("lastName").eq("newLastName1"));
+        cursor = collection.find(where("lastName").eq("newLastName1"));
         assertEquals(cursor.size(), 2);
     }
 
     @Test
     public void testUpdateWithOptionsUpsertFalse() {
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 0);
 
         UpdateOptions updateOptions = new UpdateOptions();
         updateOptions.setInsertIfAbsent(false);
 
-        WriteResult updateResult = collection.update(when("firstName").eq("fn1"),
+        WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
                 doc1, updateOptions);
         assertEquals(updateResult.getAffectedCount(), 0);
 
-        cursor = collection.find(when("firstName").eq("fn1"));
+        cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 0);
     }
 
     @Test
     public void testUpdateMultipleWithJustOnceFalse() {
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 0);
 
         insert();
@@ -140,17 +140,17 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         updateOptions.setJustOnce(false);
 
         Document document = createDocument("lastName", "newLastName1");
-        WriteResult updateResult = collection.update(when("firstName").eq("fn1").not(),
+        WriteResult updateResult = collection.update(where("firstName").eq("fn1").not(),
                 document, updateOptions);
         assertEquals(updateResult.getAffectedCount(), 2);
 
-        cursor = collection.find(when("lastName").eq("newLastName1"));
+        cursor = collection.find(where("lastName").eq("newLastName1"));
         assertEquals(cursor.size(), 2);
     }
 
     @Test(expected = InvalidOperationException.class)
     public void testUpdateMultipleWithJustOnceTrue() {
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 0);
 
         insert();
@@ -159,7 +159,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         updateOptions.setJustOnce(true);
 
         Document document = createDocument("lastName", "newLastName1");
-        collection.update(when("firstName").eq("fn1").not(),
+        collection.update(where("firstName").eq("fn1").not(),
             document, updateOptions);
     }
 
@@ -167,17 +167,17 @@ public class CollectionUpdateTest extends BaseCollectionTest {
     public void testUpdateWithNewField() {
         insert();
 
-        DocumentCursor cursor = collection.find(when("firstName").eq("fn1"));
+        DocumentCursor cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 1);
         for (Document document : cursor) {
             assertEquals(document.get("lastName"), "ln1");
         }
 
-        WriteResult updateResult = collection.update(when("firstName").eq("fn1"),
+        WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
                 createDocument("new-value", "new-value-value"));
         assertEquals(updateResult.getAffectedCount(), 1);
 
-        cursor = collection.find(when("firstName").eq("fn1"));
+        cursor = collection.find(where("firstName").eq("fn1"));
         assertEquals(cursor.size(), 1);
         for (Document document : cursor) {
             assertEquals(document.get("new-value"), "new-value-value");
@@ -188,14 +188,14 @@ public class CollectionUpdateTest extends BaseCollectionTest {
     public void testUpdateInvalidFilter() {
         insert();
 
-        DocumentCursor cursor = collection.find(when("lastName").eq("ln1"));
+        DocumentCursor cursor = collection.find(where("lastName").eq("ln1"));
         assertEquals(cursor.size(), 1);
         for (Document document : cursor) {
             assertEquals(document.get("firstName"), "fn1");
         }
 
         // to check if NitriteId is valid.
-        WriteResult updateResult = collection.update(when("some-value").eq("some-value"),
+        WriteResult updateResult = collection.update(where("some-value").eq("some-value"),
                 createDocument("lastName", "new-last-name"));
         assertEquals(updateResult.getAffectedCount(), 0);
     }
@@ -260,13 +260,13 @@ public class CollectionUpdateTest extends BaseCollectionTest {
 
         coll.createIndex("fruit", indexOptions(IndexType.Unique));
 
-        assertEquals(coll.find(when("fruit").eq("Apple")).size(), 1);
+        assertEquals(coll.find(where("fruit").eq("Apple")).size(), 1);
 
-        Document doc3 = coll.find(when("id").eq("test-2")).firstOrNull();
+        Document doc3 = coll.find(where("id").eq("test-2")).firstOrNull();
 
         doc3.put("fruit", "Apple");
         coll.update(doc3);
 
-        assertEquals(coll.find(when("fruit").eq("Apple")).size(), 1);
+        assertEquals(coll.find(where("fruit").eq("Apple")).size(), 1);
     }
 }

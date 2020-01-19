@@ -14,7 +14,7 @@ public class FluentFilter {
     private FluentFilter() {
     }
 
-    public static FluentFilter when(String field) {
+    public static FluentFilter where(String field) {
         FluentFilter filter = new FluentFilter();
         filter.field = field;
         return filter;

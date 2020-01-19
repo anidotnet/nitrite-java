@@ -105,22 +105,22 @@ import static org.dizitart.no2.common.Constants.DOC_ID;
  * --
  *
  * // returns the ids of the documents whose age field value is 30
- * collection.find(when("age").eq(30));
+ * collection.find(where("age").eq(30));
  *
  * // age field value is greater than 30
- * collection.find(when("age").gt(30));
+ * collection.find(where("age").gt(30));
  *
  * // age field value is not 30
- * collection.find(when("age").eq(30).not()));
+ * collection.find(where("age").eq(30).not()));
  *
  * // age field value is 30 and salary greater than 10K
- * collection.find(when("age").eq(30).and(when("salary").gt(10000)));
+ * collection.find(where("age").eq(30).and(where("salary").gt(10000)));
  *
  * // note field contains the string 'hello'
- * collection.find(when("note").regex("hello"));
+ * collection.find(where("note").regex("hello"));
  *
  * // prices field contains price value between 10 to 20
- * collection.find(when("prices").elemMatch($.gt(10).and($.lt(20))));
+ * collection.find(where("prices").elemMatch($.gt(10).and($.lt(20))));
  *
  * --
  *
@@ -155,13 +155,13 @@ import static org.dizitart.no2.common.Constants.DOC_ID;
  * collection.insert(doc);
  *
  * // filter on nested document
- * collection.find(when("location.address.line1").eq("40"));
+ * collection.find(where("location.address.line1").eq("40"));
  *
  * // filter on array using array index
- * collection.find(when("location.address.house.2").eq("3"));
+ * collection.find(where("location.address.house.2").eq("3"));
  *
  * // filter on object array
- * collection.find(when("objArray.0.field").eq(1));
+ * collection.find(where("objArray.0.field").eq(1));
  *
  *
  * --
@@ -199,7 +199,7 @@ public interface Filter {
      * --
      * // matches all documents where 'age' field has value as 30 and
      * // 'name' field has value as John Doe
-     * collection.find(when("age").eq(30).and(when("name").eq("John Doe")));
+     * collection.find(where("age").eq(30).and(where("name").eq("John Doe")));
      * --
      *
      * @param filter other filter
@@ -219,7 +219,7 @@ public interface Filter {
      * --
      * // matches all documents where 'age' field has value as 30 or
      * // 'name' field has value as John Doe
-     * collection.find(when("age").eq(30).or(when("name").eq("John Doe")));
+     * collection.find(where("age").eq(30).or(where("name").eq("John Doe")));
      * --
      *
      * @param filter other filter
@@ -239,7 +239,7 @@ public interface Filter {
      * .Example
      * --
      * // matches all documents where 'age' field has value not equals to 30
-     * collection.find(when("age").eq("age").not());
+     * collection.find(where("age").eq("age").not());
      * --
      *
      * @return the not filter

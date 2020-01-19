@@ -40,10 +40,12 @@ public class MockDataGateServer {
     private Undertow undertow;
     private Nitrite db;
     private ExecutorService executorService;
+    private String serverId;
 
     public MockDataGateServer() {
         executorService = Executors.newCachedThreadPool();
         db = NitriteBuilder.get().openOrCreate();
+        serverId = UUID.randomUUID().toString();
     }
 
     public void buildAndStartServer(int port, String host) {
@@ -122,13 +124,12 @@ public class MockDataGateServer {
         Long lastSync = batchChangeEnd.getLastSynced();
         Integer batchSize = batchChangeEnd.getBatchSize();
         Integer debounce = batchChangeEnd.getDebounce();
-        String replicaId = batchChangeEnd.getMessageHeader().getReplicaId();
         String userName = batchChangeEnd.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeEnd.getMessageHeader().getCollection();
 
         LastWriteWinMap replica = replicaStore.get(collection);
         sendChanges(batchChangeEnd.getMessageHeader().getCollection(), userName, lastSync,
-            batchSize, debounce, replica, channel, replicaId);
+            batchSize, debounce, replica, channel, serverId);
     }
 
     protected void handleBatchChangeContinue(WebSocketChannel channel, BatchChangeContinue batchChangeContinue) {
@@ -137,7 +138,7 @@ public class MockDataGateServer {
 
         String userName = batchChangeContinue.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeContinue.getMessageHeader().getCollection();
-        String replicaId = batchChangeContinue.getMessageHeader().getReplicaId();
+        String replicaId = batchChangeContinue.getMessageHeader().getSource();
         LastWriteWinMap replica = replicaStore.get(collection);
         replica.merge(batchChangeContinue.getFeed());
 
@@ -340,7 +341,6 @@ public class MockDataGateServer {
         messageHeader.setSource(replicaId);
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
-        messageHeader.setReplicaId(replicaId);
         return messageHeader;
     }
 }

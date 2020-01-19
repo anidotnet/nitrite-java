@@ -1,20 +1,16 @@
-package org.dizitart.no2.plugin;
+package org.dizitart.no2.module;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.exceptions.PluginException;
-import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.Indexer;
+import org.dizitart.no2.index.*;
+import org.dizitart.no2.mapper.MappableMapper;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.store.NitriteStore;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Anindya Chatterjee.
@@ -32,23 +28,15 @@ public class PluginManager {
         this.nitriteConfig = nitriteConfig;
     }
 
-    public void load(NitritePlugin... plugins) {
-        populatePlugins(plugins);
+    public void loadModule(NitriteModule module) {
+        if (module != null && module.plugins() != null) {
+            for (NitritePlugin plugin : module.plugins()) {
+                loadPlugin(plugin);
+            }
+        }
     }
 
     public void findAndLoadPlugins() {
-        Package[] packages = Package.getPackages();
-        for (Package p : packages) {
-            Annotation[] annotations = p.getAnnotations();
-            for (Annotation annotation : annotations) {
-                if (annotation.annotationType().equals(NitritePluginContainer.class)) {
-                    NitritePluginContainer container = (NitritePluginContainer) annotation;
-                    Class<? extends NitritePlugin>[] plugins = container.plugins();
-                    load(plugins);
-                }
-            }
-        }
-
         try {
             loadInternalPlugins();
         } catch (Exception e) {
@@ -73,37 +61,19 @@ public class PluginManager {
         }
     }
 
-    @SafeVarargs
-    private final void load(Class<? extends NitritePlugin>... pluginTypes) {
-        if (pluginTypes != null) {
-            for (Class<? extends NitritePlugin> pluginType : pluginTypes) {
-                try {
-                    if (NitriteMapper.class.isAssignableFrom(pluginType) && nitriteMapper != null) continue;
-                    if (NitriteStore.class.isAssignableFrom(pluginType) && nitriteStore != null) continue;
-
-                    Constructor<? extends NitritePlugin> pluginConstructor = pluginType.getDeclaredConstructor();
-                    pluginConstructor.setAccessible(true);
-                    NitritePlugin nitritePlugin = pluginConstructor.newInstance();
-                    load(nitritePlugin);
-                } catch (Throwable t) {
-                    log.error("Error while loading plugin " + pluginType.getName(), t);
-                    throw new PluginException("failed to load plugin " + pluginType.getName());
-                }
-            }
-        }
+    private void loadPlugin(NitritePlugin plugin) {
+        populatePlugins(plugin);
     }
 
     private void initializePlugin(NitritePlugin plugin) {
         plugin.initialize(nitriteConfig);
     }
 
-    private void populatePlugins(NitritePlugin[] plugins) {
-        if (plugins != null) {
-            for (NitritePlugin plugin : plugins) {
-                loadIfIndexer(plugin);
-                loadIfNitriteMapper(plugin);
-                loadIfNitriteStore(plugin);
-            }
+    private void populatePlugins(NitritePlugin plugin) {
+        if (plugin != null) {
+            loadIfIndexer(plugin);
+            loadIfNitriteMapper(plugin);
+            loadIfNitriteStore(plugin);
         }
     }
 
@@ -136,22 +106,21 @@ public class PluginManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void loadInternalPlugins() throws Exception {
+    private void loadInternalPlugins() {
         if (!indexerMap.containsKey(IndexType.Unique)) {
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.UniqueIndexer"));
+            loadPlugin(new UniqueIndexer());
         }
 
         if (!indexerMap.containsKey(IndexType.NonUnique)) {
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NonUniqueIndexer"));
+            loadPlugin(new NonUniqueIndexer());
         }
 
         if (!indexerMap.containsKey(IndexType.Fulltext)) {
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.index.NitriteTextIndexer"));
+            loadPlugin(new NitriteTextIndexer());
         }
 
         if (nitriteMapper == null) {
-            load((Class<? extends NitritePlugin>) Class.forName("org.dizitart.no2.mapper.MappableMapper"));
+            loadPlugin(new MappableMapper());
         }
     }
 }

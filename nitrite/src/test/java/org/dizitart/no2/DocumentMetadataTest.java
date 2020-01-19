@@ -24,9 +24,8 @@ import org.dizitart.no2.collection.events.EventType;
 import org.junit.Test;
 
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.filters.FluentFilter.when;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.dizitart.no2.filters.FluentFilter.where;
+import static org.junit.Assert.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -39,18 +38,19 @@ public class DocumentMetadataTest extends BaseCollectionTest {
         assertEquals(document.getLastModifiedSinceEpoch().longValue(), 0L);
 
         collection.insert(document);
+        document = collection.find().firstOrNull();
 
         assertEquals(document.getRevision().intValue(), 1);
         assertTrue(document.getLastModifiedSinceEpoch() > 0);
 
         long previous = document.getRevision();
 
-        DocumentCursor cursor = collection.find(when("test_key").eq("test_value"));
+        DocumentCursor cursor = collection.find(where("test_key").eq("test_value"));
         document = cursor.firstOrNull();
         document.put("another_key", "another_value");
 
         collection.update(document);
-        cursor = collection.find(when("test_key").eq("test_value"));
+        cursor = collection.find(where("test_key").eq("test_value"));
         document = cursor.firstOrNull();
 
         assertTrue(document.getRevision() > previous);

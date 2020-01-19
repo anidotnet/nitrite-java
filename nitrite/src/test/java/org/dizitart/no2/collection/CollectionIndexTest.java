@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
 
 import static org.awaitility.Awaitility.await;
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.dizitart.no2.index.IndexOptions.indexOptions;
 import static org.junit.Assert.*;
 
@@ -113,13 +113,13 @@ public class CollectionIndexTest extends BaseCollectionTest {
 
         insert();
 
-        WriteResult result = collection.remove(when("firstName").eq("fn1"));
+        WriteResult result = collection.remove(where("firstName").eq("fn1"));
         assertEquals(result.getAffectedCount(), 1);
 
         DocumentCursor cursor = collection.find();
         assertEquals(cursor.size(), 2);
 
-        result = collection.remove(when("body").text("Lorem"));
+        result = collection.remove(where("body").text("Lorem"));
         assertEquals(result.getAffectedCount(), 1);
 
         cursor = collection.find();
@@ -224,12 +224,12 @@ public class CollectionIndexTest extends BaseCollectionTest {
 
         collection.insert(doc1, doc2, doc3, doc4, doc5);
 
-        DocumentCursor cursor = collection.find(when("field").eq(5));
+        DocumentCursor cursor = collection.find(where("field").eq(5));
         assertEquals(cursor.size(), 1);
 
         collection.createIndex("field", indexOptions(IndexType.NonUnique));
 
-        cursor = collection.find(when("field").eq(5));
+        cursor = collection.find(where("field").eq(5));
         assertEquals(cursor.size(), 1);
     }
 
@@ -277,9 +277,9 @@ public class CollectionIndexTest extends BaseCollectionTest {
         collection.insert(createDocument("first", "xyz").put("second", 789).put("third", null));
 
         collection.createIndex("first", indexOptions(IndexType.Unique));
-        assertEquals(collection.find(when("first").eq(null)).size(), 1);
+        assertEquals(collection.find(where("first").eq(null)).size(), 1);
 
         collection.createIndex("third", indexOptions(IndexType.NonUnique));
-        assertEquals(collection.find(when("third").eq(null)).size(), 2);
+        assertEquals(collection.find(where("third").eq(null)).size(), 2);
     }
 }

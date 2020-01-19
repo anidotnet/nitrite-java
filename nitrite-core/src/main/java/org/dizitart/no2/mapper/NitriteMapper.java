@@ -1,6 +1,6 @@
 package org.dizitart.no2.mapper;
 
-import org.dizitart.no2.plugin.NitritePlugin;
+import org.dizitart.no2.module.NitritePlugin;
 
 /**
  * @author Anindya Chatterjee.

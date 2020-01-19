@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.awaitility.Awaitility.await;
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.filters.Filter.ALL;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.*;
 
 /**
@@ -144,7 +144,7 @@ public class EventTest {
         assertNotNull(listener.getItem());
 
         e.setAddress("xyz");
-        employeeRepository.update(when("empId").eq(1L), e);
+        employeeRepository.update(where("empId").eq(1L), e);
         await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Update));
         assertEquals(listener.getAction(), EventType.Update);
         assertNotNull(listener.getItem());
@@ -159,7 +159,7 @@ public class EventTest {
         e.setEmpId(1L);
         e.setAddress("abcd");
 
-        employeeRepository.update(when("empId").eq(1), e, true);
+        employeeRepository.update(where("empId").eq(1), e, true);
         await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
         assertEquals(listener.getAction(), EventType.Insert);
         assertNotNull(listener.getItem());
@@ -174,7 +174,7 @@ public class EventTest {
         employeeRepository.insert(e);
         await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
 
-        employeeRepository.remove(when("empId").eq(1L));
+        employeeRepository.remove(where("empId").eq(1L));
         await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Remove));
 
         System.out.println("Action - " + listener.getAction());

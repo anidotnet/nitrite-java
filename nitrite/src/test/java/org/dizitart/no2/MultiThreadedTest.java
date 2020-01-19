@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.dizitart.no2.common.concurrent.ExecutorServiceManager.shutdownExecutors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -113,12 +113,12 @@ public class MultiThreadedTest {
                         }
 
                         long unixTime = (long) document.get("unixTime");
-                        DocumentCursor cursor = collection.find(when("unixTime").eq(unixTime));
+                        DocumentCursor cursor = collection.find(where("unixTime").eq(unixTime));
                         assertTrue(cursor.size() >= 0);
 
                         if (collection.hasIndex("text") && !collection.isIndexing("text")) {
                             String textData = (String) document.get("text");
-                            cursor = collection.find(when("text").text(textData));
+                            cursor = collection.find(where("text").text(textData));
                             assertTrue(cursor.size() >= 0);
                         }
 
@@ -143,7 +143,7 @@ public class MultiThreadedTest {
         DocumentCursor cursor = collection.find();
         assertEquals(cursor.size(), docCounter.get());
 
-        cursor = collection.find(when("unixTime").gt(1));
+        cursor = collection.find(where("unixTime").gt(1));
         assertEquals(cursor.size(), docCounter.get());
 
         db.close();

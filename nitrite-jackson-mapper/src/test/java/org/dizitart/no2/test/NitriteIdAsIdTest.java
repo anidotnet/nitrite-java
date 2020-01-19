@@ -27,7 +27,6 @@ import org.dizitart.no2.common.util.Iterables;
 import org.dizitart.no2.exceptions.InvalidIdException;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.mapper.JacksonMapper;
-import org.dizitart.no2.mapper.MappableMapper;
 import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.junit.After;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.dizitart.no2.module.NitriteModule.module;
 import static org.dizitart.no2.test.BaseObjectRepositoryTest.getRandomTempDbFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -53,7 +53,7 @@ public class NitriteIdAsIdTest {
     @Before
     public void before() {
         JacksonMapper mapper = new JacksonMapper();
-        db = NitriteBuilder.get().loadPlugin(mapper).filePath(fileName).openOrCreate();
+        db = NitriteBuilder.get().loadModule(module(mapper)).filePath(fileName).openOrCreate();
         repo = db.getRepository(WithNitriteId.class);
     }
 

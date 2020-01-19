@@ -21,6 +21,7 @@ package org.dizitart.kno2
 import org.dizitart.no2.exceptions.SecurityException
 import org.dizitart.no2.index.NitriteTextIndexer
 import org.dizitart.no2.index.fulltext.UniversalTextTokenizer
+import org.dizitart.no2.module.NitriteModule.module
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
@@ -57,7 +58,7 @@ class BuilderTest : BaseTest() {
             autoCommitBufferSize = 2048
             compress = true
             autoCompact = false
-            loadPlugins(NitriteTextIndexer(UniversalTextTokenizer()))
+            loadModule(module(NitriteTextIndexer(UniversalTextTokenizer())))
         }
 
         val context = db?.config!!

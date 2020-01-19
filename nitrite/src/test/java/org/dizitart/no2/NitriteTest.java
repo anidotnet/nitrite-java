@@ -39,7 +39,7 @@ import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.common.Constants.INTERNAL_NAME_SEPARATOR;
 import static org.dizitart.no2.common.Constants.META_MAP_NAME;
 import static org.dizitart.no2.filters.Filter.ALL;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.*;
 
 /**
@@ -335,7 +335,7 @@ public class NitriteTest {
         }).start();
 
         for (int i = 0; i < 1000; ++i) {
-            repository.find(when("status").eq(Receipt.Status.COMPLETED).not())
+            repository.find(where("status").eq(Receipt.Status.COMPLETED).not())
                 .sort("createdTimestamp", SortOrder.Descending).toList();
             try {
                 Thread.sleep(50);
@@ -394,8 +394,8 @@ public class NitriteTest {
 //        repository.insert(data);
 
         assertNotNull(repository.getAttributes());
-        assertEquals(repository.find(when("firstName").eq("Sherlock")).size(), 1);
-        assertEquals(repository.find(when("address").text("London")).size(), 2);
+        assertEquals(repository.find(where("firstName").eq("Sherlock")).size(), 1);
+        assertEquals(repository.find(where("address").text("London")).size(), 2);
 
         db.close();
     }

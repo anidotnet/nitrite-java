@@ -20,10 +20,8 @@ package org.dizitart.no2.test;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.meta.Attributes;
-import org.dizitart.no2.common.WriteResult;
-import org.dizitart.no2.mapper.JacksonMapper;
+import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.test.data.*;
@@ -37,7 +35,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.UUID;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.*;
 
 /**
@@ -50,7 +48,7 @@ public class ObjectRepositoryTest {
     @Before
     public void setUp() {
         db = NitriteBuilder.get()
-                .loadPlugin(new JacksonMapper())
+                .loadModule(new JacksonMapperModule())
                 .filePath(dbPath)
                 .openOrCreate();
     }
@@ -158,10 +156,10 @@ public class ObjectRepositoryTest {
         }
 
         Cursor<StressRecord> cursor
-            = repository.find(when("failed").eq(false));
+            = repository.find(where("failed").eq(false));
         for (StressRecord record : cursor) {
             record.setProcessed(true);
-            repository.update(when("firstName").eq(record.getFirstName()), record);
+            repository.update(where("firstName").eq(record.getFirstName()), record);
         }
     }
 
@@ -204,9 +202,9 @@ public class ObjectRepositoryTest {
         object2.setId(new Date(1482773720L));
         repository.insert(object2);
 
-        assertEquals(repository.find(when("id").eq(new Date(1482773634L)))
+        assertEquals(repository.find(where("id").eq(new Date(1482773634L)))
             .firstOrNull(), object1);
-        assertEquals(repository.find(when("id").eq(new Date(1482773720L)))
+        assertEquals(repository.find(where("id").eq(new Date(1482773720L)))
             .firstOrNull(), object2);
     }
 
@@ -238,10 +236,10 @@ public class ObjectRepositoryTest {
         childClass.setText("I am third class");
         repository.insert(childClass);
 
-        assertEquals(repository.find(when("text").text("class")).size(), 3);
-        assertEquals(repository.find(when("text").text("second")).size(), 0); // filtered in stop words
-        assertEquals(repository.find(when("date").eq(new Date(100000L))).size(), 1);
-        assertEquals(repository.find(when("id").eq(1L)).size(), 1);
+        assertEquals(repository.find(where("text").text("class")).size(), 3);
+        assertEquals(repository.find(where("text").text("second")).size(), 0); // filtered in stop words
+        assertEquals(repository.find(where("date").eq(new Date(100000L))).size(), 1);
+        assertEquals(repository.find(where("id").eq(1L)).size(), 1);
     }
 
     @Test

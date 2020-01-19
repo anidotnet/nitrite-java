@@ -45,21 +45,21 @@ class WriteOperations {
         log.debug("Total {} document(s) to be inserted in {}", documents.length, nitriteMap.getName());
 
         for (Document document : documents) {
-            NitriteId nitriteId = document.getId();
+            Document item = document.clone();
+            NitriteId nitriteId = item.getId();
 
-            if (!REPLICATOR.contentEquals(document.getSource())) {
+            if (!REPLICATOR.contentEquals(item.getSource())) {
                 // if replicator is not inserting the document that means
                 // it is being inserted by user, so update metadata
-                document.remove(DOC_SOURCE);
-                document.put(DOC_REVISION, 1);
-                document.put(DOC_MODIFIED, System.currentTimeMillis());
+                item.remove(DOC_SOURCE);
+                item.put(DOC_REVISION, 1);
+                item.put(DOC_MODIFIED, System.currentTimeMillis());
             } else {
                 // if replicator is inserting the document, remove the source
                 // but keep the revision intact
-                document.remove(DOC_SOURCE);
+                item.remove(DOC_SOURCE);
             }
 
-            Document item = document.clone();
             log.debug("Inserting document {} in {}", item, nitriteMap.getName());
             Document already = nitriteMap.putIfAbsent(nitriteId, item);
 
@@ -81,9 +81,11 @@ class WriteOperations {
             }
 
             nitriteIdList.add(nitriteId);
+
+            Document eventDoc = item.clone();
             CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
-            changedItem.setItem(document);
-            changedItem.setTimestamp(document.getLastModifiedSinceEpoch());
+            changedItem.setItem(eventDoc);
+            changedItem.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
             changedItem.setEventType(EventType.Insert);
             alert(EventType.Insert, changedItem);
         }
@@ -133,24 +135,25 @@ class WriteOperations {
 
             for(final Document document : cursor) {
                 if (document != null) {
-                    NitriteId nitriteId = document.getId();
+                    Document item = document.clone();
                     Document oldDocument = document.clone();
-                    log.debug("Document to update {} in {}", document, nitriteMap.getName());
+
+                    NitriteId nitriteId = item.getId();
+                    log.debug("Document to update {} in {}", item, nitriteMap.getName());
 
                     if (!REPLICATOR.contentEquals(update.getSource())) {
                         update.remove(DOC_SOURCE);
-                        document.putAll(update);
-                        int rev = document.getRevision();
-                        document.put(DOC_REVISION, rev + 1);
-                        document.put(DOC_MODIFIED, System.currentTimeMillis());
+                        item.merge(update);
+                        int rev = item.getRevision();
+                        item.put(DOC_REVISION, rev + 1);
+                        item.put(DOC_MODIFIED, System.currentTimeMillis());
                     } else {
                         update.remove(DOC_SOURCE);
-                        document.putAll(update);
+                        item.merge(update);
                     }
 
-                    Document item = document.clone();
                     nitriteMap.put(nitriteId, item);
-                    log.debug("Document {} updated in {}", document, nitriteMap.getName());
+                    log.debug("Document {} updated in {}", item, nitriteMap.getName());
 
                     // if 'update' only contains id value, affected count = 0
                     if (update.size() > 0) {
@@ -160,9 +163,10 @@ class WriteOperations {
                     indexOperations.updateIndex(oldDocument, item, nitriteId);
 
                     CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
-                    changedItem.setItem(document);
+                    Document eventDoc = item.clone();
+                    changedItem.setItem(eventDoc);
                     changedItem.setEventType(EventType.Update);
-                    changedItem.setTimestamp(document.getLastModifiedSinceEpoch());
+                    changedItem.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
                     alert(EventType.Update, changedItem);
                 }
             }
@@ -190,21 +194,23 @@ class WriteOperations {
             filter, cursor.size(), justOne, nitriteMap.getName());
 
         for (Document document : cursor) {
-            NitriteId nitriteId = document.getId();
-            indexOperations.removeIndex(document, nitriteId);
+            Document item = document.clone();
+            NitriteId nitriteId = item.getId();
+            indexOperations.removeIndex(item, nitriteId);
 
-            Document removed = nitriteMap.remove(nitriteId);
-            int rev = removed.getRevision();
-            removed.put(DOC_REVISION, rev + 1);
-            removed.put(DOC_MODIFIED, System.currentTimeMillis());
+            item = nitriteMap.remove(nitriteId);
+            int rev = item.getRevision();
+            item.put(DOC_REVISION, rev + 1);
+            item.put(DOC_MODIFIED, System.currentTimeMillis());
 
-            log.debug("Document removed {} from {}", removed, nitriteMap.getName());
+            log.debug("Document removed {} from {}", item, nitriteMap.getName());
             result.addToList(nitriteId);
 
             CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
-            changedItem.setItem(removed);
+            Document eventDoc = item.clone();
+            changedItem.setItem(eventDoc);
             changedItem.setEventType(EventType.Remove);
-            changedItem.setTimestamp(removed.getLastModifiedSinceEpoch());
+            changedItem.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
             alert(EventType.Remove, changedItem);
 
             if (justOne) {

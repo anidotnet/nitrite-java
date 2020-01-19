@@ -1,4 +1,4 @@
-package org.dizitart.no2.plugin;
+package org.dizitart.no2.module;
 
 import org.dizitart.no2.NitriteConfig;
 

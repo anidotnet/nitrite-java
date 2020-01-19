@@ -2,9 +2,8 @@ package org.dizitart.no2.index;
 
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.plugin.NitritePlugin;
+import org.dizitart.no2.module.NitritePlugin;
 import org.dizitart.no2.store.NitriteMap;
-import org.dizitart.no2.store.NitriteStore;
 
 import static org.dizitart.no2.common.Constants.INDEX_PREFIX;
 import static org.dizitart.no2.common.Constants.INTERNAL_NAME_SEPARATOR;

@@ -25,7 +25,7 @@ import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.junit.Test;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -47,7 +47,7 @@ public class CollectionDeleteNegativeTest extends BaseCollectionTest {
         DocumentCursor cursor = collection.find();
         assertEquals(cursor.size(), 3);
 
-        WriteResult writeResult = collection.remove(when("lastName").gt(null));
+        WriteResult writeResult = collection.remove(where("lastName").gt(null));
         assertEquals(writeResult.getAffectedCount(), 0);
     }
 

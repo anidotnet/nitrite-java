@@ -78,30 +78,6 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
     }
 
     @Override
-    public Integer getRevision() {
-        if (!containsKey(DOC_REVISION)) {
-            return 0;
-        }
-        return get(DOC_REVISION, Integer.class);
-    }
-
-    @Override
-    public String getSource() {
-        if (!containsKey(DOC_SOURCE)) {
-            return "";
-        }
-        return get(DOC_SOURCE, String.class);
-    }
-
-    @Override
-    public Long getLastModifiedSinceEpoch() {
-        if (!containsKey(DOC_MODIFIED)) {
-            return 0L;
-        }
-        return get(DOC_MODIFIED, Long.class);
-    }
-
-    @Override
     public Set<String> getFields() {
         return getFieldsInternal("");
     }
@@ -124,7 +100,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
     }
 
     @Override
-    public Document putAll(Document document) {
+    public Document merge(Document document) {
         if (document instanceof NitriteDocument) {
             super.putAll((NitriteDocument) document);
         }

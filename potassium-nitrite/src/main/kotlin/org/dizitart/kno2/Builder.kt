@@ -21,7 +21,8 @@ package org.dizitart.kno2
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteBuilder
 import org.dizitart.no2.NitriteConfig
-import org.dizitart.no2.plugin.NitritePlugin
+import org.dizitart.no2.module.NitriteModule
+import org.dizitart.no2.module.NitriteModule.module
 import org.dizitart.no2.spatial.SpatialIndexer
 import java.io.File
 
@@ -32,7 +33,7 @@ import java.io.File
  * @author Anindya Chatterjee
  */
 class Builder internal constructor() {
-    private val pluginSet = mutableSetOf<NitritePlugin>()
+    private val modules = mutableSetOf<NitriteModule>()
 
     /**
      * Path for the file based store.
@@ -95,10 +96,10 @@ class Builder internal constructor() {
     var fieldSeparator: String = NitriteConfig.getFieldSeparator()
 
     /**
-     * Loads [NitritePlugin] instances.
+     * Loads [NitriteModule] instances.
      * */
-    fun loadPlugins(vararg plugins: NitritePlugin) {
-        pluginSet.addAll(plugins)
+    fun loadModule(module: NitriteModule) {
+        modules.add(module)
     }
 
     internal fun createNitriteBuilder() : NitriteBuilder {
@@ -110,7 +111,7 @@ class Builder internal constructor() {
         }
         builder.autoCommitBufferSize(autoCommitBufferSize)
 
-        pluginSet.forEach { builder.loadPlugin(it) }
+        modules.forEach { builder.loadModule(it) }
         loadDefaultPlugins(builder)
 
         builder.fieldSeparator(fieldSeparator)
@@ -124,24 +125,15 @@ class Builder internal constructor() {
     }
 
     private fun loadDefaultPlugins(builder: NitriteBuilder) {
-        var mapperFound = false
-        var spatialIndexerFound = false
-        pluginSet.forEach { plugin ->
-            if (plugin is KNO2JacksonMapper) {
-                mapperFound = true
-            }
+        val mapperFound = modules.any { module -> module.plugins().any { it is KNO2JacksonMapper }}
+        val spatialIndexerFound = modules.any { module -> module.plugins().any { it is SpatialIndexer }}
 
-            if (plugin is SpatialIndexer) {
-                spatialIndexerFound = true
-            }
-        }
-
-        if (!mapperFound) {
-            builder.loadPlugin(KNO2JacksonMapper())
-        }
-
-        if (!spatialIndexerFound) {
-            builder.loadPlugin(SpatialIndexer())
+        if (!mapperFound && spatialIndexerFound) {
+            builder.loadModule(module(KNO2JacksonMapper()))
+        } else if (!spatialIndexerFound && mapperFound) {
+            builder.loadModule(module(SpatialIndexer()))
+        } else if (!mapperFound && !spatialIndexerFound) {
+            builder.loadModule(KNO2Module())
         }
     }
 }

@@ -26,7 +26,7 @@ import org.dizitart.no2.test.data.ClassC;
 import org.dizitart.no2.repository.Cursor;
 import org.junit.Test;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -46,7 +46,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
         indexOptions.setIndexType(IndexType.Unique);
         aObjectRepository.createIndex("b.number", indexOptions);
 
-        cursor = aObjectRepository.find(when("b.number").eq(160).not()).
+        cursor = aObjectRepository.find(where("b.number").eq(160).not()).
             sort("b.number", SortOrder.Ascending).limit(0, 10);
 
         System.out.println("Available - " + !cursor.isEmpty());
@@ -57,7 +57,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
             System.out.println(classA);
         }
 
-        cursor = aObjectRepository.find(when("b.number").eq(160).not()).
+        cursor = aObjectRepository.find(where("b.number").eq(160).not()).
             sort("b.number", SortOrder.Descending).limit(2, 7);
 
         System.out.println("Available - " + !cursor.isEmpty());
@@ -68,7 +68,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
             System.out.println(classA);
         }
 
-        cursor = cObjectRepository.find(when("id").gt(900)).
+        cursor = cObjectRepository.find(where("id").gt(900)).
             sort("id", SortOrder.Descending).limit(2, 7);
         System.out.println("Available - " + !cursor.isEmpty());
         System.out.println("Total Size - " + cursor.size());

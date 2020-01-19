@@ -206,7 +206,6 @@ class LocalOperation implements ConnectionAware, ReplicationOperation {
         messageHeader.setSource(getReplicaId());
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(config.getUserName());
-        messageHeader.setReplicaId(getReplicaId());
         return messageHeader;
     }
 

@@ -20,10 +20,9 @@ package org.dizitart.no2.test;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
-import org.dizitart.no2.mapper.JacksonMapper;
-import org.dizitart.no2.mapper.MappableMapper;
-import org.dizitart.no2.test.data.*;
+import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.ObjectRepository;
+import org.dizitart.no2.test.data.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -129,8 +128,7 @@ public abstract class BaseObjectRepositoryTest {
             builder.disableAutoCompact();
         }
 
-        JacksonMapper jacksonMapper = new JacksonMapper();
-        builder.loadPlugin(jacksonMapper);
+        builder.loadModule(new JacksonMapperModule());
 
         if (isProtected) {
             db = builder.openOrCreate("test-user", "test-password");

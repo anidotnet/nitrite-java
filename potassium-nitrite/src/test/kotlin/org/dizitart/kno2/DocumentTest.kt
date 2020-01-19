@@ -19,6 +19,7 @@
 package org.dizitart.kno2
 
 import org.dizitart.kno2.filters.eq
+import org.dizitart.no2.common.util.DocumentUtils.isSimilar
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -70,7 +71,7 @@ class DocumentTest : BaseTest() {
         db?.getCollection("test") {
             insert(doc)
             val cursor = find("a" eq 1)
-            assertEquals(cursor.firstOrNull(), doc)
+            assertTrue(isSimilar(cursor.firstOrNull(), doc, "a"))
         }
     }
 }

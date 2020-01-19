@@ -25,8 +25,7 @@ import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
 import org.dizitart.no2.index.fulltext.Languages;
 import org.dizitart.no2.index.fulltext.UniversalTextTokenizer;
-import org.dizitart.no2.mapper.JacksonMapper;
-import org.dizitart.no2.mapper.MappableMapper;
+import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.junit.After;
@@ -38,7 +37,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.dizitart.no2.filters.Filter.ALL;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
+import static org.dizitart.no2.module.NitriteModule.module;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -115,8 +115,7 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
             builder.disableAutoCompact();
         }
 
-        JacksonMapper jacksonMapper = new JacksonMapper();
-        builder.loadPlugin(jacksonMapper);
+        builder.loadModule(new JacksonMapperModule());
 
         UniversalTextTokenizer tokenizer;
         if (isCompressed) {
@@ -124,7 +123,7 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
         } else {
             tokenizer = new UniversalTextTokenizer(Languages.ALL);
         }
-        builder.loadPlugin(new NitriteTextIndexer(tokenizer));
+        builder.loadModule(module(new NitriteTextIndexer(tokenizer)));
 
         if (!isProtected) {
             db = builder.openOrCreate("test-user", "test-password");
@@ -143,7 +142,7 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
 
     @Test
     public void testUniversalFullTextIndexing() {
-        Cursor<TextData> cursor = textRepository.find(when("text").text("Lorem"));
+        Cursor<TextData> cursor = textRepository.find(where("text").text("Lorem"));
         assertEquals(cursor.size(), 2);
         for (TextData data : cursor) {
             System.out.println("Id for English text -> " + data.id);
@@ -152,7 +151,7 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
             }
         }
 
-        cursor = textRepository.find(when("text").text("শহর"));
+        cursor = textRepository.find(where("text").text("শহর"));
         assertEquals(cursor.size(), 5);
         for (TextData data : cursor) {
             System.out.println("Id for Bengali text -> " + data.id);
@@ -161,9 +160,9 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
             }
         }
 
-        cursor = textRepository.find(when("text").text("転閉"));
+        cursor = textRepository.find(where("text").text("転閉"));
         assertEquals(cursor.size(), 0);
-        cursor = textRepository.find(when("text").text("*転閉*"));
+        cursor = textRepository.find(where("text").text("*転閉*"));
         assertEquals(cursor.size(), 2);
         for (TextData data : cursor) {
             System.out.println("Id for Chinese text -> " + data.id);
@@ -172,7 +171,7 @@ public class UniversalTextTokenizerTest extends BaseObjectRepositoryTest {
             }
         }
 
-        cursor = textRepository.find(when("text").text("أقبل"));
+        cursor = textRepository.find(where("text").text("أقبل"));
         if (isCompressed) {
             assertEquals(cursor.size(), 1);
             for (TextData data : cursor) {

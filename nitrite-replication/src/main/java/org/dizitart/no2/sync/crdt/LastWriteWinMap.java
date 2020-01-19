@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.dizitart.no2.common.Constants.*;
 import static org.dizitart.no2.filters.Filter.byId;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 
 /**
  * @author Anindya Chatterjee.
@@ -44,7 +44,7 @@ public class LastWriteWinMap {
     public LastWriteWinState getChangesSince(Long since, int offset, int size) {
         LastWriteWinState state = new LastWriteWinState();
 
-        DocumentCursor cursor = collection.find(when(DOC_MODIFIED).gte(since)).limit(offset, size);
+        DocumentCursor cursor = collection.find(where(DOC_MODIFIED).gte(since)).limit(offset, size);
         state.getChanges().addAll(cursor.toSet());
 
         if (offset == 0) {

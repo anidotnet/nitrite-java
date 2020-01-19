@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.*;
 
 /**
@@ -73,7 +73,7 @@ public class RxObjectRepositoryTest extends RxBaseTest {
 
         subscribe.dispose();
 
-        flowable = repository.update(when("name").eq("John Doe"),
+        flowable = repository.update(where("name").eq("John Doe"),
             new Employee("RxNitrite", 36));
         subscribe = repository.observe(EventType.Update)
             .subscribe(collectionEventInfo -> {
@@ -81,48 +81,48 @@ public class RxObjectRepositoryTest extends RxBaseTest {
             });
 
         assertEquals(2, repository.find().size().blockingGet().intValue());
-        assertEquals(repository.find(when("name").eq("RxNitrite")).size().blockingGet().intValue(), 0);
+        assertEquals(repository.find(where("name").eq("RxNitrite")).size().blockingGet().intValue(), 0);
         test = flowable.test();
         test.awaitTerminalEvent();
         test.assertComplete();
         test.assertNoErrors();
-        assertEquals(repository.find(when("name").eq("RxNitrite")).size().blockingGet().intValue(), 1);
+        assertEquals(repository.find(where("name").eq("RxNitrite")).size().blockingGet().intValue(), 1);
         assertEquals(2, repository.find().size().blockingGet().intValue());
 
         flowable = repository.update(new Employee("RxNitrite", 40));
-        assertEquals(repository.find(when("name").eq("RxNitrite")).firstOrNull().blockingGet().getAge().longValue(), 36L);
+        assertEquals(repository.find(where("name").eq("RxNitrite")).firstOrNull().blockingGet().getAge().longValue(), 36L);
         test = flowable.test();
         test.awaitTerminalEvent();
         test.assertComplete();
         test.assertNoErrors();
-        assertEquals(repository.find(when("name").eq("RxNitrite")).firstOrNull().blockingGet().getAge().longValue(), 40L);
+        assertEquals(repository.find(where("name").eq("RxNitrite")).firstOrNull().blockingGet().getAge().longValue(), 40L);
 
         Employee employee = new Employee();
         employee.setName("Iron Man");
         employee.setAge(99);
-        flowable = repository.update(when("name").eq("RxNitrite"), employee, true);
-        assertNull(repository.find(when("name").eq("Iron Man")).firstOrNull().blockingGet());
+        flowable = repository.update(where("name").eq("RxNitrite"), employee, true);
+        assertNull(repository.find(where("name").eq("Iron Man")).firstOrNull().blockingGet());
         test = flowable.test();
         test.awaitTerminalEvent();
         test.assertComplete();
         test.assertNoErrors();
-        assertEquals(99, repository.find(when("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
+        assertEquals(99, repository.find(where("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
 
-        flowable = repository.update(when("name").eq("Iron Man"), Document.createDocument("age", 100));
-        assertEquals(99, repository.find(when("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
+        flowable = repository.update(where("name").eq("Iron Man"), Document.createDocument("age", 100));
+        assertEquals(99, repository.find(where("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
         test = flowable.test();
         test.awaitTerminalEvent();
         test.assertComplete();
         test.assertNoErrors();
-        assertEquals(100, repository.find(when("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
+        assertEquals(100, repository.find(where("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
 
-        flowable = repository.update(when("name").eq("Iron Man"), Document.createDocument("age", 200), true);
-        assertEquals(100, repository.find(when("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
+        flowable = repository.update(where("name").eq("Iron Man"), Document.createDocument("age", 200), true);
+        assertEquals(100, repository.find(where("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
         test = flowable.test();
         test.awaitTerminalEvent();
         test.assertComplete();
         test.assertNoErrors();
-        assertEquals(200, repository.find(when("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
+        assertEquals(200, repository.find(where("name").eq("Iron Man")).firstOrNull().blockingGet().getAge().longValue());
 
         subscribe.dispose();
     }

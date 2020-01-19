@@ -8,9 +8,11 @@ import org.dizitart.no2.index.IndexType;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.common.util.DocumentUtils.isSimilar;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.dizitart.no2.index.IndexOptions.indexOptions;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Anindya Chatterjee
@@ -63,19 +65,19 @@ public class CollectionFieldIndexTest {
         WriteResult writeResult = collection.insert(doc1, doc2, doc3);
         assertEquals(writeResult.getAffectedCount(), 3);
 
-        DocumentCursor documents = collection.find(when("color").eq("red"));
-        assertEquals(documents.firstOrNull(), doc1);
+        DocumentCursor documents = collection.find(where("color").eq("red"));
+        assertTrue(isSimilar(documents.firstOrNull(), doc1, "name", "color", "books"));
 
-        documents = collection.find(when("books.name").text("abcd"));
+        documents = collection.find(where("books.name").text("abcd"));
         assertEquals(documents.size(), 2);
 
-        documents = collection.find(when("books.tag").eq("tag2"));
+        documents = collection.find(where("books.tag").eq("tag2"));
         assertEquals(documents.size(), 2);
 
-        documents = collection.find(when("books.tag").eq("tag5"));
+        documents = collection.find(where("books.tag").eq("tag5"));
         assertEquals(documents.size(), 1);
 
-        documents = collection.find(when("books.tag").eq("tag10"));
+        documents = collection.find(where("books.tag").eq("tag10"));
         assertEquals(documents.size(), 0);
     }
 }

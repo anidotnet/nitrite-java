@@ -4,7 +4,6 @@ import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.sync.Replica;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.junit.After;
@@ -17,6 +16,8 @@ import java.util.UUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.dizitart.no2.collection.Document.createDocument;
+import static org.dizitart.no2.common.util.DocumentUtils.isSimilar;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.*;
 
 /**
@@ -63,29 +64,31 @@ public class ReplicaTest {
         assertTrue(server.getUserReplicaMap().containsKey("anidotnet"));
         assertTrue(server.getCollectionReplicaMap().containsKey("anidotnet@replicate-test"));
         LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
-        Document doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
-        assertEquals(document, doc);
 
-        collection.remove(document);
-        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
-        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        Document doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
+
+        assertTrue(isSimilar(document, doc, "firstName", "lastName", "address", "pin"));
+
+        collection.remove(doc);
+        await().atMost(50, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
+        doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
         assertNull(doc);
         assertEquals(collection.size(), 0);
 
         collection.insert(document);
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
-        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
-        assertEquals(document, doc);
+        doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
+        assertTrue(isSimilar(document, doc, "firstName", "lastName", "address", "pin"));
 
         replica.disconnect();
-        collection.remove(document);
+        collection.remove(doc);
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
-        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
-        assertEquals(document, doc);
+        doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
+        assertTrue(isSimilar(document, doc, "firstName", "lastName", "address", "pin"));
 
         replica.connect();
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
-        doc = lastWriteWinMap.getCollection().find(Filter.byId(document.getId())).firstOrNull();
+        doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
         assertNull(doc);
     }
 
@@ -97,4 +100,15 @@ public class ReplicaTest {
         }
         return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
+
+    /*
+     * Test case
+     *
+     * 1. Single user, one replica
+     * 2. Single user, two replica, random write using threads, connect - disconnect
+     * 3. Multi-user, one replica
+     * 4. Multi-user, multiple collection
+     * 5. Single user, two replicas, two servers (each for one replica)
+     * 6. Handle security for jwt tokens - extract user info only from jwt token
+     * */
 }

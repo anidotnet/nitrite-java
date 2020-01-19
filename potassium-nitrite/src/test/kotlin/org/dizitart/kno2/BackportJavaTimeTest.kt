@@ -83,7 +83,7 @@ class BackportJavaTimeTest {
     fun testIssue59() {
         val db = nitrite {
             path = dbPath
-            loadPlugins(KNO2JacksonMapper(ThreeTenAbpModule()))
+            loadModule(KNO2Module(ThreeTenAbpModule()))
         }
 
         val repo = db.getRepository<TestData>()

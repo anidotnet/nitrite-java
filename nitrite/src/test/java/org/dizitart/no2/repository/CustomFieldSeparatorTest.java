@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.io.Serializable;
 import java.util.Date;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -70,11 +70,11 @@ public class CustomFieldSeparatorTest {
 
         repository.insert(employee);
 
-        assertEquals(repository.find(when("employeeNote.text").eq("Dummy Note")).size(), 0);
-        assertEquals(repository.find(when("employeeNote:text").text("Dummy Note")).size(), 1);
+        assertEquals(repository.find(where("employeeNote.text").eq("Dummy Note")).size(), 0);
+        assertEquals(repository.find(where("employeeNote:text").text("Dummy Note")).size(), 1);
 
-        assertEquals(repository.find(when("company.companyName").eq("Dummy Company")).size(), 0);
-        assertEquals(repository.find(when("company:companyName").eq("Dummy Company")).size(), 1);
+        assertEquals(repository.find(where("company.companyName").eq("Dummy Company")).size(), 0);
+        assertEquals(repository.find(where("company:companyName").eq("Dummy Company")).size(), 1);
     }
 
     @ToString

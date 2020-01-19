@@ -28,10 +28,10 @@ import org.dizitart.no2.exceptions.FilterException;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.filters.FluentFilter;
 import org.dizitart.no2.index.IndexOptions;
-import org.dizitart.no2.mapper.JacksonMapper;
+import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.repository.ObjectRepository;
-import org.dizitart.no2.spatial.SpatialIndexer;
+import org.dizitart.no2.spatial.SpatialModule;
 import org.dizitart.no2.spatial.mapper.GeometryModule;
 import org.junit.After;
 import org.junit.Before;
@@ -52,9 +52,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.spatial.FluentFilter.when;
+import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.spatial.FluentFilter.where;
 import static org.dizitart.no2.spatial.SpatialIndexer.SpatialIndex;
 import static org.junit.Assert.*;
 
@@ -73,8 +75,8 @@ public class SpatialIndexTest {
     public void before() throws ParseException {
         db = NitriteBuilder.get()
             .filePath(fileName)
-            .loadPlugin(new JacksonMapper(new GeometryModule()))
-            .loadPlugin(new SpatialIndexer())
+            .loadModule(new JacksonMapperModule(new GeometryModule()))
+            .loadModule(new SpatialModule())
             .openOrCreate();
 
         collection = db.getCollection("test");
@@ -132,14 +134,14 @@ public class SpatialIndexTest {
         WKTReader reader = new WKTReader();
         Geometry search = reader.read("POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))");
 
-        Cursor<SpatialData> cursor = repository.find(when("geometry").intersects(search));
+        Cursor<SpatialData> cursor = repository.find(where("geometry").intersects(search));
         assertEquals(cursor.size(), 2);
         assertEquals(cursor.toList(), Arrays.asList(object1, object2));
 
         collection.createIndex("location", IndexOptions.indexOptions(SpatialIndex));
-        DocumentCursor cursor1 = collection.find(when("location").intersects(search));
+        DocumentCursor cursor1 = collection.find(where("location").intersects(search));
         assertEquals(cursor1.size(), 2);
-        assertEquals(cursor1.toList(), Arrays.asList(doc1, doc2));
+        assertEquals(cursor1.toList().stream().map(this::trimMeta).collect(Collectors.toList()), Arrays.asList(doc1, doc2));
     }
 
     @Test
@@ -147,14 +149,14 @@ public class SpatialIndexTest {
         WKTReader reader = new WKTReader();
         Geometry search = reader.read("POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))");
 
-        Cursor<SpatialData> cursor = repository.find(when("geometry").within(search));
+        Cursor<SpatialData> cursor = repository.find(where("geometry").within(search));
         assertEquals(cursor.size(), 1);
         assertEquals(cursor.toList(), Collections.singletonList(object1));
 
         collection.createIndex("location", IndexOptions.indexOptions(SpatialIndex));
-        DocumentCursor cursor1 = collection.find(when("location").within(search));
+        DocumentCursor cursor1 = collection.find(where("location").within(search));
         assertEquals(cursor1.size(), 1);
-        assertEquals(cursor1.toList(), Collections.singletonList(doc1));
+        assertEquals(cursor1.toList().stream().map(this::trimMeta).collect(Collectors.toList()), Collections.singletonList(doc1));
     }
 
     @Test
@@ -162,14 +164,14 @@ public class SpatialIndexTest {
         WKTReader reader = new WKTReader();
         Point search = (Point) reader.read("POINT (490 490)");
 
-        Cursor<SpatialData> cursor = repository.find(when("geometry").near(search, 20.0));
+        Cursor<SpatialData> cursor = repository.find(where("geometry").near(search, 20.0));
         assertEquals(cursor.size(), 1);
         assertEquals(cursor.toList(), Collections.singletonList(object1));
 
         collection.createIndex("location", IndexOptions.indexOptions(SpatialIndex));
-        DocumentCursor cursor1 = collection.find(when("location").near(search, 20.0));
+        DocumentCursor cursor1 = collection.find(where("location").near(search, 20.0));
         assertEquals(cursor1.size(), 1);
-        assertEquals(cursor1.toList(), Collections.singletonList(doc1));
+        assertEquals(cursor1.toList().stream().map(this::trimMeta).collect(Collectors.toList()), Collections.singletonList(doc1));
     }
 
     @Test
@@ -178,14 +180,14 @@ public class SpatialIndexTest {
         Point search = (Point) reader.read("POINT (490 490)");
         Coordinate coordinate = search.getCoordinate();
 
-        Cursor<SpatialData> cursor = repository.find(when("geometry").near(coordinate, 20.0));
+        Cursor<SpatialData> cursor = repository.find(where("geometry").near(coordinate, 20.0));
         assertEquals(cursor.size(), 1);
         assertEquals(cursor.toList(), Collections.singletonList(object1));
 
         collection.createIndex("location", IndexOptions.indexOptions(SpatialIndex));
-        DocumentCursor cursor1 = collection.find(when("location").near(coordinate, 20.0));
+        DocumentCursor cursor1 = collection.find(where("location").near(coordinate, 20.0));
         assertEquals(cursor1.size(), 1);
-        assertEquals(cursor1.toList(), Collections.singletonList(doc1));
+        assertEquals(cursor1.toList().stream().map(this::trimMeta).collect(Collectors.toList()), Collections.singletonList(doc1));
     }
 
     @Test(expected = FilterException.class)
@@ -193,7 +195,7 @@ public class SpatialIndexTest {
         WKTReader reader = new WKTReader();
         Geometry search = reader.read("POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))");
 
-        DocumentCursor cursor1 = collection.find(when("location").intersects(search));
+        DocumentCursor cursor1 = collection.find(where("location").intersects(search));
         assertEquals(cursor1.size(), 2);
         assertEquals(cursor1.toList(), Arrays.asList(doc1, doc2));
     }
@@ -208,7 +210,7 @@ public class SpatialIndexTest {
     public void testRemoveIndexEntry() throws ParseException {
         WKTReader reader = new WKTReader();
         Geometry search = reader.read("POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))");
-        WriteResult result = repository.remove(when("geometry").within(search));
+        WriteResult result = repository.remove(where("geometry").within(search));
         assertEquals(result.getAffectedCount(), 1);
     }
 
@@ -229,7 +231,7 @@ public class SpatialIndexTest {
         repository.dropIndex("geometry");
         WKTReader reader = new WKTReader();
         Geometry search = reader.read("POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))");
-        Cursor<SpatialData> cursor = repository.find(when("geometry").within(search));
+        Cursor<SpatialData> cursor = repository.find(where("geometry").within(search));
         assertEquals(cursor.size(), 1);
     }
 
@@ -245,14 +247,15 @@ public class SpatialIndexTest {
         WKTReader reader = new WKTReader();
         Geometry search = reader.read("POINT(500 505)");
 
-        Cursor<SpatialData> cursor = repository.find(FluentFilter.when("geometry").eq(search));
+        Cursor<SpatialData> cursor = repository.find(FluentFilter.where("geometry").eq(search));
         assertEquals(cursor.size(), 2);
         assertEquals(cursor.toList(), Collections.singletonList(object1));
     }
 
     @Test
     public void testParseGeometry() throws ParseException {
-        Nitrite db = NitriteBuilder.get().loadPlugin(new SpatialIndexer()).openOrCreate();
+        Nitrite db = NitriteBuilder.get().loadModule(new SpatialModule()).openOrCreate();
+
         WKTReader reader = new WKTReader();
         Geometry point = reader.read("POINT(500 505)");
         Document document = createDocument("geom", point);
@@ -260,8 +263,9 @@ public class SpatialIndexTest {
         NitriteCollection collection = db.getCollection("test");
         collection.insert(document);
         collection.createIndex("geom", IndexOptions.indexOptions(SpatialIndex));
+        Document doc = collection.find().firstOrNull();
 
-        Document update = document.clone();
+        Document update = doc.clone();
         update.put("geom", reader.read("POINT(0 0)"));
         collection.update(update);
     }
@@ -326,5 +330,13 @@ public class SpatialIndexTest {
             assertTrue(file.mkdirs());
         }
         return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
+    }
+
+    private Document trimMeta(Document document) {
+        document.remove(DOC_ID);
+        document.remove(DOC_REVISION);
+        document.remove(DOC_MODIFIED);
+        document.remove(DOC_SOURCE);
+        return document;
     }
 }

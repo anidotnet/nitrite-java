@@ -5,8 +5,9 @@ import lombok.Getter;
 import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.index.Indexer;
 import org.dizitart.no2.mapper.NitriteMapper;
-import org.dizitart.no2.plugin.NitritePlugin;
-import org.dizitart.no2.plugin.PluginManager;
+import org.dizitart.no2.module.NitriteModule;
+import org.dizitart.no2.module.NitritePlugin;
+import org.dizitart.no2.module.PluginManager;
 import org.dizitart.no2.store.NitriteStore;
 import org.dizitart.no2.store.StoreConfig;
 
@@ -126,15 +127,15 @@ public abstract class NitriteConfig {
     /**
      * Loads {@link NitritePlugin} instances.
      *
-     * @param plugins the {@link NitritePlugin} instances.
+     * @param module the {@link NitriteModule} instances.
      * @return the {@link NitriteConfig} instance.
      */
-    public NitriteConfig load(NitritePlugin...plugins) {
+    public NitriteConfig loadModule(NitriteModule module) {
         if (configured) {
-            throw new InvalidOperationException("cannot load plugin after database" +
+            throw new InvalidOperationException("cannot load module after database" +
                 " initialization");
         }
-        pluginManager.load(plugins);
+        pluginManager.loadModule(module);
         return this;
     }
 

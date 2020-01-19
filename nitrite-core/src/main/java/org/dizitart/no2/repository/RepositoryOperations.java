@@ -24,7 +24,7 @@ import static org.dizitart.no2.common.util.DocumentUtils.skeletonDocument;
 import static org.dizitart.no2.common.util.ObjectUtils.isCompatibleTypes;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.dizitart.no2.index.IndexOptions.indexOptions;
 
 /**
@@ -130,7 +130,7 @@ class RepositoryOperations {
             if (value == null) {
                 throw new InvalidIdException("id value cannot be null");
             }
-            return when(idField.getName()).eq(value);
+            return where(idField.getName()).eq(value);
         } catch (IllegalAccessException iae) {
             throw new InvalidIdException("id field is not accessible");
         }
@@ -250,7 +250,7 @@ class RepositoryOperations {
             }
 
             if (isCompatibleTypes(idField.getType(), id.getClass())) {
-                return when(idField.getName()).eq(id);
+                return where(idField.getName()).eq(id);
             } else {
                 throw new InvalidIdException(id.getClass().getName() + " is not assignable to id type "
                     + idField.getType().getName());

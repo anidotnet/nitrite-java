@@ -25,6 +25,7 @@ import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.exceptions.*;
+import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.repository.RepositoryFactory;
 import org.dizitart.no2.test.data.*;
@@ -50,8 +51,9 @@ public class ObjectRepositoryNegativeTest {
     @Before
     public void setUp() {
         db = NitriteBuilder.get()
-                .filePath(dbPath)
-                .openOrCreate();
+            .filePath(dbPath)
+            .loadModule(new JacksonMapperModule())
+            .openOrCreate();
     }
 
     @After
@@ -140,7 +142,7 @@ public class ObjectRepositoryNegativeTest {
     public void testValidateCollection() {
         NitriteConfig context = db.getConfig();
         ObjectRepository<Employee> repository =
-                RepositoryFactory.getRepository(Employee.class, null, context);
+            RepositoryFactory.getRepository(Employee.class, null, context);
         repository.find();
     }
 

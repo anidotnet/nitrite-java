@@ -25,20 +25,20 @@ import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.joda.time.DateTime;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.text.Collator;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.common.Constants.DOC_ID;
-import static org.dizitart.no2.common.Constants.DOC_REVISION;
+import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.common.util.DocumentUtils.isSimilar;
 import static org.dizitart.no2.common.util.TestUtil.isSorted;
 import static org.dizitart.no2.filters.Filter.ALL;
 import static org.dizitart.no2.filters.FluentFilter.$;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
@@ -56,71 +56,71 @@ public class CollectionFindTest extends BaseCollectionTest {
     public void testFindWithFilter() throws ParseException {
         insert();
 
-        DocumentCursor cursor = collection.find(when("birthDay").gt(
+        DocumentCursor cursor = collection.find(where("birthDay").gt(
             simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthDay").gte(
+        cursor = collection.find(where("birthDay").gte(
             simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("birthDay").lt(
+        cursor = collection.find(where("birthDay").lt(
             simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthDay").lte(
+        cursor = collection.find(where("birthDay").lte(
             simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("birthDay").lte(
+        cursor = collection.find(where("birthDay").lte(
             new Date()));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthDay").lt(
+        cursor = collection.find(where("birthDay").lt(
             new Date()));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthDay").gt(
-            new Date()));
-        assertEquals(cursor.size(), 0);
-
-        cursor = collection.find(when("birthDay").gte(
+        cursor = collection.find(where("birthDay").gt(
             new Date()));
         assertEquals(cursor.size(), 0);
 
+        cursor = collection.find(where("birthDay").gte(
+            new Date()));
+        assertEquals(cursor.size(), 0);
+
         cursor = collection.find(
-            when("birthDay").lte(new Date())
-                .and(when("firstName").eq("fn1")));
+            where("birthDay").lte(new Date())
+                .and(where("firstName").eq("fn1")));
         assertEquals(cursor.size(), 1);
 
         cursor = collection.find(
-            when("birthDay").lte(new Date())
-                .or(when("firstName").eq("fn12")));
+            where("birthDay").lte(new Date())
+                .or(where("firstName").eq("fn12")));
         assertEquals(cursor.size(), 3);
 
         cursor = collection.find(
-            when("birthDay").lte(new Date())
-                .or(when("firstName").eq("fn12"))
-                .and(when("lastName").eq("ln1")));
+            where("birthDay").lte(new Date())
+                .or(where("firstName").eq("fn12"))
+                .and(where("lastName").eq("ln1")));
         assertEquals(cursor.size(), 1);
 
         cursor = collection.find(
-            when("birthDay").lte(new Date())
-                .or(when("firstName").eq("fn12"))
-                .and(when("lastName").eq("ln1")).not());
+            where("birthDay").lte(new Date())
+                .or(where("firstName").eq("fn12"))
+                .and(where("lastName").eq("ln1")).not());
         assertEquals(cursor.size(), 2);
 
 
-        cursor = collection.find(when("data.1").eq((byte) 4));
+        cursor = collection.find(where("data.1").eq((byte) 4));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("data.1").lt(4));
+        cursor = collection.find(where("data.1").lt(4));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("lastName").in("ln1", "ln2", "ln10"));
+        cursor = collection.find(where("lastName").in("ln1", "ln2", "ln10"));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("firstName").notIn("fn1", "fn2"));
+        cursor = collection.find(where("firstName").notIn("fn1", "fn2"));
         assertEquals(cursor.size(), 1);
     }
 
@@ -209,14 +209,14 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindInvalidField() {
         insert();
-        DocumentCursor cursor = collection.find(when("myField").eq("myData"));
+        DocumentCursor cursor = collection.find(where("myField").eq("myData"));
         assertEquals(cursor.size(), 0);
     }
 
     @Test
     public void testFindInvalidFieldWithInvalidAccessor() {
         insert();
-        DocumentCursor cursor = collection.find(when("myField.0").eq("myData"));
+        DocumentCursor cursor = collection.find(where("myField.0").eq("myData"));
         assertEquals(cursor.size(), 0);
     }
 
@@ -247,7 +247,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindWithFilterAndOption() {
         insert();
-        DocumentCursor cursor = collection.find(when("birthDay").lte(new Date())).
+        DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
             sort("firstName", SortOrder.Ascending).limit(1, 2);
         assertEquals(cursor.size(), 2);
     }
@@ -255,35 +255,35 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindTextWithRegex() {
         insert();
-        DocumentCursor cursor = collection.find(when("body").regex("hello"));
+        DocumentCursor cursor = collection.find(where("body").regex("hello"));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("body").regex("test"));
+        cursor = collection.find(where("body").regex("test"));
         assertEquals(cursor.size(), 0);
 
-        cursor = collection.find(when("body").regex("^hello$"));
+        cursor = collection.find(where("body").regex("^hello$"));
         assertEquals(cursor.size(), 0);
 
-        cursor = collection.find(when("body").regex(".*"));
+        cursor = collection.find(where("body").regex(".*"));
         assertEquals(cursor.size(), 3);
     }
 
     @Test
     public void testProject() {
         insert();
-        DocumentCursor cursor = collection.find(when("birthDay").lte(new Date())).
+        DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
             sort("firstName", SortOrder.Ascending).limit(0, 3);
         int iteration = 0;
         for (Document document : cursor) {
             switch (iteration) {
                 case 0:
-                    Assert.assertEquals(document, doc1);
+                    assertTrue(isSimilar(document, doc1, "firstName", "lastName", "birthDay", "data", "list", "body"));
                     break;
                 case 1:
-                    Assert.assertEquals(document, doc2);
+                    assertTrue(isSimilar(document, doc2, "firstName", "lastName", "birthDay", "data", "list", "body"));
                     break;
                 case 2:
-                    Assert.assertEquals(document, doc3);
+                    assertTrue(isSimilar(document, doc3, "firstName", "lastName", "birthDay", "data", "list", "body"));
                     break;
             }
             iteration++;
@@ -294,7 +294,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testProjectWithCustomDocument() {
         insert();
-        DocumentCursor cursor = collection.find(when("birthDay").lte(new Date())).
+        DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
             sort("firstName", SortOrder.Ascending).limit(0, 3);
 
         Document projection = createDocument("firstName", null)
@@ -333,7 +333,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindWithArrayEqual() {
         insert();
-        DocumentCursor ids = collection.find(when("data").eq(new byte[]{3, 4, 3}));
+        DocumentCursor ids = collection.find(where("data").eq(new byte[]{3, 4, 3}));
         assertNotNull(ids);
         assertEquals(ids.size(), 1);
     }
@@ -341,7 +341,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindWithArrayEqualFailForWrongCardinality() {
         insert();
-        DocumentCursor ids = collection.find(when("data").eq(new byte[]{4, 3, 3}));
+        DocumentCursor ids = collection.find(where("data").eq(new byte[]{4, 3, 3}));
         assertNotNull(ids);
         assertEquals(ids.size(), 0);
     }
@@ -349,7 +349,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindWithIterableEqual() {
         insert();
-        DocumentCursor ids = collection.find(when("list").eq(
+        DocumentCursor ids = collection.find(where("list").eq(
             new ArrayList<String>() {{
                 add("three");
                 add("four");
@@ -362,7 +362,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindWithIterableEqualFailForWrongCardinality() {
         insert();
-        DocumentCursor ids = collection.find(when("list").eq(
+        DocumentCursor ids = collection.find(where("list").eq(
             new ArrayList<String>() {{
                 add("four");
                 add("three");
@@ -375,15 +375,15 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindInArray() {
         insert();
-        DocumentCursor ids = collection.find(when("data").elemMatch($.gte(2).and($.lt(5))));
+        DocumentCursor ids = collection.find(where("data").elemMatch($.gte(2).and($.lt(5))));
         assertNotNull(ids);
         assertEquals(ids.size(), 3);
 
-        ids = collection.find(when("data").elemMatch($.gt(2).or($.lte(5))));
+        ids = collection.find(where("data").elemMatch($.gt(2).or($.lte(5))));
         assertNotNull(ids);
         assertEquals(ids.size(), 3);
 
-        ids = collection.find(when("data").elemMatch($.gt(1).and($.lt(4))));
+        ids = collection.find(where("data").elemMatch($.gt(1).and($.lt(4))));
         assertNotNull(ids);
         assertEquals(ids.size(), 2);
     }
@@ -391,15 +391,15 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testFindInList() {
         insert();
-        DocumentCursor ids = collection.find(when("list").elemMatch($.regex("three")));
+        DocumentCursor ids = collection.find(where("list").elemMatch($.regex("three")));
         assertNotNull(ids);
         assertEquals(ids.size(), 2);
 
-        ids = collection.find(when("list").elemMatch($.regex("hello")));
+        ids = collection.find(where("list").elemMatch($.regex("hello")));
         assertNotNull(ids);
         assertEquals(ids.size(), 0);
 
-        ids = collection.find(when("list").elemMatch($.regex("hello").not()));
+        ids = collection.find(where("list").elemMatch($.regex("hello").not()));
         assertNotNull(ids);
         assertEquals(ids.size(), 2);
     }
@@ -424,80 +424,80 @@ public class CollectionFindTest extends BaseCollectionTest {
         NitriteCollection prodCollection = db.getCollection("prodScore");
         prodCollection.insert(doc1, doc2, doc3);
 
-        List<Document> documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("product").eq("xyz").and(when("score").gte(8)))).toList();
+        List<Document> documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("product").eq("xyz").and(where("score").gte(8)))).toList();
 
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").lte(8).not())).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").lte(8).not())).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("product").eq("xyz").or(when("score").gte(8)))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("product").eq("xyz").or(where("score").gte(8)))).toList();
         assertEquals(documentList.size(), 3);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("product").eq("xyz"))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("product").eq("xyz"))).toList();
         assertEquals(documentList.size(), 3);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").gte(10))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").gte(10))).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").gt(8))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").gt(8))).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").lt(7))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").lt(7))).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").lte(7))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").lte(7))).toList();
         assertEquals(documentList.size(), 3);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").in(7, 8))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").in(7, 8))).toList();
         assertEquals(documentList.size(), 2);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("score").notIn(7, 8))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("score").notIn(7, 8))).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("productScores")
-            .elemMatch(when("product").regex("xyz"))).toList();
+        documentList = prodCollection.find(where("productScores")
+            .elemMatch(where("product").regex("xyz"))).toList();
         assertEquals(documentList.size(), 3);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.eq("a"))).toList();
         assertEquals(documentList.size(), 2);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.eq("a").or($.eq("f").or($.eq("b"))).not())).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.gt("e"))).toList();
         assertEquals(documentList.size(), 1);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.gte("e"))).toList();
         assertEquals(documentList.size(), 2);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.lte("b"))).toList();
         assertEquals(documentList.size(), 2);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.lt("a"))).toList();
         assertEquals(documentList.size(), 0);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.in("a", "f"))).toList();
         assertEquals(documentList.size(), 2);
 
-        documentList = prodCollection.find(when("strArray")
+        documentList = prodCollection.find(where("strArray")
             .elemMatch($.regex("a"))).toList();
         assertEquals(documentList.size(), 2);
 
@@ -509,20 +509,20 @@ public class CollectionFindTest extends BaseCollectionTest {
         document.put("xyz", null);
 
         collection.insert(document);
-        DocumentCursor cursor = collection.find(when("abc").eq("123"));
+        DocumentCursor cursor = collection.find(where("abc").eq("123"));
         assertEquals(cursor.size(), 1);
         assertEquals(cursor.toList().size(), 1);
 
-        cursor = collection.find(when("xyz").eq(null));
+        cursor = collection.find(where("xyz").eq(null));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("abc").eq(null).not());
+        cursor = collection.find(where("abc").eq(null).not());
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("abc").eq(null).not().and(when("xyz").eq(null)));
+        cursor = collection.find(where("abc").eq(null).not().and(where("xyz").eq(null)));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("abc").eq(null).and(when("xyz").eq(null).not()));
+        cursor = collection.find(where("abc").eq(null).and(where("xyz").eq(null).not()));
         assertEquals(cursor.size(), 0);
 
         collection.remove(ALL);
@@ -532,9 +532,9 @@ public class CollectionFindTest extends BaseCollectionTest {
 
         collection.insert(document);
         Document projection = collection.find(
-            when(DOC_REVISION).gte(1482225343160L)
-                .and(when(DOC_REVISION).lte(1482225343162L)
-                    .and(when(DOC_REVISION).eq(null).not())))
+            where(DOC_REVISION).gte(1482225343160L)
+                .and(where(DOC_REVISION).lte(1482225343162L)
+                    .and(where(DOC_REVISION).eq(null).not())))
             .firstOrNull();
 
         assertNull(projection);
@@ -566,13 +566,13 @@ public class CollectionFindTest extends BaseCollectionTest {
         doc = createDocument().put("id", "test-2").put("group", "groupA").put("startTime", DateTime.now());
         assertEquals(1, coll.insert(doc).getAffectedCount());
 
-        DocumentCursor cursor = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending);
         assertEquals(2, cursor.size());
         assertNull(cursor.toList().get(1).get("startTime"));
         assertNotNull(cursor.toList().get(0).get("startTime"));
 
-        cursor = coll.find(when("group").eq("groupA")).sort("startTime", SortOrder.Ascending);
+        cursor = coll.find(where("group").eq("groupA")).sort("startTime", SortOrder.Ascending);
         assertEquals(2, cursor.size());
         assertNull(cursor.toList().get(0).get("startTime"));
         assertNotNull(cursor.toList().get(1).get("startTime"));
@@ -590,7 +590,7 @@ public class CollectionFindTest extends BaseCollectionTest {
         doc = createDocument().put("id", "test-1").put("group", "groupA");
         assertEquals(1, coll.insert(doc).getAffectedCount());
 
-        DocumentCursor cursor = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending);
         assertEquals(2, cursor.size());
     }
@@ -607,41 +607,41 @@ public class CollectionFindTest extends BaseCollectionTest {
         doc = createDocument().put("id", "test-1").put("group", "groupA");
         assertEquals(1, coll.insert(doc).getAffectedCount());
 
-        DocumentCursor cursor = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending);
         assertEquals(2, cursor.size());
 
-        DocumentCursor cursor2 = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor2 = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending, NullOrder.Default);
         assertEquals(2, cursor2.size());
 
         assertThat(cursor.toList(), is(cursor2.toList()));
 
-        DocumentCursor cursor3 = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor3 = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending, NullOrder.First);
         assertEquals(2, cursor3.size());
 
         assertThat(cursor.toList(), is(cursor3.toList()));
 
-        DocumentCursor cursor4 = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor4 = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending, NullOrder.Last);
         assertEquals(2, cursor4.size());
 
         assertThat(cursor.toList(), is(cursor4.toList()));
 
-        DocumentCursor cursor5 = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor5 = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Ascending, NullOrder.Last);
         assertEquals(2, cursor5.size());
 
         assertThat(cursor.toList(), is(cursor5.toList()));
 
-        DocumentCursor cursor6 = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor6 = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Ascending, NullOrder.First);
         assertEquals(2, cursor6.size());
 
         assertThat(cursor.toList(), is(cursor6.toList()));
 
-        DocumentCursor cursor7 = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor7 = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Ascending, NullOrder.Default);
         assertEquals(2, cursor7.size());
 
@@ -668,46 +668,53 @@ public class CollectionFindTest extends BaseCollectionTest {
         Document doc3 = createDocument().put("id", "test-3").put("group", "groupA").put("startTime", DateTime.now().plusMinutes(1));
         assertEquals(1, coll.insert(doc3).getAffectedCount());
 
-        DocumentCursor cursor = coll.find(when("group").eq("groupA"))
+        DocumentCursor cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc3, doc2, doc1), is(cursor.toList()));
+        assertThat(Arrays.asList(doc3, doc2, doc1),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
 
-        cursor = coll.find(when("group").eq("groupA"))
+        cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending, NullOrder.First);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc1, doc3, doc2), is(cursor.toList()));
+        assertThat(Arrays.asList(doc1, doc3, doc2),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
 
-        cursor = coll.find(when("group").eq("groupA"))
+        cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending, NullOrder.Default);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc3, doc2, doc1), is(cursor.toList()));
+        assertThat(Arrays.asList(doc3, doc2, doc1),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
 
-        cursor = coll.find(when("group").eq("groupA"))
+        cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Descending, NullOrder.Last);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc3, doc2, doc1), is(cursor.toList()));
+        assertThat(Arrays.asList(doc3, doc2, doc1),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
 
-        cursor = coll.find(when("group").eq("groupA"))
+        cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Ascending, NullOrder.First);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc1, doc2, doc3), is(cursor.toList()));
+        assertThat(Arrays.asList(doc1, doc2, doc3),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
 
-        cursor = coll.find(when("group").eq("groupA"))
+        cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Ascending, NullOrder.Default);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc1, doc2, doc3), is(cursor.toList()));
+        assertThat(Arrays.asList(doc1, doc2, doc3),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
 
-        cursor = coll.find(when("group").eq("groupA"))
+        cursor = coll.find(where("group").eq("groupA"))
             .sort("startTime", SortOrder.Ascending, NullOrder.Last);
         assertEquals(3, cursor.size());
-        assertThat(Arrays.asList(doc2, doc3, doc1), is(cursor.toList()));
+        assertThat(Arrays.asList(doc2, doc3, doc1),
+            is(cursor.toList().stream().map(CollectionFindTest::trimMeta).collect(Collectors.toList())));
     }
 
     @Test
     public void testFindFilterInvalidAccessor() {
         insert();
-        DocumentCursor cursor = collection.find(when("lastName.name").eq("ln2"));
+        DocumentCursor cursor = collection.find(where("lastName.name").eq("ln2"));
         assertEquals(cursor.size(), 0);
     }
 
@@ -728,10 +735,10 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testIdSet() {
         insert();
-        DocumentCursor cursor = collection.find(when("lastName").eq("ln2"));
+        DocumentCursor cursor = collection.find(where("lastName").eq("ln2"));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("lastName").eq("ln1"));
+        cursor = collection.find(where("lastName").eq("ln1"));
         assertEquals(cursor.size(), 1);
 
         Document byId = cursor.iterator().next();
@@ -756,10 +763,18 @@ public class CollectionFindTest extends BaseCollectionTest {
             });
         example.insert(document);
 
-        DocumentCursor cursor = example.find(when("tags").elemMatch(when("type").eq("example")));
+        DocumentCursor cursor = example.find(where("tags").elemMatch(where("type").eq("example")));
         for (Document doc : cursor) {
             assertNotNull(doc);
             assertEquals(doc.get("name"), "John");
         }
+    }
+
+    private static Document trimMeta(Document document) {
+        document.remove(DOC_ID);
+        document.remove(DOC_REVISION);
+        document.remove(DOC_MODIFIED);
+        document.remove(DOC_SOURCE);
+        return document;
     }
 }

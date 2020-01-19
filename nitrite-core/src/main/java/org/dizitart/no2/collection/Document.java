@@ -23,6 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.common.Constants.DOC_MODIFIED;
+
 /**
  * @author Anindya Chatterjee
  */
@@ -52,12 +55,6 @@ public interface Document extends Iterable<KeyValuePair<String, Object>>, Clonea
 
     NitriteId getId();
 
-    Integer getRevision();
-
-    String getSource();
-
-    Long getLastModifiedSinceEpoch();
-
     Set<String> getFields();
 
     boolean hasId();
@@ -68,7 +65,28 @@ public interface Document extends Iterable<KeyValuePair<String, Object>>, Clonea
 
     int size();
 
-    Document putAll(Document update);
+    Document merge(Document update);
 
     boolean containsKey(String key);
+
+    default Integer getRevision() {
+        if (!containsKey(DOC_REVISION)) {
+            return 0;
+        }
+        return get(DOC_REVISION, Integer.class);
+    }
+
+    default String getSource() {
+        if (!containsKey(DOC_SOURCE)) {
+            return "";
+        }
+        return get(DOC_SOURCE, String.class);
+    }
+
+    default Long getLastModifiedSinceEpoch() {
+        if (!containsKey(DOC_MODIFIED)) {
+            return 0L;
+        }
+        return get(DOC_MODIFIED, Long.class);
+    }
 }

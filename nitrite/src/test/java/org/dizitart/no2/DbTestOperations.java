@@ -36,7 +36,7 @@ import java.util.*;
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.index.IndexOptions.indexOptions;
 import static org.dizitart.no2.filters.Filter.ALL;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.dizitart.no2.common.util.TestUtil.isSorted;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -138,57 +138,57 @@ public class DbTestOperations {
         DocumentCursor cursor = collection.find();
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthDay").gt(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
+        cursor = collection.find(where("birthDay").gt(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthDay").gte(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
+        cursor = collection.find(where("birthDay").gte(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("birthDay").lt(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
+        cursor = collection.find(where("birthDay").lt(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthDay").lte(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
+        cursor = collection.find(where("birthDay").lte(simpleDateFormat.parse("2012-07-01T16:02:48.440Z")));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("birthDay").lte(new Date()));
+        cursor = collection.find(where("birthDay").lte(new Date()));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthDay").lt(new Date()));
+        cursor = collection.find(where("birthDay").lt(new Date()));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthDay").gt(new Date()));
+        cursor = collection.find(where("birthDay").gt(new Date()));
         assertEquals(cursor.size(), 0);
 
-        cursor = collection.find(when("birthDay").gte(new Date()));
+        cursor = collection.find(where("birthDay").gte(new Date()));
         assertEquals(cursor.size(), 0);
 
-        cursor = collection.find(when("birthDay").lte(new Date()).and(when("firstName").eq("fn1")));
+        cursor = collection.find(where("birthDay").lte(new Date()).and(where("firstName").eq("fn1")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthDay").lte(new Date()).or(when("firstName").eq("fn12")));
+        cursor = collection.find(where("birthDay").lte(new Date()).or(where("firstName").eq("fn12")));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("birthDay").lte(new Date())
-            .or(when("firstName").eq("fn12"))
-            .and(when("lastName").eq("ln1")));
+        cursor = collection.find(where("birthDay").lte(new Date())
+            .or(where("firstName").eq("fn12"))
+            .and(where("lastName").eq("ln1")));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("birthDay").lte(new Date())
-                .or(when("firstName").eq("fn12"))
-                .and(when("lastName").eq("ln1"))
+        cursor = collection.find(where("birthDay").lte(new Date())
+                .or(where("firstName").eq("fn12"))
+                .and(where("lastName").eq("ln1"))
             .not());
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("data.1").eq((byte) 4));
+        cursor = collection.find(where("data.1").eq((byte) 4));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("data.1").lt(4));
+        cursor = collection.find(where("data.1").lt(4));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("lastName").in("ln1", "ln2", "ln10"));
+        cursor = collection.find(where("lastName").in("ln1", "ln2", "ln10"));
         assertEquals(cursor.size(), 3);
 
-        cursor = collection.find(when("firstName").notIn("fn1", "fn2"));
+        cursor = collection.find(where("firstName").notIn("fn1", "fn2"));
         assertEquals(cursor.size(), 1);
 
         collection.createIndex("birthDay", indexOptions(IndexType.Unique));
@@ -200,13 +200,13 @@ public class DbTestOperations {
         }
         assertTrue(isSorted(dateList, false));
 
-        cursor = collection.find(when("body").text("Lorem"));
+        cursor = collection.find(where("body").text("Lorem"));
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find(when("body").text("quick"));
+        cursor = collection.find(where("body").text("quick"));
         assertEquals(cursor.size(), 2);
 
-        cursor = collection.find(when("body").text("nosql"));
+        cursor = collection.find(where("body").text("nosql"));
         assertEquals(cursor.size(), 0);
 
         db.close();

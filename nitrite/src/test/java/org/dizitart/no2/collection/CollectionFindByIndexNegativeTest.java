@@ -24,7 +24,7 @@ import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.junit.Test;
 
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -36,7 +36,7 @@ public class CollectionFindByIndexNegativeTest extends BaseCollectionTest {
         insert();
         collection.createIndex("body", IndexOptions.indexOptions(IndexType.Fulltext));
 
-        DocumentCursor cursor = collection.find(when("body").text("*ipsum dolor*"));
+        DocumentCursor cursor = collection.find(where("body").text("*ipsum dolor*"));
         assertEquals(cursor.size(), 1);
     }
 
@@ -45,7 +45,7 @@ public class CollectionFindByIndexNegativeTest extends BaseCollectionTest {
         insert();
         collection.createIndex("body", IndexOptions.indexOptions(IndexType.Fulltext));
 
-        DocumentCursor cursor = collection.find(when("body").text("*"));
+        DocumentCursor cursor = collection.find(where("body").text("*"));
         assertEquals(cursor.size(), 1);
     }
 }

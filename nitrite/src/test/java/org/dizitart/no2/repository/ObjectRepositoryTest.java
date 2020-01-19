@@ -37,7 +37,8 @@ import java.util.Date;
 import java.util.UUID;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
+import static org.dizitart.no2.module.NitriteModule.module;
 import static org.junit.Assert.*;
 
 /**
@@ -69,7 +70,7 @@ public class ObjectRepositoryTest {
 
         db = NitriteBuilder.get()
             .filePath(dbPath)
-            .loadPlugin(mapper)
+            .loadModule(module(mapper))
             .openOrCreate();
     }
 
@@ -176,10 +177,10 @@ public class ObjectRepositoryTest {
         }
 
         Cursor<StressRecord> cursor
-            = repository.find(when("failed").eq(false));
+            = repository.find(where("failed").eq(false));
         for (StressRecord record : cursor) {
             record.setProcessed(true);
-            repository.update(when("firstName").eq(record.getFirstName()), record);
+            repository.update(where("firstName").eq(record.getFirstName()), record);
         }
     }
 
@@ -222,9 +223,9 @@ public class ObjectRepositoryTest {
         object2.setId(new Date(1482773720L));
         repository.insert(object2);
 
-        assertEquals(repository.find(when("id").eq(new Date(1482773634L)))
+        assertEquals(repository.find(where("id").eq(new Date(1482773634L)))
             .firstOrNull(), object1);
-        assertEquals(repository.find(when("id").eq(new Date(1482773720L)))
+        assertEquals(repository.find(where("id").eq(new Date(1482773720L)))
             .firstOrNull(), object2);
     }
 
@@ -256,10 +257,10 @@ public class ObjectRepositoryTest {
         childClass.setText("I am third class");
         repository.insert(childClass);
 
-        assertEquals(repository.find(when("text").text("class")).size(), 3);
-        assertEquals(repository.find(when("text").text("second")).size(), 0); // filtered in stop words
-        assertEquals(repository.find(when("date").eq(new Date(100000L))).size(), 1);
-        assertEquals(repository.find(when("id").eq(1L)).size(), 1);
+        assertEquals(repository.find(where("text").text("class")).size(), 3);
+        assertEquals(repository.find(where("text").text("second")).size(), 0); // filtered in stop words
+        assertEquals(repository.find(where("date").eq(new Date(100000L))).size(), 1);
+        assertEquals(repository.find(where("id").eq(1L)).size(), 1);
     }
 
     @Test

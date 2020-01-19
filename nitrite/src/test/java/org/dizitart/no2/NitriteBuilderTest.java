@@ -46,6 +46,7 @@ import java.util.Random;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
+import static org.dizitart.no2.module.NitriteModule.module;
 import static org.junit.Assert.*;
 
 /**
@@ -80,7 +81,7 @@ public class NitriteBuilderTest {
         builder.disableAutoCommit();
         builder.disableAutoCompact();
         builder.filePath(filePath);
-        builder.loadPlugin(new CustomIndexer());
+        builder.loadModule(module(new CustomIndexer()));
 
         Nitrite db = builder.openOrCreate();
         NitriteConfig config = builder.getNitriteConfig();
@@ -189,7 +190,7 @@ public class NitriteBuilderTest {
     @Test
     public void testNitriteMapper() {
         NitriteBuilder builder = NitriteBuilder.get();
-        builder.loadPlugin(new CustomNitriteMapper());
+        builder.loadModule(module(new CustomNitriteMapper()));
         NitriteConfig config = builder.getNitriteConfig();
         assertNotNull(config.nitriteMapper());
     }

@@ -3,7 +3,7 @@ package org.dizitart.no2;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.SecurityException;
-import org.dizitart.no2.plugin.NitritePlugin;
+import org.dizitart.no2.module.NitriteModule;
 import org.dizitart.no2.store.MVStoreConfig;
 
 import java.io.File;
@@ -60,6 +60,8 @@ public abstract class NitriteBuilder {
     public static NitriteBuilder get() {
         NitriteBuilder builder = new NitriteBuilder() {};
         builder.nitriteConfig = NitriteConfig.create();
+        builder.nitriteConfig.loadModule(new MVStoreModule());
+
         builder.storeConfig = MVStoreConfig.create();
         return builder;
     }
@@ -198,13 +200,13 @@ public abstract class NitriteBuilder {
     }
 
     /**
-     * Loads {@link NitritePlugin} instances.
+     * Loads {@link NitriteModule} instance.
      *
-     * @param plugins the {@link NitritePlugin} instances.
+     * @param module the {@link NitriteModule} instance.
      * @return the {@link NitriteBuilder} instance.
      */
-    public NitriteBuilder loadPlugin(NitritePlugin... plugins) {
-        this.nitriteConfig.load(plugins);
+    public NitriteBuilder loadModule(NitriteModule module) {
+        this.nitriteConfig.loadModule(module);
         return this;
     }
 

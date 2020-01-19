@@ -28,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.filters.FluentFilter.when;
+import static org.dizitart.no2.filters.FluentFilter.where;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -38,7 +38,7 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     @Test(expected = ValidationException.class)
     public void testFindFilterInvalidIndex() {
         insert();
-        collection.find(when("data.9").eq(4)).toList();
+        collection.find(where("data.9").eq(4)).toList();
     }
 
     @Test(expected = ValidationException.class)
@@ -67,20 +67,20 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     @Test(expected = FilterException.class)
     public void testFindTextFilterNonIndexed() {
         insert();
-        collection.find(when("body").text("Lorem")).toList();
+        collection.find(where("body").text("Lorem")).toList();
     }
 
     @Test(expected = FilterException.class)
     public void testFindWithRegexInvalidValue() {
         insert();
-        DocumentCursor cursor = collection.find(when("birthDay").regex("hello"));
+        DocumentCursor cursor = collection.find(where("birthDay").regex("hello"));
         assertEquals(cursor.size(), 1);
     }
 
     @Test(expected = ValidationException.class)
     public void testInvalidProjection() {
         insert();
-        DocumentCursor cursor = collection.find(when("birthDay").lte(new Date())).
+        DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
                 sort("firstName", SortOrder.Ascending).limit(0, 3);
 
         Document projection = createDocument("firstName", null)
@@ -92,7 +92,7 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testToListAdd() {
         insert();
-        DocumentCursor cursor = collection.find(when("lastName").eq("ln2"));
+        DocumentCursor cursor = collection.find(where("lastName").eq("ln2"));
         List<Document> documents = cursor.toList();
         documents.add(createDocument());
     }
@@ -100,7 +100,7 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testToListRemove() {
         insert();
-        DocumentCursor cursor = collection.find(when("lastName").eq("ln2"));
+        DocumentCursor cursor = collection.find(where("lastName").eq("ln2"));
         List<Document> documents = cursor.toList();
         documents.clear();
     }

@@ -33,6 +33,7 @@ public class CollectionInsertNegativeTest extends BaseCollectionTest {
     public void testMultipleInsert() {
         WriteResult result = collection.insert(doc1, doc2, doc3);
         assertEquals(result.getAffectedCount(), 3);
-        collection.insert(doc1);
+        Document document = collection.find().firstOrNull();
+        collection.insert(document);
     }
 }

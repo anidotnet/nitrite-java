@@ -6,13 +6,13 @@ import org.dizitart.no2.index.TextIndexer;
  * @author Anindya Chatterjee.
  */
 public final class FluentFilter {
-    public static FluentFilter $ = when("$");
+    public static FluentFilter $ = where("$");
     private String field;
 
     private FluentFilter() {
     }
 
-    public static FluentFilter when(String field) {
+    public static FluentFilter where(String field) {
         FluentFilter filter = new FluentFilter();
         filter.field = field;
         return filter;
@@ -27,7 +27,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value as 30
-     * collection.find(when("age").eq(30));
+     * collection.find(where("age").eq(30));
      * --
      *
      * @param value the value
@@ -46,7 +46,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value greater than 30
-     * collection.find(when("age").gt(30));
+     * collection.find(where("age").gt(30));
      * --
      *
      * @param value the value
@@ -65,7 +65,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value greater than or equal to 30
-     * collection.find(when("age").gte(30));
+     * collection.find(where("age").gte(30));
      * --
      *
      * @param value the value
@@ -84,7 +84,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value less than 30
-     * collection.find(when("age").lt(30));
+     * collection.find(where("age").lt(30));
      * --
      *
      * @param value the value
@@ -103,7 +103,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value lesser than or equal to 30
-     * collection.find(when("age").lte(30));
+     * collection.find(where("age").lte(30));
      * --
      *
      * @param value the value
@@ -122,7 +122,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'address' field has value 'roads'.
-     * collection.find(when("address").text("roads"));
+     * collection.find(where("address").text("roads"));
      * --
      *
      * @param value the text value
@@ -143,7 +143,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'name' value starts with 'jim' or 'joe'.
-     * collection.find(when("address").regex("^(jim|joe).*"));
+     * collection.find(where("address").regex("^(jim|joe).*"));
      * --
      *
      * @param value the regular expression
@@ -162,7 +162,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value in [20, 30, 40]
-     * collection.find(when("age").in(20, 30, 40));
+     * collection.find(where("age").in(20, 30, 40));
      * --
      *
      * @param values the range values
@@ -181,7 +181,7 @@ public final class FluentFilter {
      * .Example
      * --
      * // matches all documents where 'age' field has value not in [20, 30, 40]
-     * collection.find(when("age").notIn(20, 30, 40));
+     * collection.find(where("age").notIn(20, 30, 40));
      * --
      *
      * @param values the range values
@@ -201,7 +201,7 @@ public final class FluentFilter {
      * --
      * // matches all documents which has an array field - 'color' and the array
      * // contains a value - 'red'.
-     * collection.find(when("age").elemMatch($.eq("red")));
+     * collection.find(where("age").elemMatch($.eq("red")));
      * --
      *
      * @param filter the filter to satisfy

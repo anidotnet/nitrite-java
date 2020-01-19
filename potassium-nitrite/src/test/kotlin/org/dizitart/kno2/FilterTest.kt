@@ -19,6 +19,8 @@
 package org.dizitart.kno2
 
 import org.dizitart.kno2.filters.*
+import org.dizitart.no2.collection.Document
+import org.dizitart.no2.common.Constants
 import org.dizitart.no2.index.IndexOptions
 import org.dizitart.no2.index.IndexType
 import org.dizitart.no2.spatial.SpatialIndexer
@@ -239,8 +241,8 @@ class FilterTest : BaseTest() {
             createIndex("location", IndexOptions.indexOptions(SpatialIndexer.SpatialIndex))
 
             val cursor1 = find("location" intersects search)
-            assertEquals(cursor1.size().toLong(), 2)
-            assertEquals(cursor1.toList(), listOf(doc1, doc2))
+            assertEquals(cursor1.size(), 2)
+            assertEquals(cursor1.toList().map { trimMeta(it) }, listOf(doc1, doc2))
         }
     }
 
@@ -258,8 +260,8 @@ class FilterTest : BaseTest() {
             createIndex("location", IndexOptions.indexOptions(SpatialIndexer.SpatialIndex))
 
             val cursor1 = find("location" within search)
-            assertEquals(cursor1.size().toLong(), 1)
-            assertEquals(cursor1.toList(), listOf(doc1))
+            assertEquals(cursor1.size(), 1)
+            assertEquals(cursor1.toList().map { trimMeta(it) }, listOf(doc1))
         }
     }
 
@@ -278,7 +280,7 @@ class FilterTest : BaseTest() {
 
             val cursor1 = find("location".near(search, 20.0))
             assertEquals(cursor1.size(), 1)
-            assertEquals(cursor1.toList(), listOf(doc1))
+            assertEquals(cursor1.toList().map { trimMeta(it) }, listOf(doc1))
         }
     }
 
@@ -298,7 +300,15 @@ class FilterTest : BaseTest() {
 
             val cursor1 = find("location".near(coordinate, 20.0))
             assertEquals(cursor1.size(), 1)
-            assertEquals(cursor1.toList(), listOf(doc1))
+            assertEquals(cursor1.toList().map { trimMeta(it) }, listOf(doc1))
         }
+    }
+
+    private fun trimMeta(document: Document): Document {
+        document.remove(Constants.DOC_ID)
+        document.remove(Constants.DOC_REVISION)
+        document.remove(Constants.DOC_MODIFIED)
+        document.remove(Constants.DOC_SOURCE)
+        return document
     }
 }

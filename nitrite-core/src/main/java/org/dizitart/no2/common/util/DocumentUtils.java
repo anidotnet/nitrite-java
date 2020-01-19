@@ -79,6 +79,18 @@ public class DocumentUtils {
         return removeValues(document);
     }
 
+    public static boolean isSimilar(Document document, Document other, String... fields) {
+        boolean result = true;
+        if (document == null && other != null) return false;
+        if (document != null && other == null) return false;
+        if (document == null) return true;
+
+        for (String field : fields) {
+            result = result && Objects.equals(document.get(field), other.get(field));
+        }
+        return result;
+    }
+
     private Document removeValues(Document document) {
         if (document == null) return null;
         for (KeyValuePair<String, Object> entry : document) {

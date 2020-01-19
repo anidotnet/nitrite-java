@@ -87,7 +87,8 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
     @Override
     public void onEvent(ReplicationEvent event) {
         validateEvent(event);
-        if (event.getMessage().getMessageHeader().getReplicaId().equals(getReplicaId())) {
+        if (getReplicaId().equals(event.getMessage().getMessageHeader().getSource())) {
+            // ignore broadcast message
             return;
         }
         trackReplicatedEntries(event);
