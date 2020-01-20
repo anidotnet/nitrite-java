@@ -247,7 +247,7 @@ public class MockDataGateServer {
 
                 while (hasMore) {
                     LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, chunkSize);
-                    if (state.getChanges().size() == 0) {
+                    if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
                         hasMore = false;
                     }
 

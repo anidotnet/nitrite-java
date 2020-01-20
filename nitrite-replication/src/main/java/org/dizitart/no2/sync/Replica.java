@@ -1,7 +1,6 @@
 package org.dizitart.no2.sync;
 
 import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.common.util.StringUtils;
@@ -9,11 +8,6 @@ import org.dizitart.no2.sync.connection.ConnectionAware;
 import org.dizitart.no2.sync.event.ReplicationEvent;
 import org.dizitart.no2.sync.event.ReplicationEventBus;
 import org.dizitart.no2.sync.event.ReplicationEventListener;
-import org.dizitart.no2.sync.message.ChangeMessage;
-import org.dizitart.no2.sync.message.DataGateMessage;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * @author Anindya Chatterjee
@@ -22,7 +16,6 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
     private ReplicationConfig replicationConfig;
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;
-    private Set<NitriteId> replicatedEntries;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
@@ -32,7 +25,6 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
         this.replicationConfig = config;
         this.localOperation = new LocalOperation(replicationConfig);
         this.remoteOperation = new RemoteOperation(replicationConfig);
-        this.replicatedEntries = new LinkedHashSet<>();
     }
 
     public void connect() {
@@ -62,21 +54,11 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             case Insert:
             case Update:
                 document = (Document) eventInfo.getItem();
-                if (replicatedEntries.contains(document.getId())) {
-                    replicatedEntries.remove(document.getId());
-                    return;
-                } else {
-                    localOperation.handleInsertEvent(document);
-                }
+                localOperation.handleInsertEvent(document);
                 break;
             case Remove:
                 document = (Document) eventInfo.getItem();
-                if (replicatedEntries.contains(document.getId())) {
-                    replicatedEntries.remove(document.getId());
-                    return;
-                } else {
-                    localOperation.handleRemoveEvent(document);
-                }
+                localOperation.handleRemoveEvent(document);
                 break;
             case IndexStart:
             case IndexEnd:
@@ -91,7 +73,6 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             // ignore broadcast message
             return;
         }
-        trackReplicatedEntries(event);
         remoteOperation.handleReplicationEvent(event);
     }
 
@@ -115,20 +96,6 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             throw new ReplicationException("invalid message info received for " + getReplicaId());
         } else if (event.getMessage().getMessageHeader().getMessageType() == null) {
             throw new ReplicationException("invalid message type received for " + getReplicaId());
-        }
-    }
-
-    private void trackReplicatedEntries(ReplicationEvent event) {
-        DataGateMessage message = event.getMessage();
-        if (message instanceof ChangeMessage) {
-            ChangeMessage feed = (ChangeMessage) message;
-            for (Document change : feed.getFeed().getChanges()) {
-                replicatedEntries.add(change.getId());
-            }
-
-            for (Long id : feed.getFeed().getTombstones().keySet()) {
-                replicatedEntries.add(NitriteId.createId(id));
-            }
         }
     }
 }
