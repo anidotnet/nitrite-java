@@ -1,5 +1,7 @@
 package org.dizitart.no2.sync.event;
 
+import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -10,11 +12,9 @@ import java.util.concurrent.ExecutorService;
  * @author Anindya Chatterjee
  */
 public class MessageRouter {
-    private ExecutorService dispatcher;
     private Map<String, Set<ReplicationEventListener>> registry;
 
-    public MessageRouter(ExecutorService eventExecutor) {
-        this.dispatcher = eventExecutor;
+    public MessageRouter() {
         this.registry = new ConcurrentHashMap<>();
     }
 
@@ -34,9 +34,13 @@ public class MessageRouter {
     public void dispatch(ReplicationEvent replicationEvent) {
         String collection = replicationEvent.getMessage().getMessageHeader().getCollection();
         Set<ReplicationEventListener> eventListeners = registry.get(collection);
+        ExecutorService dispatcher = ExecutorServiceManager.syncExecutor();
+
+        System.out.println("Routing message " + replicationEvent.getMessage() + " for " + collection + " to " + eventListeners.size() + " listeners");
 
         if (eventListeners != null) {
             for (final ReplicationEventListener listener : eventListeners) {
+                System.out.println("dispatcher status - " + dispatcher.isShutdown());
                 dispatcher.submit(() -> listener.onEvent(replicationEvent));
             }
         }

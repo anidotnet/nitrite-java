@@ -1,40 +1,26 @@
 package org.dizitart.no2.sync.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.message.DataGateMessage;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * @author Anindya Chatterjee
  */
 public class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, ReplicationEventListener> {
-    private static final ReplicationEventBus instance = new ReplicationEventBus();
-
     private MessageTransformer messageTransformer;
     private MessageRouter messageRouter;
 
-    private ReplicationEventBus() {
+    public ReplicationEventBus() {
         messageTransformer = new MessageTransformer();
-        messageRouter = new MessageRouter(getEventExecutor());
-    }
-
-    public static ReplicationEventBus getInstance() {
-        return instance;
+        messageRouter = new MessageRouter();
     }
 
     @Override
     public void post(ReplicationEvent replicationEvent) {
         messageRouter.dispatch(replicationEvent);
-    }
-
-    @Override
-    protected ExecutorService getEventExecutor() {
-        return ExecutorServiceManager.syncExecutor();
     }
 
     public void handleMessage(ObjectMapper objectMapper, String message) {

@@ -1,10 +1,12 @@
 package org.dizitart.no2.sync;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.common.util.StringUtils;
-import org.dizitart.no2.sync.connection.ConnectionAware;
+import org.dizitart.no2.sync.connection.Connection;
+import org.dizitart.no2.sync.connection.ConnectionConfig;
 import org.dizitart.no2.sync.event.ReplicationEvent;
 import org.dizitart.no2.sync.event.ReplicationEventBus;
 import org.dizitart.no2.sync.event.ReplicationEventListener;
@@ -12,10 +14,12 @@ import org.dizitart.no2.sync.event.ReplicationEventListener;
 /**
  * @author Anindya Chatterjee
  */
-public class Replica implements CollectionEventListener, ReplicationEventListener, ConnectionAware {
+public class Replica implements CollectionEventListener, ReplicationEventListener {
     private ReplicationConfig replicationConfig;
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;
+    private Connection connection;
+    private ReplicationEventBus eventBus;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
@@ -23,23 +27,31 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
 
     Replica(ReplicationConfig config) {
         this.replicationConfig = config;
-        this.localOperation = new LocalOperation(replicationConfig);
-        this.remoteOperation = new RemoteOperation(replicationConfig);
+        configure();
     }
 
     public void connect() {
-        localOperation.sendConnect();
-        localOperation.sendLocalChanges();
+        ConnectionConfig connectionConfig = replicationConfig.getConnectionConfig();
+        ObjectMapper objectMapper = replicationConfig.getObjectMapper();
+        connection = Connection.create(connectionConfig, text -> eventBus.handleMessage(objectMapper, text));
+
+        localOperation.sendConnect(connection);
+        localOperation.sendLocalChanges(connection);
 
         replicationConfig.getCollection().subscribe(this);
-        ReplicationEventBus.getInstance().register(this);
+        eventBus.register(this);
 
-        getConnection().sendAndReceive();
+        connection.open();
     }
 
     public void disconnect() {
-        localOperation.sendDisconnect();
-        ReplicationEventBus.getInstance().deregister(this);
+        localOperation.sendDisconnect(connection);
+        eventBus.deregister(this);
+        try {
+            connection.close();
+        } catch (Exception e) {
+            throw new ReplicationException("failed to close connection", e);
+        }
     }
 
     @Override
@@ -54,11 +66,11 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             case Insert:
             case Update:
                 document = (Document) eventInfo.getItem();
-                localOperation.handleInsertEvent(document);
+                localOperation.handleInsertEvent(document, connection);
                 break;
             case Remove:
                 document = (Document) eventInfo.getItem();
-                localOperation.handleRemoveEvent(document);
+                localOperation.handleRemoveEvent(document, connection);
                 break;
             case IndexStart:
             case IndexEnd:
@@ -68,21 +80,24 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
 
     @Override
     public void onEvent(ReplicationEvent event) {
+        System.out.println("Handling server message - " + event.getMessage());
         validateEvent(event);
         if (getReplicaId().equals(event.getMessage().getMessageHeader().getSource())) {
             // ignore broadcast message
+            System.out.println("Ignoring - " + event.getMessage());
             return;
         }
         remoteOperation.handleReplicationEvent(event);
     }
 
-    @Override
-    public ReplicationConfig getConfig() {
-        return replicationConfig;
-    }
-
     public String getReplicaId() {
         return localOperation.getReplicaId();
+    }
+
+    private void configure() {
+        this.eventBus = new ReplicationEventBus();
+        this.localOperation = new LocalOperation(replicationConfig);
+        this.remoteOperation = new RemoteOperation(replicationConfig);
     }
 
     private void validateEvent(ReplicationEvent event) {

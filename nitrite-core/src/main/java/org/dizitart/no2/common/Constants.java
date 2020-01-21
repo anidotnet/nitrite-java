@@ -108,11 +108,6 @@ public class Constants {
     public static final String SYNC_THREAD_NAME = "Sync." + NO2;
 
     /**
-     * The constant SCHEDULED_THREAD_NAME.
-     */
-    public static final String SCHEDULED_THREAD_NAME = "ScheduledWorker." + NO2;
-
-    /**
      * The constant TAG_COLLECTIONS.
      */
     public static final String TAG_COLLECTIONS = "collections";

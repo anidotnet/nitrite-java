@@ -2,7 +2,6 @@ package org.dizitart.no2.sync;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.sync.connection.ConnectionAware;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.event.ReplicationEvent;
@@ -15,20 +14,13 @@ import org.dizitart.no2.sync.message.DataGateFeed;
  * @author Anindya Chatterjee.
  */
 @Slf4j
-class RemoteOperation implements ConnectionAware, ReplicationOperation {
-    private ReplicationConfig config;
+class RemoteOperation implements ReplicationOperation {
     private LastWriteWinMap crdt;
     private NitriteCollection collection;
 
     public RemoteOperation(ReplicationConfig config) {
-        this.config = config;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
-    }
-
-    @Override
-    public ReplicationConfig getConfig() {
-        return config;
     }
 
     public void handleReplicationEvent(ReplicationEvent event) {

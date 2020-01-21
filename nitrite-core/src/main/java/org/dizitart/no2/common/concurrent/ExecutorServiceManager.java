@@ -20,10 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.common.Constants.DAEMON_THREAD_NAME;
+import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
 
 /**
  * A factory for managing for all {@link ExecutorService}.
@@ -34,7 +34,6 @@ import static org.dizitart.no2.common.Constants.*;
 @Slf4j
 public class ExecutorServiceManager {
     private static ExecutorService commonPool;
-    private static ScheduledExecutorService scheduledExecutor;
     private static ExecutorService syncExecutor;
     private static final Object lock = new Object();
 
@@ -45,7 +44,7 @@ public class ExecutorServiceManager {
      * @return the {@link ExecutorService}.
      */
     public static ExecutorService commonPool() {
-        if (commonPool == null || commonPool.isTerminated()) {
+        if (commonPool == null || commonPool.isShutdown() || commonPool.isTerminated()) {
             commonPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
                     threadFactory(DAEMON_THREAD_NAME));
         }
@@ -54,24 +53,10 @@ public class ExecutorServiceManager {
     }
 
     public static ExecutorService syncExecutor() {
-        if (syncExecutor == null || syncExecutor.isTerminated()) {
+        if (syncExecutor == null || syncExecutor.isShutdown() || syncExecutor.isTerminated()) {
             syncExecutor = Executors.newFixedThreadPool(1, threadFactory(SYNC_THREAD_NAME));
         }
         return syncExecutor;
-    }
-
-    /**
-     * Creates a {@link ScheduledExecutorService} with pool size 1
-     * where all {@link Thread}s are daemon threads and uncaught error aware.
-     *
-     * @return the {@link ScheduledExecutorService}.
-     */
-    public static ScheduledExecutorService scheduledExecutor() {
-        if (scheduledExecutor == null || scheduledExecutor.isTerminated()) {
-            scheduledExecutor =
-                    Executors.newScheduledThreadPool(1, threadFactory(SCHEDULED_THREAD_NAME));
-        }
-        return scheduledExecutor;
     }
 
     /**
@@ -83,11 +68,6 @@ public class ExecutorServiceManager {
         if (commonPool != null) {
             shutdownAndAwaitTermination(commonPool, timeout);
             commonPool = null;
-        }
-
-        if (scheduledExecutor != null) {
-            shutdownAndAwaitTermination(scheduledExecutor, timeout);
-            scheduledExecutor = null;
         }
 
         if (syncExecutor != null) {

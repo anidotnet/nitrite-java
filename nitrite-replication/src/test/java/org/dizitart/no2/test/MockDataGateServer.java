@@ -33,16 +33,20 @@ import static io.undertow.Handlers.websocket;
 @Slf4j
 @Data
 public class MockDataGateServer {
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private Map<String, List<String>> collectionReplicaMap = new HashMap<>();
-    private Map<String, List<String>> userReplicaMap = new HashMap<>();
-    private Map<String, LastWriteWinMap> replicaStore = new HashMap<>();
+    private ObjectMapper objectMapper;
+    private Map<String, List<String>> collectionReplicaMap;
+    private Map<String, List<String>> userReplicaMap;
+    private Map<String, LastWriteWinMap> replicaStore;
     private Undertow undertow;
     private Nitrite db;
     private ExecutorService executorService;
     private String serverId;
 
     public MockDataGateServer() {
+        objectMapper = new ObjectMapper();
+        collectionReplicaMap = new HashMap<>();
+        userReplicaMap = new HashMap<>();
+        replicaStore = new HashMap<>();
         executorService = Executors.newCachedThreadPool();
         db = NitriteBuilder.get().openOrCreate();
         serverId = UUID.randomUUID().toString();
@@ -191,7 +195,7 @@ public class MockDataGateServer {
 
     private void handleMessage(WebSocketChannel channel, BufferedTextMessage message) throws JsonProcessingException {
         String data = message.getData();
-//        log.info("Message received - " + data);
+        log.info("Message received - " + data);
         if (data.contains(MessageType.Connect.code()) || data.contains(MessageType.Disconnect.code())) {
             Connect connect = objectMapper.readValue(data, Connect.class);
             handleConnect(channel, connect);
@@ -240,6 +244,7 @@ public class MockDataGateServer {
                 try {
                     String initMessage = createChangeStart(uuid, collection, userName,
                         replicaId, chunkSize, debounce);
+                    System.out.println("server-side start " + initMessage);
                     WebSockets.sendText(initMessage, channel, null);
                 } catch (Exception e) {
                     log.error("Error while sending BatchChangeStart to " + replicaId, e);
@@ -255,6 +260,7 @@ public class MockDataGateServer {
                         try {
                             String message = createChangeContinue(uuid, state, collection, userName,
                                 replicaId, chunkSize, debounce);
+                            System.out.println("server-side continue " + message);
                             WebSockets.sendText(message, channel, null);
                         } catch (Exception e) {
                             log.error("Error while sending BatchChangeContinue for " + replicaId, e);
@@ -273,6 +279,7 @@ public class MockDataGateServer {
                 try {
                     String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
                         replicaId, chunkSize, debounce);
+                    System.out.println("server-side end " + endMessage);
                     WebSockets.sendText(endMessage, channel, null);
                 } catch (Exception e) {
                     log.error("Error while sending BatchChangeEnd for " + replicaId, e);

@@ -47,7 +47,7 @@ public class ReplicaTest {
     @After
     public void cleanUp() throws IOException {
         server.stop();
-        server = null;
+        executorService.shutdownNow();
         Files.delete(Paths.get(dbFile));
     }
 
@@ -56,7 +56,7 @@ public class ReplicaTest {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
-        NitriteCollection collection = db.getCollection("replicate-test");
+        NitriteCollection collection = db.getCollection("testSingleUserSingleReplica");
         Document document = createDocument().put("firstName", "Anindya")
             .put("lastName", "Chatterjee")
             .put("address", createDocument("street", "1234 Abcd Street")
@@ -74,8 +74,8 @@ public class ReplicaTest {
         await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().size() == 1);
         assertEquals(server.getUserReplicaMap().size(), 1);
         assertTrue(server.getUserReplicaMap().containsKey("anidotnet"));
-        assertTrue(server.getCollectionReplicaMap().containsKey("anidotnet@replicate-test"));
-        LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
+        assertTrue(server.getCollectionReplicaMap().containsKey("anidotnet@testSingleUserSingleReplica"));
+        LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@testSingleUserSingleReplica");
 
         Document doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
 
@@ -113,8 +113,8 @@ public class ReplicaTest {
         Nitrite db2 = NitriteBuilder.get()
             .openOrCreate();
 
-        NitriteCollection c1 = db1.getCollection("replicate-test");
-        NitriteCollection c2 = db2.getCollection("replicate-test");
+        NitriteCollection c1 = db1.getCollection("testSingleUserMultiReplica");
+        NitriteCollection c2 = db2.getCollection("testSingleUserMultiReplica");
 
         Replica r1 = Replica.builder()
             .of(c1)
@@ -142,13 +142,8 @@ public class ReplicaTest {
 
         r2.connect();
         System.out.println(r2.getReplicaId() + " connected");
-        await().atMost(5, SECONDS).until(() -> {
-            LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
-            System.out.println("server - " + lastWriteWinMap.getCollection().size());
-            System.out.println("server tombstones - " + lastWriteWinMap.getTombstones().size());
-            System.out.println("local - " + c2.size());
-            return c2.size() == 10;
-        });
+        System.out.println("Server size - " + server.getReplicaStore().get("anidotnet@testSingleUserMultiReplica").getCollection().size());
+        await().atMost(5, SECONDS).until(() -> c2.size() == 10);
 
         Random random = new Random();
         executorService.submit(() -> {
@@ -206,7 +201,7 @@ public class ReplicaTest {
 
         r1.connect();
 
-        await().atMost(10, SECONDS).until(() -> c1.size() == 70);
+        await().atMost(10, SECONDS).until(() -> c1.size() == c2.size());
         TestUtils.assertEquals(c1, c2);
 
         executorService.submit(() -> {
@@ -214,13 +209,7 @@ public class ReplicaTest {
         });
 
         await().atMost(10, SECONDS).until(() -> c2.size() == 0);
-        await().atMost(5, SECONDS).until(() -> {
-            System.out.println(c1.size());
-            LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@replicate-test");
-            System.out.println("server - " + lastWriteWinMap.getCollection().size());
-            System.out.println("server tombstones - " + lastWriteWinMap.getTombstones().size());
-            return c1.size() == 0;
-        });
+        await().atMost(5, SECONDS).until(() -> c1.size() == 0);
         TestUtils.assertEquals(c1, c2);
     }
 
@@ -271,5 +260,6 @@ public class ReplicaTest {
      * 4. Multi-user, multiple collection
      * 5. Single user, two replicas, two servers (each for one replica)
      * 6. Handle security for jwt tokens - extract user info only from jwt token
+     * 7. connect, close db, open db, connect and assert
      * */
 }

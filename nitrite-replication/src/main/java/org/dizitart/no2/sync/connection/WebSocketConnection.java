@@ -1,6 +1,5 @@
 package org.dizitart.no2.sync.connection;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketExtension;
@@ -8,9 +7,8 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
-import org.dizitart.no2.sync.event.ReplicationEventBus;
+import org.dizitart.no2.sync.message.MessageHandler;
 
 /**
  * @author Anindya Chatterjee
@@ -19,23 +17,45 @@ import org.dizitart.no2.sync.event.ReplicationEventBus;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 class WebSocketConnection extends WebSocketAdapter implements Connection {
-    private static final ReplicationEventBus eventBus = ReplicationEventBus.getInstance();
-
     private static final String AUTHORIZATION = "Authorization";
     private static final String BASIC = "Basic ";
     private static final String BEARER = "Bearer ";
 
     private WebSocket webSocket;
     private WebSocketConfig config;
-    private ObjectMapper objectMapper;
+    private MessageHandler messageHandler;
 
-    public WebSocketConnection(ReplicationConfig replicationConfig) {
-        this.config = (WebSocketConfig) replicationConfig.getConnectionConfig();
-        this.objectMapper = replicationConfig.getObjectMapper();
+    public WebSocketConnection(ConnectionConfig config, MessageHandler messageHandler) {
+        this.config = (WebSocketConfig) config;
+        this.messageHandler = messageHandler;
+        init();
     }
 
     @Override
     public void open() {
+        webSocket.addListener(this);
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        ensureConnection();
+        log.info("Sending message {}", message);
+        webSocket.sendText(message);
+    }
+
+    @Override
+    public void close() {
+        webSocket.flush();
+        webSocket.clearListeners();
+        webSocket.disconnect();
+    }
+
+    @Override
+    public void onTextMessage(WebSocket websocket, String text) {
+        messageHandler.handleMessage(text);
+    }
+
+    private void init() {
         try {
             WebSocketFactory factory = new WebSocketFactory();
             factory.setConnectionTimeout(config.getConnectTimeout());
@@ -60,26 +80,13 @@ class WebSocketConnection extends WebSocketAdapter implements Connection {
         }
     }
 
-    @Override
-    public void sendAndReceive() {
-        webSocket.addListener(this);
-    }
-
-    @Override
-    public void sendMessage(String message) {
-        log.info("Sending message {}", message);
-        webSocket.sendText(message);
-    }
-
-    @Override
-    public void close() {
-        webSocket.flush();
-        webSocket.clearListeners();
-        webSocket.disconnect();
-    }
-
-    @Override
-    public void onTextMessage(WebSocket websocket, String text) {
-        eventBus.handleMessage(objectMapper, text);
+    private void ensureConnection() {
+        if (!webSocket.isOpen()) {
+            try {
+                webSocket = webSocket.recreate().connect();
+            } catch (Exception e) {
+                throw new ReplicationException("websocket connection failure", e);
+            }
+        }
     }
 }
