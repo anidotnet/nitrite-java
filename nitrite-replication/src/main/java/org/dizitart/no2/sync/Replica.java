@@ -2,6 +2,7 @@ package org.dizitart.no2.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.WebSocketListener;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
@@ -16,7 +17,7 @@ import org.dizitart.no2.sync.event.ReplicationEventListener;
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class Replica implements CollectionEventListener, ReplicationEventListener, AutoCloseable {
+public class Replica extends WebSocketListener implements CollectionEventListener, AutoCloseable {
     private ReplicationConfig replicationConfig;
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;

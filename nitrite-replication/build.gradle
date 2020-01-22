@@ -22,6 +22,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
     implementation "com.neovisionaries:nv-websocket-client:$websocketVersion"
+    implementation "com.squareup.okhttp3:okhttp:3.14.6"
 
     testImplementation project(path: ':nitrite', configuration: 'default')
     testImplementation "io.undertow:undertow-core:$undertowVersion"

@@ -6,7 +6,6 @@ import org.dizitart.no2.sync.message.MessageHandler;
  * @author Anindya Chatterjee
  */
 public interface Connection extends AutoCloseable {
-    void open();
     void sendMessage(String message);
 
     static Connection create(ConnectionConfig config, MessageHandler messageHandler) {
