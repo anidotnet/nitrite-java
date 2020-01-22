@@ -1,6 +1,7 @@
 package org.dizitart.no2.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
@@ -14,7 +15,8 @@ import org.dizitart.no2.sync.event.ReplicationEventListener;
 /**
  * @author Anindya Chatterjee
  */
-public class Replica implements CollectionEventListener, ReplicationEventListener {
+@Slf4j
+public class Replica implements CollectionEventListener, ReplicationEventListener, AutoCloseable {
     private ReplicationConfig replicationConfig;
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;
@@ -31,26 +33,27 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
     }
 
     public void connect() {
-        ConnectionConfig connectionConfig = replicationConfig.getConnectionConfig();
-        ObjectMapper objectMapper = replicationConfig.getObjectMapper();
-        connection = Connection.create(connectionConfig, text -> eventBus.handleMessage(objectMapper, text));
+        try {
+            localOperation.sendConnect(connection);
+            localOperation.sendLocalChanges(connection);
 
-        localOperation.sendConnect(connection);
-        localOperation.sendLocalChanges(connection);
+            replicationConfig.getCollection().subscribe(this);
+            eventBus.register(this);
 
-        replicationConfig.getCollection().subscribe(this);
-        eventBus.register(this);
-
-        connection.open();
+            connection.open();
+        } catch (Exception e) {
+            log.error("Error while connecting the replica", e);
+            throw new ReplicationException("failed to open connection", e);
+        }
     }
 
     public void disconnect() {
-        localOperation.sendDisconnect(connection);
-        eventBus.deregister(this);
         try {
-            connection.close();
+            localOperation.sendDisconnect(connection);
+            eventBus.deregister(this);
         } catch (Exception e) {
-            throw new ReplicationException("failed to close connection", e);
+            log.error("Error while disconnecting the replica", e);
+            throw new ReplicationException("failed to disconnect the replica", e);
         }
     }
 
@@ -98,6 +101,10 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
         this.eventBus = new ReplicationEventBus();
         this.localOperation = new LocalOperation(replicationConfig);
         this.remoteOperation = new RemoteOperation(replicationConfig);
+
+        ConnectionConfig connectionConfig = replicationConfig.getConnectionConfig();
+        ObjectMapper objectMapper = replicationConfig.getObjectMapper();
+        connection = Connection.create(connectionConfig, text -> eventBus.handleMessage(objectMapper, text));
     }
 
     private void validateEvent(ReplicationEvent event) {
@@ -111,6 +118,13 @@ public class Replica implements CollectionEventListener, ReplicationEventListene
             throw new ReplicationException("invalid message info received for " + getReplicaId());
         } else if (event.getMessage().getMessageHeader().getMessageType() == null) {
             throw new ReplicationException("invalid message type received for " + getReplicaId());
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (connection != null) {
+            connection.close();
         }
     }
 }

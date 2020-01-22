@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
+import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
+
 /**
  * @author Anindya Chatterjee
  */
@@ -34,13 +36,10 @@ public class MessageRouter {
     public void dispatch(ReplicationEvent replicationEvent) {
         String collection = replicationEvent.getMessage().getMessageHeader().getCollection();
         Set<ReplicationEventListener> eventListeners = registry.get(collection);
-        ExecutorService dispatcher = ExecutorServiceManager.syncExecutor();
-
-        System.out.println("Routing message " + replicationEvent.getMessage() + " for " + collection + " to " + eventListeners.size() + " listeners");
+        ExecutorService dispatcher = ExecutorServiceManager.getThreadPool(1, SYNC_THREAD_NAME);
 
         if (eventListeners != null) {
             for (final ReplicationEventListener listener : eventListeners) {
-                System.out.println("dispatcher status - " + dispatcher.isShutdown());
                 dispatcher.submit(() -> listener.onEvent(replicationEvent));
             }
         }

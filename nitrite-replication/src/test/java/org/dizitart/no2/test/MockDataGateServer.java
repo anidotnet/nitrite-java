@@ -21,8 +21,6 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.websocket;
@@ -39,20 +37,17 @@ public class MockDataGateServer {
     private Map<String, LastWriteWinMap> replicaStore;
     private Undertow undertow;
     private Nitrite db;
-    private ExecutorService executorService;
+//    private ExecutorService executorService;
     private String serverId;
 
-    public MockDataGateServer() {
+    public MockDataGateServer(int port, String host) {
         objectMapper = new ObjectMapper();
         collectionReplicaMap = new HashMap<>();
         userReplicaMap = new HashMap<>();
         replicaStore = new HashMap<>();
-        executorService = Executors.newCachedThreadPool();
+
         db = NitriteBuilder.get().openOrCreate();
         serverId = UUID.randomUUID().toString();
-    }
-
-    public void buildAndStartServer(int port, String host) {
         undertow = Undertow.builder()
             .addHttpListener(port, host)
             .setHandler(getWebSocketHandler())
@@ -61,9 +56,8 @@ public class MockDataGateServer {
     }
 
     public void stop() {
-        db.close();
         undertow.stop();
-        executorService.shutdown();
+        db.close();
     }
 
     protected void handleConnect(WebSocketChannel channel, Connect connect) {
@@ -224,7 +218,6 @@ public class MockDataGateServer {
     private void broadcast(String message, WebSocketChannel channel) {
         for (WebSocketChannel ch : channel.getPeerConnections()) {
             if (ch != channel) {
-                //FIXME: fix broadcasting
                 WebSockets.sendText(message, ch, null);
             }
         }
@@ -236,55 +229,52 @@ public class MockDataGateServer {
                              WebSocketChannel channel, String replicaId) {
         try {
             String uuid = UUID.randomUUID().toString();
+            int start = 0;
+            boolean hasMore = true;
 
-            executorService.submit(() -> {
-                int start = 0;
-                boolean hasMore = true;
+            try {
+                String initMessage = createChangeStart(uuid, collection, userName,
+                    replicaId, chunkSize, debounce);
+                System.out.println("server-side start " + initMessage);
+                WebSockets.sendText(initMessage, channel, null);
+            } catch (Exception e) {
+                log.error("Error while sending BatchChangeStart to " + replicaId, e);
+            }
 
-                try {
-                    String initMessage = createChangeStart(uuid, collection, userName,
-                        replicaId, chunkSize, debounce);
-                    System.out.println("server-side start " + initMessage);
-                    WebSockets.sendText(initMessage, channel, null);
-                } catch (Exception e) {
-                    log.error("Error while sending BatchChangeStart to " + replicaId, e);
+            while (hasMore) {
+                LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, chunkSize);
+                if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
+                    hasMore = false;
                 }
 
-                while (hasMore) {
-                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, chunkSize);
-                    if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
-                        hasMore = false;
+                if (hasMore) {
+                    try {
+                        String message = createChangeContinue(uuid, state, collection, userName,
+                            replicaId, chunkSize, debounce);
+                        System.out.println("server-side continue " + message);
+                        WebSockets.sendText(message, channel, null);
+                    } catch (Exception e) {
+                        log.error("Error while sending BatchChangeContinue for " + replicaId, e);
                     }
 
-                    if (hasMore) {
-                        try {
-                            String message = createChangeContinue(uuid, state, collection, userName,
-                                replicaId, chunkSize, debounce);
-                            System.out.println("server-side continue " + message);
-                            WebSockets.sendText(message, channel, null);
-                        } catch (Exception e) {
-                            log.error("Error while sending BatchChangeContinue for " + replicaId, e);
-                        }
-
-                        try {
-                            Thread.sleep(debounce);
-                        } catch (InterruptedException e) {
-                            log.error("thread interrupted", e);
-                        }
-
-                        start = start + chunkSize;
+                    try {
+                        Thread.sleep(debounce);
+                    } catch (InterruptedException e) {
+                        log.error("thread interrupted", e);
                     }
-                }
 
-                try {
-                    String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
-                        replicaId, chunkSize, debounce);
-                    System.out.println("server-side end " + endMessage);
-                    WebSockets.sendText(endMessage, channel, null);
-                } catch (Exception e) {
-                    log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+                    start = start + chunkSize;
                 }
-            });
+            }
+
+            try {
+                String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
+                    replicaId, chunkSize, debounce);
+                System.out.println("server-side end " + endMessage + " with peers " + channel.getPeerConnections().size());
+                WebSockets.sendText(endMessage, channel, null);
+            } catch (Exception e) {
+                log.error("Error while sending BatchChangeEnd for " + replicaId, e);
+            }
         } catch (Exception e) {
             throw new ReplicationException("failed to send local changes message for " + replicaId, e);
         }

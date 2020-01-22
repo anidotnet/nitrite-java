@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.dizitart.no2.collection.meta.Attributes.REPLICA;
+import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
 
 /**
  * @author Anindya Chatterjee.
@@ -37,7 +38,7 @@ class LocalOperation implements ReplicationOperation {
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
         this.objectMapper = config.getObjectMapper();
-        this.executorService = ExecutorServiceManager.syncExecutor();
+        this.executorService = ExecutorServiceManager.getThreadPool(1, SYNC_THREAD_NAME);
         this.isConnected = new AtomicBoolean(false);
     }
 

@@ -18,12 +18,13 @@ package org.dizitart.no2.common.concurrent;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.dizitart.no2.common.Constants.DAEMON_THREAD_NAME;
-import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
 
 /**
  * A factory for managing for all {@link ExecutorService}.
@@ -33,30 +34,33 @@ import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
  */
 @Slf4j
 public class ExecutorServiceManager {
-    private static ExecutorService commonPool;
-    private static ExecutorService syncExecutor;
-    private static final Object lock = new Object();
+    private static Map<String, ExecutorService> registry;
+    private static final Object lock;
+
+    static {
+        lock = new Object();
+        registry = new ConcurrentHashMap<>();
+    }
 
     /**
-     * Creates an {@link ExecutorService} with pull size {@link Integer#MAX_VALUE}
+     * Creates an {@link ExecutorService} with pull size {@link Runtime#availableProcessors()}
      * where all {@link Thread}s are daemon threads and uncaught error aware.
      *
      * @return the {@link ExecutorService}.
      */
     public static ExecutorService commonPool() {
-        if (commonPool == null || commonPool.isShutdown() || commonPool.isTerminated()) {
-            commonPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
-                    threadFactory(DAEMON_THREAD_NAME));
-        }
-
-        return commonPool;
+        return getThreadPool(Runtime.getRuntime().availableProcessors(), DAEMON_THREAD_NAME);
     }
 
-    public static ExecutorService syncExecutor() {
-        if (syncExecutor == null || syncExecutor.isShutdown() || syncExecutor.isTerminated()) {
-            syncExecutor = Executors.newFixedThreadPool(1, threadFactory(SYNC_THREAD_NAME));
+    public static ExecutorService getThreadPool(int size, String threadName) {
+        String key = threadName + "_" + size;
+        if (registry.containsKey(key)) {
+            return registry.get(key);
+        } else {
+            ExecutorService executorService = Executors.newFixedThreadPool(size, threadFactory(threadName));
+            registry.put(key, executorService);
+            return executorService;
         }
-        return syncExecutor;
     }
 
     /**
@@ -65,18 +69,13 @@ public class ExecutorServiceManager {
      * @param timeout the timeout in seconds
      */
     public static void shutdownExecutors(int timeout) {
-        if (commonPool != null) {
-            shutdownAndAwaitTermination(commonPool, timeout);
-            commonPool = null;
+        for (ExecutorService value : registry.values()) {
+            shutdownAndAwaitTermination(value, timeout);
         }
-
-        if (syncExecutor != null) {
-            shutdownAndAwaitTermination(syncExecutor, timeout);
-            syncExecutor = null;
-        }
+        registry.clear();
     }
 
-    private static ErrorAwareThreadFactory threadFactory(String name) {
+    public static ErrorAwareThreadFactory threadFactory(String name) {
         return new ErrorAwareThreadFactory() {
             @Override
             public Thread createThread(Runnable runnable) {

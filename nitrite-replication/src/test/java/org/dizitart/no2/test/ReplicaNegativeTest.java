@@ -30,8 +30,7 @@ public class ReplicaNegativeTest {
     @Before
     public void setUp() {
         dbFile = getRandomTempDbFile();
-        server = new MockDataGateServer();
-        server.buildAndStartServer(9090, "127.0.0.1");
+        server = new MockDataGateServer(9090, "127.0.0.1");
         executorService = Executors.newFixedThreadPool(2);
     }
 

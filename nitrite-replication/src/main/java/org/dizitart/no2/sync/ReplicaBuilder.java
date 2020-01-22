@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.repository.ObjectRepository;
-import org.dizitart.no2.sync.connection.*;
-import org.dizitart.no2.sync.event.ReplicationEventBus;
-import org.dizitart.no2.sync.message.MessageHandler;
+import org.dizitart.no2.sync.connection.AuthType;
+import org.dizitart.no2.sync.connection.ConnectionConfig;
+import org.dizitart.no2.sync.connection.TimeSpan;
+import org.dizitart.no2.sync.connection.WebSocketConfig;
 import org.dizitart.no2.sync.module.DocumentModule;
 
 import java.math.BigInteger;
@@ -131,9 +132,5 @@ public class ReplicaBuilder {
 
     private int getTimeoutInMillis(TimeSpan connectTimeout) {
         return Math.toIntExact(connectTimeout.getTimeUnit().toMillis(connectTimeout.getTime()));
-    }
-
-    private MessageHandler getMessageHandler(ReplicationEventBus eventBus) {
-        return text -> eventBus.handleMessage(objectMapper, text);
     }
 }

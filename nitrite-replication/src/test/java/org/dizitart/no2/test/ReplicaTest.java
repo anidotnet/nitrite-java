@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Random;
@@ -39,15 +38,15 @@ public class ReplicaTest {
     @Before
     public void setUp() {
         dbFile = getRandomTempDbFile();
-        server = new MockDataGateServer();
-        server.buildAndStartServer(9090, "127.0.0.1");
-        executorService = Executors.newFixedThreadPool(2);
+        server = new MockDataGateServer(9090, "127.0.0.1");
+        executorService = Executors.newCachedThreadPool();
     }
 
     @After
-    public void cleanUp() throws IOException {
+    public void cleanUp() throws Exception {
+        executorService.awaitTermination(2, SECONDS);
+        executorService.shutdown();
         server.stop();
-        executorService.shutdownNow();
         Files.delete(Paths.get(dbFile));
     }
 
@@ -213,7 +212,7 @@ public class ReplicaTest {
         TestUtils.assertEquals(c1, c2);
     }
 
-//    @Test
+    //    @Test
     public void testMultiUserSingleReplica() {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
