@@ -14,6 +14,8 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
 
 import java.util.Collections;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -106,8 +108,6 @@ class LocalOperation implements ReplicationOperation {
         executorService.submit(() -> {
             if (!isConnected.get()) return;
 
-            int start = 0;
-            boolean hasMore = true;
             Long lastSyncTime = getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
 
@@ -118,29 +118,34 @@ class LocalOperation implements ReplicationOperation {
                 log.error("Error while sending BatchChangeStart for " + getReplicaId(), e);
             }
 
-            while (hasMore) {
-                LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
-                if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
-                    hasMore = false;
-                }
+            final Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                boolean hasMore = true;
+                int start = 0;
 
-                if (hasMore) {
-                    try {
-                        String message = createChangeContinue(uuid, state);
-                        connection.send(message);
-                    } catch (Exception e) {
-                        log.error("Error while sending BatchChangeContinue for " + getReplicaId(), e);
+                @Override
+                public void run() {
+                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, config.getChunkSize());
+                    if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
+                        hasMore = false;
                     }
 
-                    try {
-                        Thread.sleep(config.getDebounce());
-                    } catch (InterruptedException e) {
-                        log.error("thread interrupted", e);
+                    if (hasMore) {
+                        try {
+                            String message = createChangeContinue(uuid, state);
+                            connection.send(message);
+                        } catch (Exception e) {
+                            log.error("Error while sending BatchChangeContinue for " + getReplicaId(), e);
+                        }
+
+                        start = start + config.getChunkSize();
                     }
 
-                    start = start + config.getChunkSize();
+                    if (!hasMore) {
+                        timer.cancel();
+                    }
                 }
-            }
+            }, 0, config.getDebounce());
 
             try {
                 String endMessage = createChangeEnd(uuid, lastSyncTime);
@@ -196,7 +201,7 @@ class LocalOperation implements ReplicationOperation {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(collection.getName());
         messageHeader.setMessageType(messageType);
-        messageHeader.setSource(getReplicaId());
+        messageHeader.setOrigin(getReplicaId());
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(config.getUserName());
         return messageHeader;

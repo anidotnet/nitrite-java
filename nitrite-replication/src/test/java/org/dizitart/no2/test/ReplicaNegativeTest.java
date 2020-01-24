@@ -5,7 +5,7 @@ import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.sync.Replica;
-import org.dizitart.no2.test.server.MockDataGateEndpoint;
+import org.dizitart.no2.test.server.SimpleDataGateEndpoint;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,14 +25,14 @@ import static org.dizitart.no2.test.TestUtils.randomDocument;
  * @author Anindya Chatterjee
  */
 public class ReplicaNegativeTest {
-    private MockDataGateEndpoint server;
+    private SimpleDataGateEndpoint server;
     private String dbFile;
     private ExecutorService executorService;
 
     @Before
     public void setUp() {
         dbFile = getRandomTempDbFile();
-        server = new MockDataGateEndpoint();
+        server = new SimpleDataGateEndpoint();
         executorService = Executors.newFixedThreadPool(2);
     }
 

@@ -1,5 +1,6 @@
 package org.dizitart.no2.test;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
@@ -7,7 +8,7 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.sync.Replica;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
-import org.dizitart.no2.test.server.MockDataGateServer;
+import org.dizitart.no2.test.server.SimpleDataGateServer;
 import org.dizitart.no2.test.server.Repository;
 import org.junit.*;
 
@@ -30,15 +31,16 @@ import static org.junit.Assert.*;
 /**
  * @author Anindya Chatterjee
  */
+@Slf4j
 public class ReplicaTest {
-    private static MockDataGateServer server;
+    private static SimpleDataGateServer server;
     private String dbFile;
     private ExecutorService executorService;
     private Repository repository;
 
     @BeforeClass
     public static void startServer() throws Exception {
-        server = new MockDataGateServer(9090);
+        server = new SimpleDataGateServer(9090);
         server.start();
     }
 
@@ -88,6 +90,7 @@ public class ReplicaTest {
         assertTrue(repository.getCollectionReplicaMap().containsKey("anidotnet@testSingleUserSingleReplica"));
         LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testSingleUserSingleReplica");
 
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().find().size() == 1);
         Document doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
 
         assertTrue(isSimilar(document, doc, "firstName", "lastName", "address", "pin"));
@@ -152,7 +155,6 @@ public class ReplicaTest {
         assertEquals(c2.size(), 0);
 
         r2.connect();
-        System.out.println(r2.getReplicaId() + " connected");
         await().atMost(5, SECONDS).until(() -> c2.size() == 10);
 
         Random random = new Random();

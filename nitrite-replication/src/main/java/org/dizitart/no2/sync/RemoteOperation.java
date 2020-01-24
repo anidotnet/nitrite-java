@@ -29,9 +29,9 @@ class RemoteOperation implements ReplicationOperation {
     public void handleMessage(WebSocket webSocket, String text) {
         DataGateMessage message = messageTransformer.transform(text);
         validateMessage(message);
-        if (replicaId.equals(message.getMessageHeader().getSource())) {
+        if (replicaId.equals(message.getMessageHeader().getOrigin())) {
             // ignore broadcast message
-            System.out.println("Ignoring - " + message);
+            log.debug("Ignoring same origin message {}", text);
             return;
         }
 

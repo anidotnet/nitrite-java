@@ -92,8 +92,8 @@ public class Replica extends WebSocketListener implements CollectionEventListene
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
+        log.debug("Message received from server {}", text);
         super.onMessage(webSocket, text);
-        System.out.println("Handling server message - " + text);
         remoteOperation.handleMessage(webSocket, text);
     }
 

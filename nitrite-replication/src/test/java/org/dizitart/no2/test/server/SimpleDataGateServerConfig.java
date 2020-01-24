@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * @author Anindya Chatterjee
  */
-public class MockDataGateServerConfig extends ServerEndpointConfig.Configurator {
+public class SimpleDataGateServerConfig extends ServerEndpointConfig.Configurator {
     @Override
     public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
         Map<String, List<String>> headers = request.getHeaders();

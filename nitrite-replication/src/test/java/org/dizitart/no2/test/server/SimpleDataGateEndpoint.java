@@ -15,23 +15,19 @@ import org.dizitart.no2.sync.message.*;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
 @Data
-@ServerEndpoint(value="/datagate/{user}/{collection}", configurator = MockDataGateServerConfig.class)
-public class MockDataGateEndpoint {
+@ServerEndpoint(value="/datagate/{user}/{collection}", configurator = SimpleDataGateServerConfig.class)
+public class SimpleDataGateEndpoint {
     private ObjectMapper objectMapper;
     private Repository repository;
 
-    //https://github.com/abhirockzz/websocket-chat/blob/master/src/main/java/io/gitbooks/abhirockzz/jwah/chat/ChatServer.java
-
-    public MockDataGateEndpoint() {
+    public SimpleDataGateEndpoint() {
         objectMapper = new ObjectMapper();
         repository = Repository.getInstance();
     }
@@ -46,13 +42,13 @@ public class MockDataGateEndpoint {
 
     @OnClose
     public void onClose(CloseReason reason, Session session) {
-        log.info("DataGate server closed due to " + reason.getReasonPhrase());
+        log.warn("DataGate server closed due to {}", reason.getReasonPhrase());
     }
 
     @OnMessage
     public void onMessage(String message, Session session) {
         try {
-            log.info("Message received - " + message);
+            log.info("Message received at server {}", message);
             if (message.contains(MessageType.Connect.code()) || message.contains(MessageType.Disconnect.code())) {
                 Connect connect = objectMapper.readValue(message, Connect.class);
                 handleConnect(session, connect);
@@ -70,7 +66,7 @@ public class MockDataGateEndpoint {
                 handleDataGateFeed(session, feed);
             }
         } catch (Exception e) {
-            log.error("Error while handling message " + message, e);
+            log.error("Error while handling message {}", message, e);
         }
     }
 
@@ -80,7 +76,6 @@ public class MockDataGateEndpoint {
     }
 
     protected void handleConnect(Session channel, Connect connect) {
-        log.debug("Connect message received " + connect);
         String replicaId = connect.getReplicaId();
         String userName = connect.getMessageHeader().getUserName();
         String collection = userName + "@" + connect.getMessageHeader().getCollection();
@@ -121,7 +116,6 @@ public class MockDataGateEndpoint {
     }
 
     protected void handleDataGateFeed(Session channel, DataGateFeed feed) {
-        log.debug("DataGateFeed message received " + feed);
         String userName = feed.getMessageHeader().getUserName();
         String collection = userName + "@" + feed.getMessageHeader().getCollection();
 
@@ -143,7 +137,6 @@ public class MockDataGateEndpoint {
     }
 
     protected void handleBatchChangeEnd(Session channel, BatchChangeEnd batchChangeEnd) {
-        log.debug("BatchChangeEnd message received " + batchChangeEnd);
         Long lastSync = batchChangeEnd.getLastSynced();
         Integer batchSize = batchChangeEnd.getBatchSize();
         Integer debounce = batchChangeEnd.getDebounce();
@@ -156,12 +149,11 @@ public class MockDataGateEndpoint {
     }
 
     protected void handleBatchChangeContinue(Session channel, BatchChangeContinue batchChangeContinue) {
-        log.debug("BatchChangeContinue message received " + batchChangeContinue);
         DataGateFeed feed = new DataGateFeed();
 
         String userName = batchChangeContinue.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeContinue.getMessageHeader().getCollection();
-        String replicaId = batchChangeContinue.getMessageHeader().getSource();
+        String replicaId = batchChangeContinue.getMessageHeader().getOrigin();
         LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(batchChangeContinue.getFeed());
 
@@ -193,48 +185,47 @@ public class MockDataGateEndpoint {
                              Session channel, String replicaId) {
         try {
             String uuid = UUID.randomUUID().toString();
-            int start = 0;
-            boolean hasMore = true;
 
             try {
                 String initMessage = createChangeStart(uuid, collection, userName,
                     replicaId, chunkSize, debounce);
-                System.out.println("server-side start " + initMessage);
+                log.info("Sending BatchChangeStart message {} from server to {}", initMessage, replicaId);
                 channel.getBasicRemote().sendText(initMessage);
             } catch (Exception e) {
                 log.error("Error while sending BatchChangeStart to " + replicaId, e);
             }
 
-            while (hasMore) {
-                LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, chunkSize);
-                if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
-                    hasMore = false;
-                }
+            final Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                boolean hasMore = true;
+                int start = 0;
 
-                if (hasMore) {
-                    try {
-                        String message = createChangeContinue(uuid, state, collection, userName,
-                            replicaId, chunkSize, debounce);
-                        System.out.println("server-side continue " + message);
-                        channel.getBasicRemote().sendText(message);
-                    } catch (Exception e) {
-                        log.error("Error while sending BatchChangeContinue for " + replicaId, e);
+                @Override
+                public void run() {
+                    LastWriteWinState state = crdt.getChangesSince(lastSyncTime, start, chunkSize);
+                    if (state.getChanges().size() == 0 && state.getTombstones().size() == 0) {
+                        hasMore = false;
                     }
 
-                    try {
-                        Thread.sleep(debounce);
-                    } catch (InterruptedException e) {
-                        log.error("thread interrupted", e);
-                    }
+                    if (hasMore) {
+                        try {
+                            String message = createChangeContinue(uuid, state, collection, userName,
+                                replicaId, chunkSize, debounce);
+                            log.info("Sending BatchChangeContinue message {} from server to {}", message, replicaId);
+                            channel.getBasicRemote().sendText(message);
+                        } catch (Exception e) {
+                            log.error("Error while sending BatchChangeContinue for " + replicaId, e);
+                        }
 
-                    start = start + chunkSize;
+                        start = start + chunkSize;
+                    }
                 }
-            }
+            }, 0, debounce);
 
             try {
                 String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
                     replicaId, chunkSize, debounce);
-                System.out.println("server-side end " + endMessage);
+                log.info("Sending BatchChangeEnd message {} from server to {}", endMessage, replicaId);
                 channel.getBasicRemote().sendText(endMessage);
             } catch (Exception e) {
                 log.error("Error while sending BatchChangeEnd for " + replicaId, e);
@@ -297,9 +288,9 @@ public class MockDataGateEndpoint {
     private MessageHeader createMessageInfo(MessageType messageType, String collection,
                                             String userName, String replicaId) {
         MessageHeader messageHeader = new MessageHeader();
-        messageHeader.setCollection(collection);
+        messageHeader.setCollection(userName + "@" + collection);
         messageHeader.setMessageType(messageType);
-        messageHeader.setSource(replicaId);
+        messageHeader.setOrigin(replicaId);
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
         return messageHeader;
