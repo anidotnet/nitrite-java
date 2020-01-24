@@ -1,13 +1,10 @@
 package org.dizitart.no2.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Request;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.repository.ObjectRepository;
-import org.dizitart.no2.sync.connection.AuthType;
-import org.dizitart.no2.sync.connection.ConnectionConfig;
-import org.dizitart.no2.sync.connection.TimeSpan;
-import org.dizitart.no2.sync.connection.WebSocketConfig;
 import org.dizitart.no2.sync.module.DocumentModule;
 
 import java.math.BigInteger;
@@ -18,6 +15,10 @@ import java.util.concurrent.TimeUnit;
  * @author Anindya Chatterjee.
  */
 public class ReplicaBuilder {
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String BASIC = "Basic ";
+    private static final String BEARER = "Bearer ";
+
     private NitriteCollection collection;
     private String replicationServer;
     private String jwtToken;
@@ -84,15 +85,16 @@ public class ReplicaBuilder {
 
     public Replica create() {
         if (collection != null) {
-            ConnectionConfig connectionConfig = createConfig();
+            Request.Builder builder = createRequestBuilder();
 
             ReplicationConfig config = new ReplicationConfig();
             config.setCollection(collection);
             config.setChunkSize(chunkSize);
-            config.setConnectionConfig(connectionConfig);
             config.setUserName(userName);
             config.setDebounce(getTimeoutInMillis(debounce));
             config.setObjectMapper(objectMapper);
+            config.setConnectTimeout(connectTimeout);
+            config.setRequestBuilder(builder);
 
             return new Replica(config);
         } else {
@@ -100,30 +102,16 @@ public class ReplicaBuilder {
         }
     }
 
-    private ConnectionConfig createConfig() {
-        if (!StringUtils.isNullOrEmpty(replicationServer)) {
-            if (replicationServer.startsWith("ws")) {
-                WebSocketConfig webSocketConfig = new WebSocketConfig();
-                webSocketConfig.setUrl(replicationServer);
-                webSocketConfig.setConnectTimeout(getTimeoutInMillis(connectTimeout));
-
-                if (!StringUtils.isNullOrEmpty(jwtToken)) {
-                    webSocketConfig.setAuthType(AuthType.Jwt);
-                    webSocketConfig.setAuthToken(jwtToken);
-                } else if (!StringUtils.isNullOrEmpty(basicToken)) {
-                    webSocketConfig.setAuthType(AuthType.Basic);
-                    webSocketConfig.setAuthToken(basicToken);
-                } else {
-                    webSocketConfig.setAuthType(AuthType.None);
-                }
-
-                return webSocketConfig;
-            } else {
-                throw new ReplicationException("only websocket connection is supported");
-            }
-        } else {
-            throw new ReplicationException("replication server url is required");
+    private Request.Builder createRequestBuilder() {
+        Request.Builder builder = new Request.Builder();
+        if (!StringUtils.isNullOrEmpty(jwtToken)) {
+            builder.addHeader(AUTHORIZATION, BEARER + jwtToken);
+        } else if (!StringUtils.isNullOrEmpty(basicToken)) {
+            builder.addHeader(AUTHORIZATION, BASIC + basicToken);
         }
+
+        builder.url(replicationServer);
+        return builder;
     }
 
     private String toHex(String arg) {

@@ -1,4 +1,4 @@
-package org.dizitart.no2.sync.connection;
+package org.dizitart.no2.sync;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,14 +1,13 @@
 package org.dizitart.no2.sync;
 
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.WebSocket;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
-import org.dizitart.no2.sync.event.ReplicationEvent;
-import org.dizitart.no2.sync.message.BatchChangeContinue;
-import org.dizitart.no2.sync.message.BatchChangeEnd;
-import org.dizitart.no2.sync.message.BatchChangeStart;
-import org.dizitart.no2.sync.message.DataGateFeed;
+import org.dizitart.no2.sync.message.MessageTransformer;
+import org.dizitart.no2.sync.message.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -17,26 +16,51 @@ import org.dizitart.no2.sync.message.DataGateFeed;
 class RemoteOperation implements ReplicationOperation {
     private LastWriteWinMap crdt;
     private NitriteCollection collection;
+    private MessageTransformer messageTransformer;
+    private String replicaId;
 
-    public RemoteOperation(ReplicationConfig config) {
+    public RemoteOperation(ReplicationConfig config, String replicaId) {
+        this.replicaId = replicaId;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
+        this.messageTransformer = new MessageTransformer(config.getObjectMapper());
     }
 
-    public void handleReplicationEvent(ReplicationEvent event) {
-        switch (event.getMessage().getMessageHeader().getMessageType()) {
+    public void handleMessage(WebSocket webSocket, String text) {
+        DataGateMessage message = messageTransformer.transform(text);
+        validateMessage(message);
+        if (replicaId.equals(message.getMessageHeader().getSource())) {
+            // ignore broadcast message
+            System.out.println("Ignoring - " + message);
+            return;
+        }
+
+
+        switch (message.getMessageHeader().getMessageType()) {
             case BatchChangeStart:
-                handleBatchChangeStart((BatchChangeStart) event.getMessage());
+                handleBatchChangeStart((BatchChangeStart) message);
                 break;
             case BatchChangeContinue:
-                handleBatchChangeContinue((BatchChangeContinue) event.getMessage());
+                handleBatchChangeContinue((BatchChangeContinue) message);
                 break;
             case BatchChangeEnd:
-                handleBatchChangeEnd((BatchChangeEnd) event.getMessage());
+                handleBatchChangeEnd((BatchChangeEnd) message);
                 break;
             case Feed:
-                handleFeed((DataGateFeed) event.getMessage());
+                handleFeed((DataGateFeed) message);
                 break;
+        }
+    }
+
+    private void validateMessage(DataGateMessage message) {
+        if (message == null) {
+            throw new ReplicationException("a null message received for " + replicaId);
+        } else if (message.getMessageHeader() == null) {
+            throw new ReplicationException("invalid message info received for " + replicaId);
+        } else if (StringUtils.isNullOrEmpty(message.getMessageHeader().getCollection())) {
+            throw new ReplicationException("invalid message info received for " + replicaId);
+        } else if (message.getMessageHeader().getMessageType() == null) {
+            throw new ReplicationException("invalid message type received for " + replicaId);
         }
     }
 

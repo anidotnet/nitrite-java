@@ -21,11 +21,12 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
-    implementation "com.neovisionaries:nv-websocket-client:$websocketVersion"
     implementation "com.squareup.okhttp3:okhttp:3.14.6"
 
     testImplementation project(path: ':nitrite', configuration: 'default')
-    testImplementation "io.undertow:undertow-core:$undertowVersion"
+    testImplementation "javax.websocket:javax.websocket-api:$websocketApiVersion"
+    testImplementation "org.glassfish.tyrus:tyrus-server:$tyrusVersion"
+    testImplementation "org.glassfish.tyrus:tyrus-container-grizzly-server:$tyrusVersion"
     testImplementation "org.awaitility:awaitility:$awaitilityVersion"
     testImplementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version"
     testImplementation "org.apache.logging.log4j:log4j-core:$log4j2Version"

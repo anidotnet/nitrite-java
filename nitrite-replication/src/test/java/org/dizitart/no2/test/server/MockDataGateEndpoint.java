@@ -1,17 +1,9 @@
-package org.dizitart.no2.test;
+package org.dizitart.no2.test.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.undertow.Undertow;
-import io.undertow.server.handlers.PathHandler;
-import io.undertow.websockets.core.AbstractReceiveListener;
-import io.undertow.websockets.core.BufferedTextMessage;
-import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.Nitrite;
-import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.store.NitriteMap;
@@ -20,104 +12,137 @@ import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
 
-import java.util.*;
-
-import static io.undertow.Handlers.path;
-import static io.undertow.Handlers.websocket;
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
 @Data
-public class MockDataGateServer {
+@ServerEndpoint(value="/datagate/{user}/{collection}", configurator = MockDataGateServerConfig.class)
+public class MockDataGateEndpoint {
     private ObjectMapper objectMapper;
-    private Map<String, List<String>> collectionReplicaMap;
-    private Map<String, List<String>> userReplicaMap;
-    private Map<String, LastWriteWinMap> replicaStore;
-    private Undertow undertow;
-    private Nitrite db;
-//    private ExecutorService executorService;
-    private String serverId;
+    private Repository repository;
 
-    public MockDataGateServer(int port, String host) {
+    //https://github.com/abhirockzz/websocket-chat/blob/master/src/main/java/io/gitbooks/abhirockzz/jwah/chat/ChatServer.java
+
+    public MockDataGateEndpoint() {
         objectMapper = new ObjectMapper();
-        collectionReplicaMap = new HashMap<>();
-        userReplicaMap = new HashMap<>();
-        replicaStore = new HashMap<>();
-
-        db = NitriteBuilder.get().openOrCreate();
-        serverId = UUID.randomUUID().toString();
-        undertow = Undertow.builder()
-            .addHttpListener(port, host)
-            .setHandler(getWebSocketHandler())
-            .build();
-        undertow.start();
+        repository = Repository.getInstance();
     }
 
-    public void stop() {
-        undertow.stop();
-        db.close();
+    @OnOpen
+    public void onOpen(@PathParam("user") String user,
+                       @PathParam("collection") String collection,
+                       Session session) {
+        log.info("DataGate server opened");
+        session.getUserProperties().put("collection", user + "@" + collection);
     }
 
-    protected void handleConnect(WebSocketChannel channel, Connect connect) {
+    @OnClose
+    public void onClose(CloseReason reason, Session session) {
+        log.info("DataGate server closed due to " + reason.getReasonPhrase());
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        try {
+            log.info("Message received - " + message);
+            if (message.contains(MessageType.Connect.code()) || message.contains(MessageType.Disconnect.code())) {
+                Connect connect = objectMapper.readValue(message, Connect.class);
+                handleConnect(session, connect);
+            } else if (message.contains(MessageType.BatchChangeStart.code())) {
+                BatchChangeStart batchChangeStart = objectMapper.readValue(message, BatchChangeStart.class);
+                handleBatchChangeStart(session, batchChangeStart);
+            } else if (message.contains(MessageType.BatchChangeContinue.code())) {
+                BatchChangeContinue batchChangeContinue = objectMapper.readValue(message, BatchChangeContinue.class);
+                handleBatchChangeContinue(session, batchChangeContinue);
+            } else if (message.contains(MessageType.BatchChangeEnd.code())) {
+                BatchChangeEnd batchChangeEnd = objectMapper.readValue(message, BatchChangeEnd.class);
+                handleBatchChangeEnd(session, batchChangeEnd);
+            } else if (message.contains(MessageType.Feed.code())) {
+                DataGateFeed feed = objectMapper.readValue(message, DataGateFeed.class);
+                handleDataGateFeed(session, feed);
+            }
+        } catch (Exception e) {
+            log.error("Error while handling message " + message, e);
+        }
+    }
+
+    @OnError
+    public void onError(Throwable ex) {
+        log.error("Error in DataGate server", ex);
+    }
+
+    protected void handleConnect(Session channel, Connect connect) {
         log.debug("Connect message received " + connect);
         String replicaId = connect.getReplicaId();
         String userName = connect.getMessageHeader().getUserName();
         String collection = userName + "@" + connect.getMessageHeader().getCollection();
 
         if (connect.getMessageHeader().getMessageType() == MessageType.Connect) {
-            if (collectionReplicaMap.containsKey(collection)) {
-                List<String> replicas = collectionReplicaMap.get(collection);
+            if (repository.getCollectionReplicaMap().containsKey(collection)) {
+                List<String> replicas = repository.getCollectionReplicaMap().get(collection);
                 if (!replicas.contains(replicaId)) {
                     replicas.add(replicaId);
                 }
-                collectionReplicaMap.put(collection, replicas);
+                repository.getCollectionReplicaMap().put(collection, replicas);
             } else {
                 List<String> replicas = new ArrayList<>();
                 replicas.add(replicaId);
-                collectionReplicaMap.put(collection, replicas);
+                repository.getCollectionReplicaMap().put(collection, replicas);
             }
 
-            if (userReplicaMap.containsKey(userName)) {
-                List<String> replicas = userReplicaMap.get(userName);
+            if (repository.getUserReplicaMap().containsKey(userName)) {
+                List<String> replicas = repository.getUserReplicaMap().get(userName);
                 if (!replicas.contains(replicaId)) {
                     replicas.add(replicaId);
                 }
-                userReplicaMap.put(userName, replicas);
+                repository.getUserReplicaMap().put(userName, replicas);
             } else {
                 List<String> replicas = new ArrayList<>();
                 replicas.add(replicaId);
-                userReplicaMap.put(userName, replicas);
+                repository.getUserReplicaMap().put(userName, replicas);
             }
 
-            if (!replicaStore.containsKey(collection)) {
+            if (!repository.getReplicaStore().containsKey(collection)) {
                 LastWriteWinMap replica = createCrdt(collection);
-                replicaStore.put(collection, replica);
+                repository.getReplicaStore().put(collection, replica);
             }
         } else if (connect.getMessageHeader().getMessageType() == MessageType.Disconnect) {
-            collectionReplicaMap.get(collection).remove(replicaId);
-            userReplicaMap.get(userName).remove(replicaId);
+            repository.getCollectionReplicaMap().get(collection).remove(replicaId);
+            repository.getUserReplicaMap().get(userName).remove(replicaId);
         }
     }
 
-    protected void handleDataGateFeed(WebSocketChannel channel, DataGateFeed feed) {
+    protected void handleDataGateFeed(Session channel, DataGateFeed feed) {
         log.debug("DataGateFeed message received " + feed);
         String userName = feed.getMessageHeader().getUserName();
         String collection = userName + "@" + feed.getMessageHeader().getCollection();
 
-        LastWriteWinMap replica = replicaStore.get(collection);
+        LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(feed.getFeed());
 
         try {
             String message = objectMapper.writeValueAsString(feed);
-            broadcast(message, channel);
+            broadcast(channel, collection, message);
         } catch (Exception e) {
             throw new ReplicationException("failed to broadcast DataGateFeed", e);
         }
     }
 
-    protected void handleBatchChangeEnd(WebSocketChannel channel, BatchChangeEnd batchChangeEnd) {
+    private void broadcast(Session channel, String collection, String message) {
+        channel.getOpenSessions().stream()
+            .filter(s -> s.getUserProperties().get("collection").equals(collection))
+            .forEach(s -> s.getAsyncRemote().sendText(message));
+    }
+
+    protected void handleBatchChangeEnd(Session channel, BatchChangeEnd batchChangeEnd) {
         log.debug("BatchChangeEnd message received " + batchChangeEnd);
         Long lastSync = batchChangeEnd.getLastSynced();
         Integer batchSize = batchChangeEnd.getBatchSize();
@@ -125,19 +150,19 @@ public class MockDataGateServer {
         String userName = batchChangeEnd.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeEnd.getMessageHeader().getCollection();
 
-        LastWriteWinMap replica = replicaStore.get(collection);
+        LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         sendChanges(batchChangeEnd.getMessageHeader().getCollection(), userName, lastSync,
-            batchSize, debounce, replica, channel, serverId);
+            batchSize, debounce, replica, channel, repository.getServerId());
     }
 
-    protected void handleBatchChangeContinue(WebSocketChannel channel, BatchChangeContinue batchChangeContinue) {
+    protected void handleBatchChangeContinue(Session channel, BatchChangeContinue batchChangeContinue) {
         log.debug("BatchChangeContinue message received " + batchChangeContinue);
-        DataGateFeed feed =  new DataGateFeed();
+        DataGateFeed feed = new DataGateFeed();
 
         String userName = batchChangeContinue.getMessageHeader().getUserName();
         String collection = userName + "@" + batchChangeContinue.getMessageHeader().getCollection();
         String replicaId = batchChangeContinue.getMessageHeader().getSource();
-        LastWriteWinMap replica = replicaStore.get(collection);
+        LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(batchChangeContinue.getFeed());
 
         feed.setMessageHeader(createMessageInfo(MessageType.Feed, collection, userName, replicaId));
@@ -145,88 +170,27 @@ public class MockDataGateServer {
 
         try {
             String message = objectMapper.writeValueAsString(feed);
-            broadcast(message, channel);
+            broadcast(channel, collection, message);
         } catch (Exception e) {
             throw new ReplicationException("failed to broadcast DataGateFeed", e);
         }
     }
 
-    protected void handleBatchChangeStart(WebSocketChannel channel, BatchChangeStart batchChangeStart) {
+    protected void handleBatchChangeStart(Session channel, BatchChangeStart batchChangeStart) {
         log.debug("BatchChangeStart message received " + batchChangeStart);
     }
 
-    private PathHandler getWebSocketHandler() {
-        return path()
-            .addPrefixPath("/datagate", websocket((exchange, channel) -> {
-                Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
-                validateAuth(requestHeaders);
-
-                channel.getReceiveSetter().set(new AbstractReceiveListener() {
-                    @Override
-                    protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
-                        try {
-                            handleMessage(channel, message);
-                        } catch (Exception e) {
-                            log.error("Error while handling message at server", e);
-                        }
-                    }
-                });
-
-                channel.resumeReceives();
-            }));
-    }
-
-    private void validateAuth(Map<String, List<String>> requestHeaders) {
-        if (!requestHeaders.containsKey("Authorization")) {
-            throw new SecurityException("connection not authorized");
-        }
-
-        String authorization = requestHeaders.get("Authorization").get(0);
-        if (authorization.equals("Bearer abcd")) return;
-
-        throw new SecurityException("invalid token");
-    }
-
-    private void handleMessage(WebSocketChannel channel, BufferedTextMessage message) throws JsonProcessingException {
-        String data = message.getData();
-        log.info("Message received - " + data);
-        if (data.contains(MessageType.Connect.code()) || data.contains(MessageType.Disconnect.code())) {
-            Connect connect = objectMapper.readValue(data, Connect.class);
-            handleConnect(channel, connect);
-        } else if (data.contains(MessageType.BatchChangeStart.code())) {
-            BatchChangeStart batchChangeStart = objectMapper.readValue(data, BatchChangeStart.class);
-            handleBatchChangeStart(channel, batchChangeStart);
-        } else if (data.contains(MessageType.BatchChangeContinue.code())) {
-            BatchChangeContinue batchChangeContinue = objectMapper.readValue(data, BatchChangeContinue.class);
-            handleBatchChangeContinue(channel, batchChangeContinue);
-        } else if (data.contains(MessageType.BatchChangeEnd.code())) {
-            BatchChangeEnd batchChangeEnd = objectMapper.readValue(data, BatchChangeEnd.class);
-            handleBatchChangeEnd(channel, batchChangeEnd);
-        } else if (data.contains(MessageType.Feed.code())) {
-            DataGateFeed feed = objectMapper.readValue(data, DataGateFeed.class);
-            handleDataGateFeed(channel, feed);
-        }
-    }
-
     private LastWriteWinMap createCrdt(String collection) {
-        NitriteCollection nc = db.getCollection(collection);
+        NitriteCollection nc = repository.getDb().getCollection(collection);
         NitriteMap<NitriteId, Long> nitriteMap =
-            db.getConfig().getNitriteStore().openMap(collection + "-replica");
+            repository.getDb().getConfig().getNitriteStore().openMap(collection + "-replica");
         return new LastWriteWinMap(nc, nitriteMap);
-    }
-
-    private void broadcast(String message, WebSocketChannel channel) {
-        for (WebSocketChannel ch : channel.getPeerConnections()) {
-            if (ch != channel) {
-                WebSockets.sendText(message, ch, null);
-            }
-        }
     }
 
     private void sendChanges(String collection, String userName,
                              Long lastSyncTime, Integer chunkSize,
                              Integer debounce, LastWriteWinMap crdt,
-                             WebSocketChannel channel, String replicaId) {
+                             Session channel, String replicaId) {
         try {
             String uuid = UUID.randomUUID().toString();
             int start = 0;
@@ -236,7 +200,7 @@ public class MockDataGateServer {
                 String initMessage = createChangeStart(uuid, collection, userName,
                     replicaId, chunkSize, debounce);
                 System.out.println("server-side start " + initMessage);
-                WebSockets.sendText(initMessage, channel, null);
+                channel.getBasicRemote().sendText(initMessage);
             } catch (Exception e) {
                 log.error("Error while sending BatchChangeStart to " + replicaId, e);
             }
@@ -252,7 +216,7 @@ public class MockDataGateServer {
                         String message = createChangeContinue(uuid, state, collection, userName,
                             replicaId, chunkSize, debounce);
                         System.out.println("server-side continue " + message);
-                        WebSockets.sendText(message, channel, null);
+                        channel.getBasicRemote().sendText(message);
                     } catch (Exception e) {
                         log.error("Error while sending BatchChangeContinue for " + replicaId, e);
                     }
@@ -270,8 +234,8 @@ public class MockDataGateServer {
             try {
                 String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
                     replicaId, chunkSize, debounce);
-                System.out.println("server-side end " + endMessage + " with peers " + channel.getPeerConnections().size());
-                WebSockets.sendText(endMessage, channel, null);
+                System.out.println("server-side end " + endMessage);
+                channel.getBasicRemote().sendText(endMessage);
             } catch (Exception e) {
                 log.error("Error while sending BatchChangeEnd for " + replicaId, e);
             }

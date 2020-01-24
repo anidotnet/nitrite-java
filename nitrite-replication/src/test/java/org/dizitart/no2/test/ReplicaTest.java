@@ -7,9 +7,9 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.sync.Replica;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.dizitart.no2.test.server.MockDataGateServer;
+import org.dizitart.no2.test.server.Repository;
+import org.junit.*;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -31,23 +31,35 @@ import static org.junit.Assert.*;
  * @author Anindya Chatterjee
  */
 public class ReplicaTest {
-    private MockDataGateServer server;
+    private static MockDataGateServer server;
     private String dbFile;
     private ExecutorService executorService;
+    private Repository repository;
+
+    @BeforeClass
+    public static void startServer() throws Exception {
+        server = new MockDataGateServer(9090);
+        server.start();
+    }
 
     @Before
     public void setUp() {
         dbFile = getRandomTempDbFile();
-        server = new MockDataGateServer(9090, "127.0.0.1");
         executorService = Executors.newCachedThreadPool();
+        repository = Repository.getInstance();
     }
 
     @After
     public void cleanUp() throws Exception {
         executorService.awaitTermination(2, SECONDS);
         executorService.shutdown();
-        server.stop();
         Files.delete(Paths.get(dbFile));
+        repository.reset();
+    }
+
+    @AfterClass
+    public static void stopServer() {
+        server.stop();
     }
 
     @Test
@@ -64,17 +76,17 @@ public class ReplicaTest {
 
         Replica replica = Replica.builder()
             .of(collection)
-            .remote("ws://127.0.0.1:9090/datagate")
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testSingleUserSingleReplica")
             .jwtAuth("anidotnet", "abcd")
             .create();
 
         replica.connect();
 
-        await().atMost(5, SECONDS).until(() -> server.getCollectionReplicaMap().size() == 1);
-        assertEquals(server.getUserReplicaMap().size(), 1);
-        assertTrue(server.getUserReplicaMap().containsKey("anidotnet"));
-        assertTrue(server.getCollectionReplicaMap().containsKey("anidotnet@testSingleUserSingleReplica"));
-        LastWriteWinMap lastWriteWinMap = server.getReplicaStore().get("anidotnet@testSingleUserSingleReplica");
+        await().atMost(5, SECONDS).until(() -> repository.getCollectionReplicaMap().size() == 1);
+        assertEquals(repository.getUserReplicaMap().size(), 1);
+        assertTrue(repository.getUserReplicaMap().containsKey("anidotnet"));
+        assertTrue(repository.getCollectionReplicaMap().containsKey("anidotnet@testSingleUserSingleReplica"));
+        LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testSingleUserSingleReplica");
 
         Document doc = lastWriteWinMap.getCollection().find(where("firstName").eq("Anindya")).firstOrNull();
 
@@ -117,13 +129,13 @@ public class ReplicaTest {
 
         Replica r1 = Replica.builder()
             .of(c1)
-            .remote("ws://127.0.0.1:9090/datagate")
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testSingleUserMultiReplica")
             .jwtAuth("anidotnet", "abcd")
             .create();
 
         Replica r2 = Replica.builder()
             .of(c2)
-            .remote("ws://127.0.0.1:9090/datagate")
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testSingleUserMultiReplica")
             .jwtAuth("anidotnet", "abcd")
             .create();
 
@@ -141,7 +153,6 @@ public class ReplicaTest {
 
         r2.connect();
         System.out.println(r2.getReplicaId() + " connected");
-        System.out.println("Server size - " + server.getReplicaStore().get("anidotnet@testSingleUserMultiReplica").getCollection().size());
         await().atMost(5, SECONDS).until(() -> c2.size() == 10);
 
         Random random = new Random();
@@ -200,7 +211,7 @@ public class ReplicaTest {
 
         r1.connect();
 
-        await().atMost(10, SECONDS).until(() -> c1.size() == c2.size());
+        await().atMost(10, SECONDS).until(() -> c1.size() == 70 && c2.size() == 70);
         TestUtils.assertEquals(c1, c2);
 
         executorService.submit(() -> {

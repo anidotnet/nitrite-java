@@ -5,11 +5,13 @@ import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.sync.Replica;
+import org.dizitart.no2.test.server.MockDataGateEndpoint;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,20 +25,20 @@ import static org.dizitart.no2.test.TestUtils.randomDocument;
  * @author Anindya Chatterjee
  */
 public class ReplicaNegativeTest {
-    private MockDataGateServer server;
+    private MockDataGateEndpoint server;
     private String dbFile;
     private ExecutorService executorService;
 
     @Before
     public void setUp() {
         dbFile = getRandomTempDbFile();
-        server = new MockDataGateServer(9090, "127.0.0.1");
+        server = new MockDataGateEndpoint();
         executorService = Executors.newFixedThreadPool(2);
     }
 
     @After
-    public void cleanUp() {
-        server.stop();
+    public void cleanUp() throws IOException, InterruptedException {
+
     }
 
     @Test

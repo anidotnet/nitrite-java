@@ -3,12 +3,12 @@ package org.dizitart.no2.sync;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.WebSocket;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
-import org.dizitart.no2.sync.connection.Connection;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
@@ -55,27 +55,24 @@ class LocalOperation implements ReplicationOperation {
         return attributes.get(Attributes.REPLICA);
     }
 
-    public void handleInsertEvent(Document document, Connection connection) {
-        executorService.submit(() -> {
-            LastWriteWinState state = new LastWriteWinState();
-            state.setChanges(Collections.singleton(document));
-            sendChangeMessage(connection, state);
-        });
+    public void handleInsertEvent(Document document, WebSocket connection) {
+        LastWriteWinState state = new LastWriteWinState();
+        state.setChanges(Collections.singleton(document));
+
+        executorService.submit(() -> sendChangeMessage(connection, state));
     }
 
-    public void handleRemoveEvent(Document document, Connection connection) {
-        executorService.submit(() -> {
-            LastWriteWinState state = new LastWriteWinState();
-            NitriteId nitriteId = document.getId();
-            Long deleteTime = document.getLastModifiedSinceEpoch();
-            crdt.getTombstones().put(nitriteId, deleteTime);
+    public void handleRemoveEvent(Document document, WebSocket connection) {
+        LastWriteWinState state = new LastWriteWinState();
+        NitriteId nitriteId = document.getId();
+        Long deleteTime = document.getLastModifiedSinceEpoch();
+        crdt.getTombstones().put(nitriteId, deleteTime);
+        state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
 
-            state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
-            sendChangeMessage(connection, state);
-        });
+        executorService.submit(() -> sendChangeMessage(connection, state));
     }
 
-    public void sendConnect(Connection connection) {
+    public void sendConnect(WebSocket connection) {
         isConnected.set(true);
         executorService.submit(() -> {
             try {
@@ -83,14 +80,14 @@ class LocalOperation implements ReplicationOperation {
                 connect.setMessageHeader(createMessageInfo(MessageType.Connect));
                 connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
-                connection.sendMessage(message);
+                connection.send(message);
             } catch (Exception e) {
                 log.error("failed to send Connect message for " + getReplicaId(), e);
             }
         });
     }
 
-    public void sendDisconnect(Connection connection) {
+    public void sendDisconnect(WebSocket connection) {
         isConnected.set(false);
         executorService.submit(() -> {
             try {
@@ -98,14 +95,14 @@ class LocalOperation implements ReplicationOperation {
                 connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
                 connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
-                connection.sendMessage(message);
+                connection.send(message);
             } catch (Exception e) {
                 log.error("failed to send Disconnect message for " + getReplicaId(), e);
             }
         });
     }
 
-    public void sendLocalChanges(Connection connection) {
+    public void sendLocalChanges(WebSocket connection) {
         executorService.submit(() -> {
             if (!isConnected.get()) return;
 
@@ -116,7 +113,7 @@ class LocalOperation implements ReplicationOperation {
 
             try {
                 String initMessage = createChangeStart(uuid);
-                connection.sendMessage(initMessage);
+                connection.send(initMessage);
             } catch (Exception e) {
                 log.error("Error while sending BatchChangeStart for " + getReplicaId(), e);
             }
@@ -130,7 +127,7 @@ class LocalOperation implements ReplicationOperation {
                 if (hasMore) {
                     try {
                         String message = createChangeContinue(uuid, state);
-                        connection.sendMessage(message);
+                        connection.send(message);
                     } catch (Exception e) {
                         log.error("Error while sending BatchChangeContinue for " + getReplicaId(), e);
                     }
@@ -147,7 +144,7 @@ class LocalOperation implements ReplicationOperation {
 
             try {
                 String endMessage = createChangeEnd(uuid, lastSyncTime);
-                connection.sendMessage(endMessage);
+                connection.send(endMessage);
             } catch (Exception e) {
                 log.error("Error while sending BatchChangeEnd for " + getReplicaId(), e);
             }
@@ -205,11 +202,11 @@ class LocalOperation implements ReplicationOperation {
         return messageHeader;
     }
 
-    private void sendChangeMessage(Connection connection, LastWriteWinState changes) {
+    private void sendChangeMessage(WebSocket connection, LastWriteWinState changes) {
         try {
             if (isConnected.get()) {
                 String message = createFeedMessage(changes);
-                connection.sendMessage(message);
+                connection.send(message);
                 saveLastSyncTime();
             }
         } catch (Exception e) {

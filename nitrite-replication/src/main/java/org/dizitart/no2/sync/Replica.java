@@ -1,17 +1,10 @@
 package org.dizitart.no2.sync;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.WebSocketListener;
+import okhttp3.*;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
-import org.dizitart.no2.common.util.StringUtils;
-import org.dizitart.no2.sync.connection.Connection;
-import org.dizitart.no2.sync.connection.ConnectionConfig;
-import org.dizitart.no2.sync.event.ReplicationEvent;
-import org.dizitart.no2.sync.event.ReplicationEventBus;
-import org.dizitart.no2.sync.event.ReplicationEventListener;
 
 /**
  * @author Anindya Chatterjee
@@ -21,8 +14,9 @@ public class Replica extends WebSocketListener implements CollectionEventListene
     private ReplicationConfig replicationConfig;
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;
-    private Connection connection;
-    private ReplicationEventBus eventBus;
+    private WebSocket webSocket;
+    private OkHttpClient client;
+    private boolean connected = false;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
@@ -30,18 +24,17 @@ public class Replica extends WebSocketListener implements CollectionEventListene
 
     Replica(ReplicationConfig config) {
         this.replicationConfig = config;
-        configure();
+        this.localOperation = new LocalOperation(replicationConfig);
+        this.remoteOperation = new RemoteOperation(replicationConfig, getReplicaId());
     }
 
     public void connect() {
         try {
-            localOperation.sendConnect(connection);
-            localOperation.sendLocalChanges(connection);
+            ensureConnection();
+            localOperation.sendConnect(webSocket);
+            localOperation.sendLocalChanges(webSocket);
 
             replicationConfig.getCollection().subscribe(this);
-            eventBus.register(this);
-
-            connection.open();
         } catch (Exception e) {
             log.error("Error while connecting the replica", e);
             throw new ReplicationException("failed to open connection", e);
@@ -50,17 +43,12 @@ public class Replica extends WebSocketListener implements CollectionEventListene
 
     public void disconnect() {
         try {
-            localOperation.sendDisconnect(connection);
-            eventBus.deregister(this);
+            localOperation.sendDisconnect(webSocket);
+            close();
         } catch (Exception e) {
             log.error("Error while disconnecting the replica", e);
             throw new ReplicationException("failed to disconnect the replica", e);
         }
-    }
-
-    @Override
-    public String getName() {
-        return replicationConfig.getCollection().getName();
     }
 
     @Override
@@ -70,11 +58,11 @@ public class Replica extends WebSocketListener implements CollectionEventListene
             case Insert:
             case Update:
                 document = (Document) eventInfo.getItem();
-                localOperation.handleInsertEvent(document, connection);
+                localOperation.handleInsertEvent(document, webSocket);
                 break;
             case Remove:
                 document = (Document) eventInfo.getItem();
-                localOperation.handleRemoveEvent(document, connection);
+                localOperation.handleRemoveEvent(document, webSocket);
                 break;
             case IndexStart:
             case IndexEnd:
@@ -83,49 +71,63 @@ public class Replica extends WebSocketListener implements CollectionEventListene
     }
 
     @Override
-    public void onEvent(ReplicationEvent event) {
-        System.out.println("Handling server message - " + event.getMessage());
-        validateEvent(event);
-        if (getReplicaId().equals(event.getMessage().getMessageHeader().getSource())) {
-            // ignore broadcast message
-            System.out.println("Ignoring - " + event.getMessage());
-            return;
-        }
-        remoteOperation.handleReplicationEvent(event);
+    public void onOpen(WebSocket webSocket, Response response) {
+        super.onOpen(webSocket, response);
+        connected = true;
+    }
+
+    @Override
+    public void onClosed(WebSocket webSocket, int code, String reason) {
+        super.onClosed(webSocket, code, reason);
+        connected = false;
+    }
+
+    @Override
+    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+        log.error("Connection interrupted due to error", t);
+        super.onFailure(webSocket, t, response);
+        connected = false;
+        ensureConnection();
+    }
+
+    @Override
+    public void onMessage(WebSocket webSocket, String text) {
+        super.onMessage(webSocket, text);
+        System.out.println("Handling server message - " + text);
+        remoteOperation.handleMessage(webSocket, text);
     }
 
     public String getReplicaId() {
         return localOperation.getReplicaId();
     }
 
-    private void configure() {
-        this.eventBus = new ReplicationEventBus();
-        this.localOperation = new LocalOperation(replicationConfig);
-        this.remoteOperation = new RemoteOperation(replicationConfig);
-
-        ConnectionConfig connectionConfig = replicationConfig.getConnectionConfig();
-        ObjectMapper objectMapper = replicationConfig.getObjectMapper();
-        connection = Connection.create(connectionConfig, text -> eventBus.handleMessage(objectMapper, text));
+    private OkHttpClient createClient() {
+        return new OkHttpClient.Builder()
+            .readTimeout(replicationConfig.getConnectTimeout().getTime(),
+                replicationConfig.getConnectTimeout().getTimeUnit())
+            .build();
     }
 
-    private void validateEvent(ReplicationEvent event) {
-        if (event == null) {
-            throw new ReplicationException("a null event received for " + getReplicaId());
-        } else if (event.getMessage() == null) {
-            throw new ReplicationException("a null message received for " + getReplicaId());
-        } else if (event.getMessage().getMessageHeader() == null) {
-            throw new ReplicationException("invalid message info received for " + getReplicaId());
-        } else if (StringUtils.isNullOrEmpty(event.getMessage().getMessageHeader().getCollection())) {
-            throw new ReplicationException("invalid message info received for " + getReplicaId());
-        } else if (event.getMessage().getMessageHeader().getMessageType() == null) {
-            throw new ReplicationException("invalid message type received for " + getReplicaId());
+    private void ensureConnection() {
+        if (!connected) {
+            configure();
         }
     }
 
     @Override
-    public void close() throws Exception {
-        if (connection != null) {
-            connection.close();
+    public void close() {
+        webSocket.close(1000, null);
+        client.dispatcher().executorService().shutdown();
+        connected = false;
+    }
+
+    private void configure() {
+        try {
+            client = createClient();
+            Request request = replicationConfig.getRequestBuilder().build();
+            webSocket = client.newWebSocket(request, this);
+        } catch (Exception e) {
+            log.error("Error while establishing connection", e);
         }
     }
 }

@@ -1,16 +1,20 @@
-package org.dizitart.no2.sync.event;
+package org.dizitart.no2.sync.message;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.sync.ReplicationException;
-import org.dizitart.no2.sync.message.*;
 
 /**
  * @author Anindya Chatterjee
  */
 public class MessageTransformer {
+    private ObjectMapper objectMapper;
 
-    public DataGateMessage transform(ObjectMapper objectMapper, String message) {
+    public MessageTransformer(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public DataGateMessage transform(String message) {
         try {
             if (isBatchChangeStart(message)) {
                 return objectMapper.readValue(message, BatchChangeStart.class);
