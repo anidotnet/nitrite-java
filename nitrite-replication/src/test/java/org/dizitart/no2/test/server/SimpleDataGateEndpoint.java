@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
+import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.store.NitriteMap;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
@@ -15,6 +16,7 @@ import org.dizitart.no2.sync.message.*;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -35,9 +37,24 @@ public class SimpleDataGateEndpoint {
     @OnOpen
     public void onOpen(@PathParam("user") String user,
                        @PathParam("collection") String collection,
-                       Session session) {
-        log.info("DataGate server opened");
-        session.getUserProperties().put("collection", user + "@" + collection);
+                       Session session,
+                       EndpointConfig config) throws IOException {
+        String error = (String) config.getUserProperties().get("error");
+        String replicaId = (String) config.getUserProperties().get("Replica");
+        log.info("New request from {}", replicaId);
+
+        if (StringUtils.isNullOrEmpty(error)) {
+            log.info("DataGate server connection established with {}", replicaId);
+            session.getUserProperties().put("collection", user + "@" + collection);
+            session.getUserProperties().put("replica", replicaId);
+        } else {
+            log.error("Error while establishing connection from {} - {}", replicaId, error);
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setMessageHeader(createMessageInfo(MessageType.Error, collection, user, repository.getServerId()));
+            errorMessage.setError(error);
+            String message = objectMapper.writeValueAsString(errorMessage);
+            session.getAsyncRemote().sendText(message);
+        }
     }
 
     @OnClose
@@ -132,7 +149,7 @@ public class SimpleDataGateEndpoint {
 
     private void broadcast(Session channel, String collection, String message) {
         channel.getOpenSessions().stream()
-            .filter(s -> s.getUserProperties().get("collection").equals(collection))
+            .filter(s -> collection.equals(s.getUserProperties().get("collection")))
             .forEach(s -> s.getAsyncRemote().sendText(message));
     }
 
@@ -286,11 +303,11 @@ public class SimpleDataGateEndpoint {
     }
 
     private MessageHeader createMessageInfo(MessageType messageType, String collection,
-                                            String userName, String replicaId) {
+                                            String userName, String origin) {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(userName + "@" + collection);
         messageHeader.setMessageType(messageType);
-        messageHeader.setOrigin(replicaId);
+        messageHeader.setOrigin(origin);
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
         return messageHeader;

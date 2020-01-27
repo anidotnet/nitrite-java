@@ -8,6 +8,7 @@ import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.sync.module.DocumentModule;
 
 import java.math.BigInteger;
+import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
@@ -28,6 +29,8 @@ public class ReplicaBuilder {
     private Integer chunkSize;
     private String userName;
     private ObjectMapper objectMapper;
+    private Proxy proxy;
+    private boolean acceptAllCertificates;
 
     ReplicaBuilder() {
         chunkSize = 10;
@@ -83,6 +86,16 @@ public class ReplicaBuilder {
         return this;
     }
 
+    public ReplicaBuilder proxy(Proxy proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    public ReplicaBuilder acceptAllCertificates(boolean accept) {
+        this.acceptAllCertificates = accept;
+        return this;
+    }
+
     public Replica create() {
         if (collection != null) {
             Request.Builder builder = createRequestBuilder();
@@ -95,7 +108,8 @@ public class ReplicaBuilder {
             config.setObjectMapper(objectMapper);
             config.setConnectTimeout(connectTimeout);
             config.setRequestBuilder(builder);
-
+            config.setProxy(proxy);
+            config.setAcceptAllCertificates(acceptAllCertificates);
             return new Replica(config);
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication");

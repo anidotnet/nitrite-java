@@ -6,7 +6,6 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
-import org.dizitart.no2.sync.message.MessageTransformer;
 import org.dizitart.no2.sync.message.*;
 
 /**
@@ -31,7 +30,7 @@ class RemoteOperation implements ReplicationOperation {
         validateMessage(message);
         if (replicaId.equals(message.getMessageHeader().getOrigin())) {
             // ignore broadcast message
-            log.debug("Ignoring same origin message {}", text);
+            log.debug("Ignoring same origin message for {} - {}", replicaId, text);
             return;
         }
 
@@ -48,6 +47,9 @@ class RemoteOperation implements ReplicationOperation {
                 break;
             case Feed:
                 handleFeed((DataGateFeed) message);
+                break;
+            case Error:
+                handleError((ErrorMessage) message);
                 break;
         }
     }
@@ -81,6 +83,11 @@ class RemoteOperation implements ReplicationOperation {
         LastWriteWinState state = message.getFeed();
         crdt.merge(state);
         saveLastSyncTime();
+    }
+
+    private void handleError(ErrorMessage message) {
+        log.error("Error received from server for {} - {}", replicaId, message.getError());
+        throw new ServerError(message.getError());
     }
 
     @Override

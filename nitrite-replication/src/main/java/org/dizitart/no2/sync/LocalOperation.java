@@ -9,6 +9,7 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.*;
@@ -34,6 +35,7 @@ class LocalOperation implements ReplicationOperation {
     private ExecutorService executorService;
     private LastWriteWinMap crdt;
     private AtomicBoolean isConnected;
+    private String replicaId;
 
     public LocalOperation(ReplicationConfig config) {
         this.config = config;
@@ -50,11 +52,14 @@ class LocalOperation implements ReplicationOperation {
     }
 
     public String getReplicaId() {
-        Attributes attributes = getAttributes();
-        if (!attributes.hasKey(Attributes.REPLICA)) {
-            attributes.set(REPLICA, UUID.randomUUID().toString());
+        if (StringUtils.isNullOrEmpty(replicaId)) {
+            Attributes attributes = getAttributes();
+            if (!attributes.hasKey(Attributes.REPLICA)) {
+                attributes.set(REPLICA, UUID.randomUUID().toString());
+            }
+            replicaId = attributes.get(Attributes.REPLICA);
         }
-        return attributes.get(Attributes.REPLICA);
+        return replicaId;
     }
 
     public void handleInsertEvent(Document document, WebSocket connection) {
@@ -82,9 +87,11 @@ class LocalOperation implements ReplicationOperation {
                 connect.setMessageHeader(createMessageInfo(MessageType.Connect));
                 connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
+
+                log.debug("Sending Connect message from {} - {}", getReplicaId(), message);
                 connection.send(message);
             } catch (Exception e) {
-                log.error("failed to send Connect message for " + getReplicaId(), e);
+                log.error("Failed to send Connect message from {}", getReplicaId(), e);
             }
         });
     }
@@ -97,9 +104,11 @@ class LocalOperation implements ReplicationOperation {
                 connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
                 connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
+
+                log.debug("Sending Disconnect message from {} - {}", getReplicaId(), message);
                 connection.send(message);
             } catch (Exception e) {
-                log.error("failed to send Disconnect message for " + getReplicaId(), e);
+                log.error("Failed to send Disconnect message from {}", getReplicaId(), e);
             }
         });
     }
@@ -113,9 +122,10 @@ class LocalOperation implements ReplicationOperation {
 
             try {
                 String initMessage = createChangeStart(uuid);
+                log.debug("Sending BatchChangeStart message from {} - {}", getReplicaId(), initMessage);
                 connection.send(initMessage);
             } catch (Exception e) {
-                log.error("Error while sending BatchChangeStart for " + getReplicaId(), e);
+                log.error("Error while sending BatchChangeStart from {}", getReplicaId(), e);
             }
 
             final Timer timer = new Timer();
@@ -133,9 +143,10 @@ class LocalOperation implements ReplicationOperation {
                     if (hasMore) {
                         try {
                             String message = createChangeContinue(uuid, state);
+                            log.info("Sending BatchChangeContinue message from {} - {}", getReplicaId(), message);
                             connection.send(message);
                         } catch (Exception e) {
-                            log.error("Error while sending BatchChangeContinue for " + getReplicaId(), e);
+                            log.error("Error while sending BatchChangeContinue from {}", getReplicaId(), e);
                         }
 
                         start = start + config.getChunkSize();
@@ -149,9 +160,10 @@ class LocalOperation implements ReplicationOperation {
 
             try {
                 String endMessage = createChangeEnd(uuid, lastSyncTime);
+                log.info("Sending BatchChangeEnd message from {} - {}", getReplicaId(), endMessage);
                 connection.send(endMessage);
             } catch (Exception e) {
-                log.error("Error while sending BatchChangeEnd for " + getReplicaId(), e);
+                log.error("Error while sending BatchChangeEnd from {}", getReplicaId(), e);
             }
         });
     }
@@ -211,11 +223,12 @@ class LocalOperation implements ReplicationOperation {
         try {
             if (isConnected.get()) {
                 String message = createFeedMessage(changes);
+                log.debug("Sending DataGateFeed message from {} - {}", getReplicaId(), message);
                 connection.send(message);
                 saveLastSyncTime();
             }
         } catch (Exception e) {
-            log.error("Error while sending DataGateFeed for " + getReplicaId(), e);
+            log.error("Error while sending DataGateFeed from {}", getReplicaId(), e);
         }
     }
 

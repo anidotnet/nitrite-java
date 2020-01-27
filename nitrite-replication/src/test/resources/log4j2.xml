@@ -29,5 +29,11 @@
         <Logger name="org.dizitart" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.dizitart.no2.sync" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.dizitart.no2.test.server" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

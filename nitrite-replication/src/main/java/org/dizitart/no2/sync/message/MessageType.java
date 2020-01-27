@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Anindya Chatterjee.
  */
 public enum MessageType {
+    Error("no2.sync.error"),
     Connect("no2.sync.connect"),
     Disconnect("no2.sync.disconnect"),
     BatchChangeStart("no2.sync.batch.start"),

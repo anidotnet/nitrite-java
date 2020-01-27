@@ -55,8 +55,9 @@ public class ReplicaTest {
     public void cleanUp() throws Exception {
         executorService.awaitTermination(2, SECONDS);
         executorService.shutdown();
-        Files.delete(Paths.get(dbFile));
-        repository.reset();
+        if (Files.exists(Paths.get(dbFile))) {
+            Files.delete(Paths.get(dbFile));
+        }
     }
 
     @AfterClass
@@ -225,33 +226,194 @@ public class ReplicaTest {
         TestUtils.assertEquals(c1, c2);
     }
 
-    //    @Test
+    @Test
     public void testMultiUserSingleReplica() {
-        Nitrite db = NitriteBuilder.get()
-            .filePath(dbFile)
+        Nitrite db1 = NitriteBuilder.get()
             .openOrCreate();
-        NitriteCollection collection = db.getCollection("replicate-test");
+        NitriteCollection c1 = db1.getCollection("testMultiUserSingleReplica");
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db2.getCollection("testMultiUserSingleReplica");
+
+        Nitrite db3 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c3 = db3.getCollection("testMultiUserSingleReplica");
 
         Replica r1 = Replica.builder()
-            .of(collection)
-            .remote("ws://127.0.0.1:9090/datagate")
-            .jwtAuth("anidotnet", "abcd")
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/user1/testSingleUserSingleReplica")
+            .jwtAuth("user1", "abcd")
             .create();
         r1.connect();
 
         Replica r2 = Replica.builder()
-            .of(collection)
-            .remote("ws://127.0.0.1:9090/datagate")
-            .jwtAuth("anidotnet", "abcd")
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/user2/testSingleUserSingleReplica")
+            .jwtAuth("user2", "abcd")
+            .create();
+        r2.connect();
+
+        Replica r3 = Replica.builder()
+            .of(c3)
+            .remote("ws://127.0.0.1:9090/datagate/user3/testSingleUserSingleReplica")
+            .jwtAuth("user3", "abcd")
+            .create();
+        r3.connect();
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                Document document = randomDocument();
+                c1.insert(document);
+            }
+        });
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 20; i++) {
+                Document document = randomDocument();
+                c2.insert(document);
+            }
+        });
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 30; i++) {
+                Document document = randomDocument();
+                c3.insert(document);
+            }
+        });
+
+        await().atMost(5, SECONDS).until(() -> c1.size() == 10 && c2.size() == 20 && c3.size() == 30);
+
+        TestUtils.assertNotEquals(c1, c2);
+        TestUtils.assertNotEquals(c1, c3);
+        TestUtils.assertNotEquals(c2, c3);
+    }
+
+    @Test
+    public void testMultiUserMultiReplica() {
+        Nitrite db1 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c1 = db1.getCollection("testMultiUserSingleReplica1");
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db2.getCollection("testMultiUserSingleReplica2");
+
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/user1/testMultiUserSingleReplica1")
+            .jwtAuth("user1", "abcd")
             .create();
         r1.connect();
 
-        Replica r3 = Replica.builder()
-            .of(collection)
-            .remote("ws://127.0.0.1:9090/datagate")
-            .jwtAuth("anidotnet", "abcd")
+        Replica r2 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/user2/testMultiUserSingleReplica2")
+            .jwtAuth("user2", "abcd")
+            .create();
+        r2.connect();
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                Document document = randomDocument();
+                c1.insert(document);
+            }
+        });
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 20; i++) {
+                Document document = randomDocument();
+                c2.insert(document);
+            }
+        });
+
+        await().atMost(5, SECONDS).until(() -> c1.size() == 10 && c2.size() == 20);
+
+        TestUtils.assertNotEquals(c1, c2);
+    }
+
+    @Test
+    public void testSingleUserMultiServer() throws Exception {
+        SimpleDataGateServer s2 = new SimpleDataGateServer(7070);
+        s2.start();
+
+        Nitrite db1 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c1 = db1.getCollection("testSingleUserMultiServer");
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db2.getCollection("testSingleUserMultiServer");
+
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/user/testSingleUserMultiServer")
+            .jwtAuth("user", "abcd")
             .create();
         r1.connect();
+
+        Replica r2 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:7070/datagate/user/testSingleUserMultiServer")
+            .jwtAuth("user", "abcd")
+            .create();
+        r2.connect();
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 10; i++) {
+                Document document = randomDocument();
+                c1.insert(document);
+            }
+        });
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 20; i++) {
+                Document document = randomDocument();
+                c2.insert(document);
+            }
+        });
+
+        await().atMost(5, SECONDS).until(() -> c1.size() == 10 && c2.size() == 20);
+
+        TestUtils.assertNotEquals(c1, c2);
+    }
+
+    @Test
+    public void testSecurity() {
+        Nitrite db1 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c1 = db1.getCollection("testSecurity");
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db2.getCollection("testSecurity");
+
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/user/testSecurity")
+            .jwtAuth("user", "wrong_token")
+            .create();
+        r1.connect();
+
+        Replica r2 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/user/testSecurity")
+            .jwtAuth("user", "abcd")
+            .create();
+        r2.connect();
+
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+        }
+
+        assertEquals(c1.size(), 10);
+        assertEquals(c2.size(), 0);
+        assertFalse(r1.isConnected());
+        assertTrue(r2.isConnected());
+
+        //TODO: send proper error message so that user can understand
+        // https://stackoverflow.com/questions/46009847/how-to-properly-report-an-error-to-client-through-websockets
     }
 
     public static String getRandomTempDbFile() {
@@ -273,5 +435,6 @@ public class ReplicaTest {
      * 5. Single user, two replicas, two servers (each for one replica)
      * 6. Handle security for jwt tokens - extract user info only from jwt token
      * 7. connect, close db, open db, connect and assert
+     * 8. Garbage Collection of tombstones
      * */
 }

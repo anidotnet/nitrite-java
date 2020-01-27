@@ -24,6 +24,8 @@ public class MessageTransformer {
                 return objectMapper.readValue(message, BatchChangeEnd.class);
             } else if (isFeed(message)) {
                 return objectMapper.readValue(message, DataGateFeed.class);
+            } else if (isError(message)) {
+                return objectMapper.readValue(message, ErrorMessage.class);
             }
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to transform message from server", e);
@@ -45,5 +47,9 @@ public class MessageTransformer {
 
     private boolean isFeed(String message) {
         return message.contains(MessageType.Feed.code());
+    }
+
+    private boolean isError(String message) {
+        return message.contains(MessageType.Error.code());
     }
 }

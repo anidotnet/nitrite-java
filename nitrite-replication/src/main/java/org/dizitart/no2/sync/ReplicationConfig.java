@@ -5,6 +5,8 @@ import lombok.Data;
 import okhttp3.Request;
 import org.dizitart.no2.collection.NitriteCollection;
 
+import java.net.Proxy;
+
 /**
  * @author Anindya Chatterjee
  */
@@ -17,4 +19,6 @@ public class ReplicationConfig {
     private ObjectMapper objectMapper;
     private TimeSpan connectTimeout;
     private Request.Builder requestBuilder;
+    private Proxy proxy;
+    private boolean acceptAllCertificates;
 }

@@ -1,21 +1,29 @@
 package org.dizitart.no2.sync;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class Replica extends WebSocketListener implements CollectionEventListener, AutoCloseable {
+public final class Replica extends WebSocketListener implements CollectionEventListener, AutoCloseable {
     private ReplicationConfig replicationConfig;
     private LocalOperation localOperation;
     private RemoteOperation remoteOperation;
     private WebSocket webSocket;
     private OkHttpClient client;
+
+    @Getter
     private boolean connected = false;
 
     public static ReplicaBuilder builder() {
@@ -36,7 +44,7 @@ public class Replica extends WebSocketListener implements CollectionEventListene
 
             replicationConfig.getCollection().subscribe(this);
         } catch (Exception e) {
-            log.error("Error while connecting the replica", e);
+            log.error("Error while connecting the replica {}", getReplicaId(), e);
             throw new ReplicationException("failed to open connection", e);
         }
     }
@@ -46,7 +54,7 @@ public class Replica extends WebSocketListener implements CollectionEventListene
             localOperation.sendDisconnect(webSocket);
             close();
         } catch (Exception e) {
-            log.error("Error while disconnecting the replica", e);
+            log.error("Error while disconnecting the replica {}", getReplicaId(), e);
             throw new ReplicationException("failed to disconnect the replica", e);
         }
     }
@@ -54,7 +62,7 @@ public class Replica extends WebSocketListener implements CollectionEventListene
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
         Document document;
-        switch(eventInfo.getEventType()) {
+        switch (eventInfo.getEventType()) {
             case Insert:
             case Update:
                 document = (Document) eventInfo.getItem();
@@ -78,13 +86,14 @@ public class Replica extends WebSocketListener implements CollectionEventListene
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
+        log.error("Connection to {} is closed due to {}", getReplicaId(), reason);
         super.onClosed(webSocket, code, reason);
         connected = false;
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-        log.error("Connection interrupted due to error", t);
+        log.error("Connection to {} is interrupted due to error with response {}", getReplicaId(), response, t);
         super.onFailure(webSocket, t, response);
         connected = false;
         ensureConnection();
@@ -92,26 +101,20 @@ public class Replica extends WebSocketListener implements CollectionEventListene
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
-        log.debug("Message received from server {}", text);
+        log.debug("Message received at {} from server {}", getReplicaId(), text);
         super.onMessage(webSocket, text);
-        remoteOperation.handleMessage(webSocket, text);
+        try {
+            remoteOperation.handleMessage(webSocket, text);
+        } catch (ServerError serverError) {
+            log.error("Closing connection from {} due to server error", getReplicaId(), serverError);
+            disconnect();
+        } catch (ReplicationException re) {
+            log.error("Error while processing message at {}", getReplicaId(), re);
+        }
     }
 
     public String getReplicaId() {
         return localOperation.getReplicaId();
-    }
-
-    private OkHttpClient createClient() {
-        return new OkHttpClient.Builder()
-            .readTimeout(replicationConfig.getConnectTimeout().getTime(),
-                replicationConfig.getConnectTimeout().getTimeUnit())
-            .build();
-    }
-
-    private void ensureConnection() {
-        if (!connected) {
-            configure();
-        }
     }
 
     @Override
@@ -124,10 +127,65 @@ public class Replica extends WebSocketListener implements CollectionEventListene
     private void configure() {
         try {
             client = createClient();
-            Request request = replicationConfig.getRequestBuilder().build();
+            Request.Builder builder = replicationConfig.getRequestBuilder();
+            builder.addHeader("Replica", getReplicaId());
+            Request request = builder.build();
             webSocket = client.newWebSocket(request, this);
         } catch (Exception e) {
-            log.error("Error while establishing connection", e);
+            log.error("Error while establishing connection from {}", getReplicaId(), e);
+        }
+    }
+
+    private OkHttpClient createClient() {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+            .readTimeout(replicationConfig.getConnectTimeout().getTime(),
+                replicationConfig.getConnectTimeout().getTimeUnit());
+
+        if (replicationConfig.getProxy() != null) {
+            builder.proxy(replicationConfig.getProxy());
+        }
+
+        if (replicationConfig.isAcceptAllCertificates()) {
+            try {
+                final TrustManager[] trustAllCerts = new TrustManager[]{
+                    new X509TrustManager() {
+
+                        @Override
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
+                                                       String authType) {
+                        }
+
+                        @Override
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return new java.security.cert.X509Certificate[]{};
+                        }
+                    }
+                };
+
+                final SSLContext sslContext = SSLContext.getInstance("SSL");
+                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+                builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
+
+                builder.hostnameVerifier((hostname, session) -> true);
+            } catch (Exception e) {
+                throw new ReplicationException("error while configuring SSLSocketFactory", e);
+            }
+        }
+
+        return builder.build();
+    }
+
+    private void ensureConnection() {
+        if (!connected) {
+            configure();
         }
     }
 }
