@@ -1,6 +1,5 @@
 package org.dizitart.no2.sync;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.dizitart.no2.collection.Document;
@@ -11,6 +10,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Anindya Chatterjee
@@ -22,9 +22,7 @@ public final class Replica extends WebSocketListener implements CollectionEventL
     private RemoteOperation remoteOperation;
     private WebSocket webSocket;
     private OkHttpClient client;
-
-    @Getter
-    private boolean connected = false;
+    private AtomicBoolean connected;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
@@ -34,11 +32,13 @@ public final class Replica extends WebSocketListener implements CollectionEventL
         this.replicationConfig = config;
         this.localOperation = new LocalOperation(replicationConfig);
         this.remoteOperation = new RemoteOperation(replicationConfig, getReplicaId());
+        this.connected = new AtomicBoolean(false);
     }
 
     public void connect() {
         try {
             ensureConnection();
+            connected.compareAndSet(false, true);
             localOperation.sendConnect(webSocket);
             localOperation.sendLocalChanges(webSocket);
 
@@ -81,21 +81,24 @@ public final class Replica extends WebSocketListener implements CollectionEventL
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
         super.onOpen(webSocket, response);
-        connected = true;
+        System.out.println("********** set to true at onOpen****************");
+        connected.compareAndSet(false, true);
     }
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
         log.error("Connection to {} is closed due to {}", getReplicaId(), reason);
         super.onClosed(webSocket, code, reason);
-        connected = false;
+        System.out.println("********** set to false at onClosed****************");
+        connected.compareAndSet(true, false);
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
         log.error("Connection to {} is interrupted due to error with response {}", getReplicaId(), response, t);
         super.onFailure(webSocket, t, response);
-        connected = false;
+        System.out.println("********** set to false at onFailure****************");
+        connected.compareAndSet(true, false);
         ensureConnection();
     }
 
@@ -117,11 +120,16 @@ public final class Replica extends WebSocketListener implements CollectionEventL
         return localOperation.getReplicaId();
     }
 
+    public Boolean isConnected() {
+        return connected.get();
+    }
+
     @Override
     public void close() {
         webSocket.close(1000, null);
         client.dispatcher().executorService().shutdown();
-        connected = false;
+        System.out.println("********** set to false at close****************");
+        connected.compareAndSet(true, false);
     }
 
     private void configure() {
@@ -184,7 +192,7 @@ public final class Replica extends WebSocketListener implements CollectionEventL
     }
 
     private void ensureConnection() {
-        if (!connected) {
+        if (!connected.get()) {
             configure();
         }
     }

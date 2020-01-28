@@ -16,3 +16,7 @@ https://github.com/ls1intum/jReto
 
 https://github.com/eranyanay/1m-go-websockets
 https://www.freecodecamp.org/news/million-websockets-and-go-cc58418460bb/
+
+IPFS:
+
+https://www.freecodecamp.org/news/how-to-build-mongodb-like-datastore-using-interplanetary-linked-data-in-5-minutes/

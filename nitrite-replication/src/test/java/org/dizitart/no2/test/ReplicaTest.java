@@ -379,26 +379,26 @@ public class ReplicaTest {
     }
 
     @Test
-    public void testSecurity() {
+    public void testSecurityCorrectCredentials() {
         Nitrite db1 = NitriteBuilder.get()
             .openOrCreate();
         NitriteCollection c1 = db1.getCollection("testSecurity");
 
-        Nitrite db2 = NitriteBuilder.get()
-            .openOrCreate();
-        NitriteCollection c2 = db2.getCollection("testSecurity");
-
         Replica r1 = Replica.builder()
             .of(c1)
             .remote("ws://127.0.0.1:9090/datagate/user/testSecurity")
-            .jwtAuth("user", "wrong_token")
+            .jwtAuth("user", "abcd")
             .create();
         r1.connect();
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db1.getCollection("testSecurity");
 
         Replica r2 = Replica.builder()
             .of(c2)
             .remote("ws://127.0.0.1:9090/datagate/user/testSecurity")
-            .jwtAuth("user", "abcd")
+            .jwtAuth("user", "wrong_token")
             .create();
         r2.connect();
 
@@ -408,12 +408,8 @@ public class ReplicaTest {
         }
 
         assertEquals(c1.size(), 10);
-        assertEquals(c2.size(), 0);
-        assertFalse(r1.isConnected());
-        assertTrue(r2.isConnected());
-
-        //TODO: send proper error message so that user can understand
-        // https://stackoverflow.com/questions/46009847/how-to-properly-report-an-error-to-client-through-websockets
+        assertTrue(r1.isConnected());
+        assertFalse(r2.isConnected());
     }
 
     public static String getRandomTempDbFile() {

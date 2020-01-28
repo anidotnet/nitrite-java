@@ -2,12 +2,10 @@ package org.dizitart.no2.test.server;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.common.util.StringUtils;
-import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -30,22 +28,13 @@ public class SimpleDataGateServerConfig extends ServerEndpointConfig.Configurato
         if (StringUtils.isNullOrEmpty(authorization)) {
             sec.getUserProperties().put("error", "websocket connection not authorized from " + replicaId);
             log.error("Websocket connection not authorized");
-
-            response.getHeaders().replace(HandshakeResponse.SEC_WEBSOCKET_ACCEPT, Collections.emptyList());
             return;
-        } else {
-            log.error("Authorization code received from {} - {}", replicaId, authorization);
         }
 
         if (authorization.equals("Bearer abcd")) return;
 
         sec.getUserProperties().put("error", "invalid token provided from " + replicaId);
         log.error("Invalid token provided from {}", replicaId);
-        TyrusUpgradeResponse upgradeResponse = (TyrusUpgradeResponse) response;
-        upgradeResponse.setStatus(401);
-        upgradeResponse.setReasonPhrase("Unauthorized");
-
-//        response.getHeaders().replace(HandshakeResponse.SEC_WEBSOCKET_ACCEPT, Collections.emptyList());
     }
 
     private String getReplicaId(ServerEndpointConfig sec, HandshakeRequest request) {

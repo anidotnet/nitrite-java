@@ -49,11 +49,7 @@ public class SimpleDataGateEndpoint {
             session.getUserProperties().put("replica", replicaId);
         } else {
             log.error("Error while establishing connection from {} - {}", replicaId, error);
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setMessageHeader(createMessageInfo(MessageType.Error, collection, user, repository.getServerId()));
-            errorMessage.setError(error);
-            String message = objectMapper.writeValueAsString(errorMessage);
-            session.getAsyncRemote().sendText(message);
+            session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, error));
         }
     }
 
