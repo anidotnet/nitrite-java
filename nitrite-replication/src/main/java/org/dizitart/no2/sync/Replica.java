@@ -31,9 +31,9 @@ public final class Replica extends WebSocketListener implements CollectionEventL
 
     Replica(ReplicationConfig config) {
         this.replicationConfig = config;
-        this.localOperation = new LocalOperation(replicationConfig);
-        this.remoteOperation = new RemoteOperation(replicationConfig, getReplicaId());
         this.connected = new AtomicBoolean(false);
+        this.localOperation = new LocalOperation(replicationConfig, connected);
+        this.remoteOperation = new RemoteOperation(replicationConfig, getReplicaId());
     }
 
     public void connect() {
@@ -111,7 +111,9 @@ public final class Replica extends WebSocketListener implements CollectionEventL
             remoteOperation.handleMessage(webSocket, text);
         } catch (ServerError serverError) {
             log.error("Closing connection from {} due to server error", getReplicaId(), serverError);
-            disconnect();
+            if (serverError.isFatal()) {
+                close();
+            }
         } catch (ReplicationException re) {
             log.error("Error while processing message at {}", getReplicaId(), re);
         }

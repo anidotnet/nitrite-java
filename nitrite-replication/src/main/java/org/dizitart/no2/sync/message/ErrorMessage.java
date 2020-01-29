@@ -9,4 +9,5 @@ import lombok.Data;
 public class ErrorMessage implements DataGateMessage {
     private MessageHeader messageHeader;
     private String error;
+    private Boolean isFatal;
 }

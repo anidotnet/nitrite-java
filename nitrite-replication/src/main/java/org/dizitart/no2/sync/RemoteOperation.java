@@ -99,7 +99,7 @@ class RemoteOperation implements ReplicationOperation {
 
     private void handleError(ErrorMessage message) {
         log.error("Error received from server for {} - {}", replicaId, message.getError());
-        throw new ServerError(message.getError());
+        throw new ServerError(message.getError(), message.getIsFatal());
     }
 
     @Override

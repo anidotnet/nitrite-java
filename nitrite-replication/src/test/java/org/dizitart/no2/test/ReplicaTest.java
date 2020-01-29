@@ -8,8 +8,8 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.sync.Replica;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
-import org.dizitart.no2.test.server.SimpleDataGateServer;
 import org.dizitart.no2.test.server.Repository;
+import org.dizitart.no2.test.server.SimpleDataGateServer;
 import org.junit.*;
 
 import java.io.File;
@@ -387,20 +387,9 @@ public class ReplicaTest {
         Replica r1 = Replica.builder()
             .of(c1)
             .remote("ws://127.0.0.1:9090/datagate/user/testSecurity")
-            .jwtAuth("user", "abcd")
-            .create();
-        r1.connect();
-
-        Nitrite db2 = NitriteBuilder.get()
-            .openOrCreate();
-        NitriteCollection c2 = db1.getCollection("testSecurity");
-
-        Replica r2 = Replica.builder()
-            .of(c2)
-            .remote("ws://127.0.0.1:9090/datagate/user/testSecurity")
             .jwtAuth("user", "wrong_token")
             .create();
-        r2.connect();
+        r1.connect();
 
         for (int i = 0; i < 10; i++) {
             Document document = randomDocument();
@@ -408,8 +397,7 @@ public class ReplicaTest {
         }
 
         assertEquals(c1.size(), 10);
-        assertTrue(r1.isConnected());
-        assertFalse(r2.isConnected());
+        await().atMost(5, SECONDS).until(() -> !r1.isConnected());
     }
 
     public static String getRandomTempDbFile() {
@@ -432,5 +420,7 @@ public class ReplicaTest {
      * 6. Handle security for jwt tokens - extract user info only from jwt token
      * 7. connect, close db, open db, connect and assert
      * 8. Garbage Collection of tombstones
+     *
+     * 9. FIXME: After closing due to server error (invalid token), message is still being passed
      * */
 }

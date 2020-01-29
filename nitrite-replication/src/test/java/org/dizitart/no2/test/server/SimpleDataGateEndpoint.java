@@ -16,7 +16,6 @@ import org.dizitart.no2.sync.message.*;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -38,7 +37,7 @@ public class SimpleDataGateEndpoint {
     public void onOpen(@PathParam("user") String user,
                        @PathParam("collection") String collection,
                        Session session,
-                       EndpointConfig config) throws IOException {
+                       EndpointConfig config) {
         String error = (String) config.getUserProperties().get("error");
         String replicaId = (String) config.getUserProperties().get("Replica");
         log.info("New request from {}", replicaId);
@@ -49,7 +48,16 @@ public class SimpleDataGateEndpoint {
             session.getUserProperties().put("replica", replicaId);
         } else {
             log.error("Error while establishing connection from {} - {}", replicaId, error);
-            session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, error));
+            try {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setMessageHeader(createHeader(MessageType.Error, null, null, repository.getServerId()));
+                errorMessage.setError(error);
+                errorMessage.setIsFatal(true);
+                String message = objectMapper.writeValueAsString(errorMessage);
+                session.getBasicRemote().sendText(message);
+            } catch (Exception e) {
+                throw new ReplicationException("failed to send ErrorMessage", e);
+            }
         }
     }
 
@@ -84,8 +92,19 @@ public class SimpleDataGateEndpoint {
     }
 
     @OnError
-    public void onError(Throwable ex) {
+    public void onError(Session session, Throwable ex) {
         log.error("Error in DataGate server", ex);
+
+        try {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setMessageHeader(createHeader(MessageType.Error, null, null, repository.getServerId()));
+            errorMessage.setError(ex.getMessage());
+            errorMessage.setIsFatal(isFatal(ex));
+            String message = objectMapper.writeValueAsString(errorMessage);
+            session.getBasicRemote().sendText(message);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to send ErrorMessage", e);
+        }
     }
 
     protected void handleConnect(Session channel, Connect connect) {
@@ -324,5 +343,9 @@ public class SimpleDataGateEndpoint {
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
         return messageHeader;
+    }
+
+    private Boolean isFatal(Throwable ex) {
+        return ex instanceof SecurityException;
     }
 }

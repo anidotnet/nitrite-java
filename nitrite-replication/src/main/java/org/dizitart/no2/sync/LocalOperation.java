@@ -37,13 +37,13 @@ class LocalOperation implements ReplicationOperation {
     private AtomicBoolean isConnected;
     private String replicaId;
 
-    public LocalOperation(ReplicationConfig config) {
+    public LocalOperation(ReplicationConfig config, final AtomicBoolean connected) {
         this.config = config;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();
         this.objectMapper = config.getObjectMapper();
         this.executorService = ExecutorServiceManager.getThreadPool(1, SYNC_THREAD_NAME);
-        this.isConnected = new AtomicBoolean(false);
+        this.isConnected = connected;
     }
 
     @Override
@@ -80,7 +80,6 @@ class LocalOperation implements ReplicationOperation {
     }
 
     public void sendConnect(WebSocket connection) {
-        isConnected.set(true);
         executorService.submit(() -> {
             try {
                 Connect connect = new Connect();
@@ -97,7 +96,6 @@ class LocalOperation implements ReplicationOperation {
     }
 
     public void sendDisconnect(WebSocket connection) {
-        isConnected.set(false);
         executorService.submit(() -> {
             try {
                 Connect connect = new Connect();
