@@ -51,8 +51,12 @@ class RemoteOperation implements ReplicationOperation {
             case Error:
                 handleError((ErrorMessage) message);
                 break;
+            case Ack:
+                handleAck((DataGateAck) message);
+                break;
         }
     }
+
 
     private void validateMessage(DataGateMessage message) {
         if (message == null) {
@@ -76,13 +80,21 @@ class RemoteOperation implements ReplicationOperation {
     }
 
     private void handleBatchChangeEnd(BatchChangeEnd message) {
-        saveLastSyncTime();
+        Long lastSyncTime = message.getLastSynced();
+        saveLastSyncTime(lastSyncTime);
     }
 
     private void handleFeed(DataGateFeed message) {
         LastWriteWinState state = message.getFeed();
         crdt.merge(state);
-        saveLastSyncTime();
+
+        Long lastSyncTime = message.getMessageHeader().getTimestamp();
+        saveLastSyncTime(lastSyncTime);
+    }
+
+    private void handleAck(DataGateAck message) {
+        Long lastSyncTime = message.getMessageHeader().getTimestamp();
+        saveLastSyncTime(lastSyncTime);
     }
 
     private void handleError(ErrorMessage message) {

@@ -84,7 +84,7 @@ class LocalOperation implements ReplicationOperation {
         executorService.submit(() -> {
             try {
                 Connect connect = new Connect();
-                connect.setMessageHeader(createMessageInfo(MessageType.Connect));
+                connect.setMessageHeader(createHeader(MessageType.Connect));
                 connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
 
@@ -101,7 +101,7 @@ class LocalOperation implements ReplicationOperation {
         executorService.submit(() -> {
             try {
                 Connect connect = new Connect();
-                connect.setMessageHeader(createMessageInfo(MessageType.Disconnect));
+                connect.setMessageHeader(createHeader(MessageType.Disconnect));
                 connect.setReplicaId(getReplicaId());
                 String message = objectMapper.writeValueAsString(connect);
 
@@ -171,7 +171,7 @@ class LocalOperation implements ReplicationOperation {
     private String createChangeStart(String uuid) {
         try {
             BatchChangeStart message = new BatchChangeStart();
-            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeStart));
+            message.setMessageHeader(createHeader(MessageType.BatchChangeStart));
             message.setUuid(uuid);
             message.setBatchSize(config.getChunkSize());
             message.setDebounce(config.getDebounce());
@@ -184,7 +184,7 @@ class LocalOperation implements ReplicationOperation {
     private String createChangeContinue(String uuid, LastWriteWinState state) {
         try {
             BatchChangeContinue message = new BatchChangeContinue();
-            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeContinue));
+            message.setMessageHeader(createHeader(MessageType.BatchChangeContinue));
             message.setFeed(state);
             message.setUuid(uuid);
             message.setBatchSize(config.getChunkSize());
@@ -198,7 +198,7 @@ class LocalOperation implements ReplicationOperation {
     private String createChangeEnd(String uuid, Long lastSyncTime) {
         try {
             BatchChangeEnd message = new BatchChangeEnd();
-            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeEnd));
+            message.setMessageHeader(createHeader(MessageType.BatchChangeEnd));
             message.setUuid(uuid);
             message.setLastSynced(lastSyncTime);
             message.setBatchSize(config.getChunkSize());
@@ -209,7 +209,7 @@ class LocalOperation implements ReplicationOperation {
         }
     }
 
-    private MessageHeader createMessageInfo(MessageType messageType) {
+    private MessageHeader createHeader(MessageType messageType) {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(collection.getName());
         messageHeader.setMessageType(messageType);
@@ -225,7 +225,6 @@ class LocalOperation implements ReplicationOperation {
                 String message = createFeedMessage(changes);
                 log.debug("Sending DataGateFeed message from {} - {}", getReplicaId(), message);
                 connection.send(message);
-                saveLastSyncTime();
             }
         } catch (Exception e) {
             log.error("Error while sending DataGateFeed from {}", getReplicaId(), e);
@@ -235,7 +234,7 @@ class LocalOperation implements ReplicationOperation {
     private String createFeedMessage(LastWriteWinState state) {
         try {
             DataGateFeed feed = new DataGateFeed();
-            feed.setMessageHeader(createMessageInfo(MessageType.Feed));
+            feed.setMessageHeader(createHeader(MessageType.Feed));
             feed.setFeed(state);
             return objectMapper.writeValueAsString(feed);
         } catch (JsonProcessingException e) {

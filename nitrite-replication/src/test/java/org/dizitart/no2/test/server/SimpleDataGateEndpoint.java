@@ -136,6 +136,12 @@ public class SimpleDataGateEndpoint {
         replica.merge(feed.getFeed());
 
         try {
+            Long syncTime = System.currentTimeMillis();
+            String ackMessage = createAck(collection, userName, syncTime);
+            channel.getBasicRemote().sendText(ackMessage);
+
+            // other peers will take this time as last sync times
+            feed.getMessageHeader().setTimestamp(syncTime);
             String message = objectMapper.writeValueAsString(feed);
             broadcast(channel, collection, message);
         } catch (Exception e) {
@@ -170,7 +176,7 @@ public class SimpleDataGateEndpoint {
         LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(batchChangeContinue.getFeed());
 
-        feed.setMessageHeader(createMessageInfo(MessageType.Feed, collection, userName, replicaId));
+        feed.setMessageHeader(createHeader(MessageType.Feed, collection, userName, replicaId));
         feed.setFeed(batchChangeContinue.getFeed());
 
         try {
@@ -236,7 +242,7 @@ public class SimpleDataGateEndpoint {
             }, 0, debounce);
 
             try {
-                String endMessage = createChangeEnd(uuid, lastSyncTime, collection, userName,
+                String endMessage = createChangeEnd(uuid, collection, userName,
                     replicaId, chunkSize, debounce);
                 log.info("Sending BatchChangeEnd message {} from server to {}", endMessage, replicaId);
                 channel.getBasicRemote().sendText(endMessage);
@@ -253,7 +259,7 @@ public class SimpleDataGateEndpoint {
                                      Integer chunkSize, Integer debounce) {
         try {
             BatchChangeStart message = new BatchChangeStart();
-            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeStart,
+            message.setMessageHeader(createHeader(MessageType.BatchChangeStart,
                 collection, userName, replicaId));
             message.setUuid(uuid);
             message.setBatchSize(chunkSize);
@@ -269,7 +275,7 @@ public class SimpleDataGateEndpoint {
                                         Integer chunkSize, Integer debounce) {
         try {
             BatchChangeContinue message = new BatchChangeContinue();
-            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeContinue,
+            message.setMessageHeader(createHeader(MessageType.BatchChangeContinue,
                 collection, userName, replicaId));
             message.setFeed(state);
             message.setUuid(uuid);
@@ -281,15 +287,14 @@ public class SimpleDataGateEndpoint {
         }
     }
 
-    private String createChangeEnd(String uuid, Long lastSyncTime,
-                                   String collection, String userName, String replicaId,
-                                   Integer chunkSize, Integer debounce) {
+    private String createChangeEnd(String uuid, String collection, String userName,
+                                   String replicaId, Integer chunkSize, Integer debounce) {
         try {
             BatchChangeEnd message = new BatchChangeEnd();
-            message.setMessageHeader(createMessageInfo(MessageType.BatchChangeEnd,
+            message.setMessageHeader(createHeader(MessageType.BatchChangeEnd,
                 collection, userName, replicaId));
             message.setUuid(uuid);
-            message.setLastSynced(lastSyncTime);
+            message.setLastSynced(System.currentTimeMillis());
             message.setBatchSize(chunkSize);
             message.setDebounce(debounce);
             return objectMapper.writeValueAsString(message);
@@ -298,8 +303,20 @@ public class SimpleDataGateEndpoint {
         }
     }
 
-    private MessageHeader createMessageInfo(MessageType messageType, String collection,
-                                            String userName, String origin) {
+    private String createAck(String collection, String userName, Long syncTime) {
+        try {
+            DataGateAck ack = new DataGateAck();
+            MessageHeader header = createHeader(MessageType.Ack, collection, userName, repository.getServerId());
+            header.setTimestamp(syncTime);
+            ack.setMessageHeader(header);
+            return objectMapper.writeValueAsString(ack);
+        } catch (JsonProcessingException e) {
+            throw new ReplicationException("failed to create DataGateAck message", e);
+        }
+    }
+
+    private MessageHeader createHeader(MessageType messageType, String collection,
+                                       String userName, String origin) {
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setCollection(userName + "@" + collection);
         messageHeader.setMessageType(messageType);

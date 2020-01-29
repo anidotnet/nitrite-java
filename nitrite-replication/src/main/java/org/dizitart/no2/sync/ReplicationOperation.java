@@ -63,9 +63,9 @@ interface ReplicationOperation {
         return tombstoneName;
     }
 
-    default void saveLastSyncTime() {
+    default void saveLastSyncTime(Long lastSyncTime) {
         Attributes attributes = getAttributes();
-        attributes.set(LAST_SYNCED, Long.toString(System.currentTimeMillis()));
+        attributes.set(LAST_SYNCED, Long.toString(lastSyncTime));
         saveAttributes(attributes);
     }
 }

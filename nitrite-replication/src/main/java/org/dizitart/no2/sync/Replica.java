@@ -10,6 +10,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -148,6 +149,7 @@ public final class Replica extends WebSocketListener implements CollectionEventL
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
             .readTimeout(replicationConfig.getConnectTimeout().getTime(),
                 replicationConfig.getConnectTimeout().getTimeUnit());
+        builder.pingInterval(1, TimeUnit.SECONDS);
 
         if (replicationConfig.getProxy() != null) {
             builder.proxy(replicationConfig.getProxy());
