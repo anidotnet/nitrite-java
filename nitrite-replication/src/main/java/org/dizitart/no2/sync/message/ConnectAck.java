@@ -6,6 +6,7 @@ import lombok.Data;
  * @author Anindya Chatterjee
  */
 @Data
-public class DataGateAck implements DataGateMessage {
+public class ConnectAck implements DataGateMessage {
     private MessageHeader messageHeader;
+    private String uuid;
 }

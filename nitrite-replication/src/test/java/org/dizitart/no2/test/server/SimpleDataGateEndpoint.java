@@ -324,7 +324,7 @@ public class SimpleDataGateEndpoint {
 
     private String createAck(String collection, String userName, Long syncTime) {
         try {
-            DataGateAck ack = new DataGateAck();
+            FeedAck ack = new FeedAck();
             MessageHeader header = createHeader(MessageType.Ack, collection, userName, repository.getServerId());
             header.setTimestamp(syncTime);
             ack.setMessageHeader(header);

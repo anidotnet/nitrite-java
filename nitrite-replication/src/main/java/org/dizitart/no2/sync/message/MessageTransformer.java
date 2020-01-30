@@ -27,7 +27,7 @@ public class MessageTransformer {
             } else if (isError(message)) {
                 return objectMapper.readValue(message, ErrorMessage.class);
             } else if (isAck(message)) {
-                return objectMapper.readValue(message, DataGateAck.class);
+                return objectMapper.readValue(message, FeedAck.class);
             }
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to transform message from server", e);

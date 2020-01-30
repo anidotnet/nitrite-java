@@ -52,7 +52,7 @@ class RemoteOperation implements ReplicationOperation {
                 handleError((ErrorMessage) message);
                 break;
             case Ack:
-                handleAck((DataGateAck) message);
+                handleAck((FeedAck) message);
                 break;
         }
     }
@@ -92,7 +92,7 @@ class RemoteOperation implements ReplicationOperation {
         saveLastSyncTime(lastSyncTime);
     }
 
-    private void handleAck(DataGateAck message) {
+    private void handleAck(FeedAck message) {
         Long lastSyncTime = message.getMessageHeader().getTimestamp();
         saveLastSyncTime(lastSyncTime);
     }
