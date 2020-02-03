@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class Connect implements DataGateMessage {
     private MessageHeader messageHeader;
-    private String replicaId;
+    private String authToken;
 }

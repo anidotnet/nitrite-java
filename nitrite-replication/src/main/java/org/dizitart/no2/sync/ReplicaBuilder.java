@@ -3,7 +3,6 @@ package org.dizitart.no2.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Request;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.sync.module.DocumentModule;
 
@@ -22,8 +21,7 @@ public class ReplicaBuilder {
 
     private NitriteCollection collection;
     private String replicationServer;
-    private String jwtToken;
-    private String basicToken;
+    private String authToken;
     private TimeSpan connectTimeout;
     private TimeSpan debounce;
     private Integer chunkSize;
@@ -55,13 +53,13 @@ public class ReplicaBuilder {
     }
 
     public ReplicaBuilder jwtAuth(String userName, String authToken) {
-        this.jwtToken = authToken;
+        this.authToken = authToken;
         this.userName = userName;
         return this;
     }
 
     public ReplicaBuilder basicAuth(String userName, String password) {
-        this.basicToken = toHex(userName + ":" + password);
+        this.authToken = toHex(userName + ":" + password);
         this.userName = userName;
         return this;
     }
@@ -110,6 +108,7 @@ public class ReplicaBuilder {
             config.setRequestBuilder(builder);
             config.setProxy(proxy);
             config.setAcceptAllCertificates(acceptAllCertificates);
+            config.setAuthToken(authToken);
             return new Replica(config);
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication");
@@ -118,12 +117,6 @@ public class ReplicaBuilder {
 
     private Request.Builder createRequestBuilder() {
         Request.Builder builder = new Request.Builder();
-        if (!StringUtils.isNullOrEmpty(jwtToken)) {
-            builder.addHeader(AUTHORIZATION, BEARER + jwtToken);
-        } else if (!StringUtils.isNullOrEmpty(basicToken)) {
-            builder.addHeader(AUTHORIZATION, BASIC + basicToken);
-        }
-
         builder.url(replicationServer);
         return builder;
     }

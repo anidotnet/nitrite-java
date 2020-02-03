@@ -22,7 +22,8 @@ IPFS:
 https://www.freecodecamp.org/news/how-to-build-mongodb-like-datastore-using-interplanetary-linked-data-in-5-minutes/
 
 
-
+Queue message and run a timer task to pick message and
+send over websocket
 
 
 

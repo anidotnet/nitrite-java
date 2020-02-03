@@ -1,8 +1,8 @@
-package org.dizitart.no2.sync.message;
+package org.dizitart.no2.sync;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dizitart.no2.sync.ReplicationException;
+import org.dizitart.no2.sync.message.*;
 
 /**
  * @author Anindya Chatterjee

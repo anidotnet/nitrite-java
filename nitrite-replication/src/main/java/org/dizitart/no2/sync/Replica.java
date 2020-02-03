@@ -6,11 +6,6 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -18,32 +13,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 public final class Replica extends WebSocketListener implements CollectionEventListener, AutoCloseable {
-    private ReplicationConfig replicationConfig;
-    private LocalOperation localOperation;
-    private RemoteOperation remoteOperation;
-    private WebSocket webSocket;
-    private OkHttpClient client;
-    private AtomicBoolean connected;
+    private ReplicationConfig config;
+    private LocalReplica localReplica;
 
     public static ReplicaBuilder builder() {
         return new ReplicaBuilder();
     }
 
     Replica(ReplicationConfig config) {
-        this.replicationConfig = config;
-        this.connected = new AtomicBoolean(false);
-        this.localOperation = new LocalOperation(replicationConfig, connected);
-        this.remoteOperation = new RemoteOperation(replicationConfig, getReplicaId());
+        this.config = config;
+        this.localReplica = new LocalReplica(config);
     }
 
     public void connect() {
         try {
-            ensureConnection();
+            localReplica.connect();
             connected.compareAndSet(false, true);
             localOperation.sendConnect(webSocket);
             localOperation.sendLocalChanges(webSocket);
 
-            replicationConfig.getCollection().subscribe(this);
+            config.getCollection().subscribe(this);
         } catch (Exception e) {
             log.error("Error while connecting the replica {}", getReplicaId(), e);
             throw new ReplicationException("failed to open connection", e);
@@ -135,69 +124,12 @@ public final class Replica extends WebSocketListener implements CollectionEventL
         connected.compareAndSet(true, false);
     }
 
-    private void configure() {
-        try {
-            client = createClient();
-            Request.Builder builder = replicationConfig.getRequestBuilder();
-            builder.addHeader("Replica", getReplicaId());
-            Request request = builder.build();
-            webSocket = client.newWebSocket(request, this);
-        } catch (Exception e) {
-            log.error("Error while establishing connection from {}", getReplicaId(), e);
-        }
-    }
 
-    private OkHttpClient createClient() {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder()
-            .readTimeout(replicationConfig.getConnectTimeout().getTime(),
-                replicationConfig.getConnectTimeout().getTimeUnit());
-        builder.pingInterval(1, TimeUnit.SECONDS);
-
-        if (replicationConfig.getProxy() != null) {
-            builder.proxy(replicationConfig.getProxy());
-        }
-
-        if (replicationConfig.isAcceptAllCertificates()) {
-            try {
-                final TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
-                                                       String authType) {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
-                                                       String authType) {
-                        }
-
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return new java.security.cert.X509Certificate[]{};
-                        }
-                    }
-                };
-
-                final SSLContext sslContext = SSLContext.getInstance("SSL");
-                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-
-                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-                builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-
-                builder.hostnameVerifier((hostname, session) -> true);
-            } catch (Exception e) {
-                throw new ReplicationException("error while configuring SSLSocketFactory", e);
-            }
-        }
-
-        return builder.build();
-    }
 
     private void ensureConnection() {
         if (!connected.get()) {
             configure();
+
         }
     }
 }

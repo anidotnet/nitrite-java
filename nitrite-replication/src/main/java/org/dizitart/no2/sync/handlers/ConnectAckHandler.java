@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.WebSocket;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.sync.LocalReplica;
 import org.dizitart.no2.sync.ReplicationConfig;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
@@ -23,23 +24,18 @@ import java.util.TimerTask;
 @Slf4j
 public class ConnectAckHandler implements MessageHandler<ConnectAck> {
     private ReplicationConfig config;
-    private NitriteCollection collection;
-    private LastWriteWinMap crdt;
-    private String replicaId;
-    private ObjectMapper objectMapper;
+    private LocalReplica replica;
 
-    public ConnectAckHandler(ReplicationConfig config, NitriteCollection collection,
-                             LastWriteWinMap crdt, String replicaId, ObjectMapper objectMapper) {
+    public ConnectAckHandler(ReplicationConfig config, LocalReplica replica) {
         this.config = config;
-        this.collection = collection;
-        this.crdt = crdt;
-        this.replicaId = replicaId;
-        this.objectMapper = objectMapper;
+        this.replica = replica;
     }
 
     @Override
     public void handleMessage(WebSocket webSocket, ConnectAck message) {
         Long lastSyncTime = getLastSyncTime();
+
+        // TODO: call LocalReplica for this, and in LocalReplica create a Scheduler to send all these messages
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {

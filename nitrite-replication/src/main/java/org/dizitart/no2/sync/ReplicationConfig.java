@@ -20,5 +20,6 @@ public class ReplicationConfig {
     private TimeSpan connectTimeout;
     private Request.Builder requestBuilder;
     private Proxy proxy;
+    private String authToken;
     private boolean acceptAllCertificates;
 }
