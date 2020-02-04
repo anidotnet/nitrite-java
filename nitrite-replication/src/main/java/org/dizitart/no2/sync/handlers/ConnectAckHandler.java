@@ -19,7 +19,7 @@ public class ConnectAckHandler implements MessageHandler<ConnectAck> {
     @Override
     public void handleMessage(WebSocket webSocket, ConnectAck message) {
         replica.getConnectedIndicator().compareAndSet(false, true);
-        replica.getChangeManager().sendChanges();
         recieveFeed();
+        replica.getChangeManager().sendChanges();
     }
 }
