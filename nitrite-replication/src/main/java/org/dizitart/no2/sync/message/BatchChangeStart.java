@@ -1,6 +1,7 @@
 package org.dizitart.no2.sync.message;
 
 import lombok.Data;
+import org.dizitart.no2.sync.crdt.LastWriteWinState;
 
 /**
  * @author Anindya Chatterjee
@@ -11,4 +12,5 @@ public class BatchChangeStart implements BatchMessage {
     private String uuid;
     private Integer batchSize;
     private Integer debounce;
+    private LastWriteWinState state;
 }

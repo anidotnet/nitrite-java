@@ -36,9 +36,11 @@ public class MessageTemplate {
 
     public void sendMessage(DataGateMessage message) {
         try {
-            ObjectMapper objectMapper = config.getObjectMapper();
-            String asString = objectMapper.writeValueAsString(message);
-            webSocket.send(asString);
+            if (webSocket != null) {
+                ObjectMapper objectMapper = config.getObjectMapper();
+                String asString = objectMapper.writeValueAsString(message);
+                webSocket.send(asString);
+            }
         } catch (JsonProcessingException jpe) {
             log.error("Failed to create json message {}", message, jpe);
             throw new ReplicationException("invalid message provided", jpe);
@@ -61,11 +63,21 @@ public class MessageTemplate {
         }
     }
 
+    public void closeConnection(String reason) {
+        if (webSocket != null) {
+            webSocket.close(1000, reason);
+            webSocket = null;
+        }
+    }
+
     private OkHttpClient createClient() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-            .readTimeout(config.getConnectTimeout().getTime(),
-                config.getConnectTimeout().getTimeUnit());
-        builder.pingInterval(1, TimeUnit.SECONDS);
+            .connectTimeout(config.getConnectTimeout().getTime(),
+                config.getConnectTimeout().getTimeUnit())
+            .readTimeout(5, TimeUnit.SECONDS)
+            .writeTimeout(5, TimeUnit.SECONDS)
+            .pingInterval(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false);
 
         if (config.getProxy() != null) {
             builder.proxy(config.getProxy());
