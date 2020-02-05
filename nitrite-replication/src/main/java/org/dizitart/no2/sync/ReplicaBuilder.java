@@ -98,7 +98,7 @@ public class ReplicaBuilder {
         if (collection != null) {
             Request.Builder builder = createRequestBuilder();
 
-            ReplicationConfig config = new ReplicationConfig();
+            Config config = new Config();
             config.setCollection(collection);
             config.setChunkSize(chunkSize);
             config.setUserName(userName);

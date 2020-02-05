@@ -1,8 +1,8 @@
 package org.dizitart.no2.sync.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.WebSocket;
-import org.dizitart.no2.sync.LocalReplica;
+import org.dizitart.no2.sync.MessageTemplate;
+import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.DisconnectAck;
 
 /**
@@ -10,14 +10,14 @@ import org.dizitart.no2.sync.message.DisconnectAck;
  */
 @Slf4j
 public class DisconnectAckHandler implements MessageHandler<DisconnectAck> {
-    private LocalReplica replica;
+    private ReplicationTemplate replica;
 
-    public DisconnectAckHandler(LocalReplica replica) {
+    public DisconnectAckHandler(ReplicationTemplate replica) {
         this.replica = replica;
     }
 
     @Override
-    public void handleMessage(WebSocket webSocket, DisconnectAck message) {
+    public void handleMessage(MessageTemplate messageTemplate, DisconnectAck message) {
         log.debug("Disconnect is successful");
         Long time = message.getMessageHeader().getTimestamp();
         replica.saveLastSyncTime(time);

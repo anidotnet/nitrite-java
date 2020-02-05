@@ -19,13 +19,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class MessageTemplate {
-    private ReplicationConfig config;
+    private Config config;
     private MessageDispatcher dispatcher;
     private WebSocket webSocket;
-    private LocalReplica replica;
+    private ReplicationTemplate replica;
 
-
-    public MessageTemplate(ReplicationConfig config, LocalReplica replica) {
+    public MessageTemplate(Config config, ReplicationTemplate replica) {
         this.config = config;
         this.replica = replica;
     }
@@ -39,11 +38,13 @@ public class MessageTemplate {
             if (webSocket != null) {
                 ObjectMapper objectMapper = config.getObjectMapper();
                 String asString = objectMapper.writeValueAsString(message);
-                webSocket.send(asString);
+                if (!webSocket.send(asString)) {
+                    throw new ReplicationException("failed to deliver message " + asString, true);
+                }
             }
         } catch (JsonProcessingException jpe) {
             log.error("Failed to create json message {}", message, jpe);
-            throw new ReplicationException("invalid message provided", jpe);
+            throw new ReplicationException("invalid message provided", jpe, true);
         }
     }
 
@@ -59,7 +60,7 @@ public class MessageTemplate {
             webSocket = client.newWebSocket(request, this.dispatcher);
         } catch (Exception e) {
             log.error("Error while establishing connection from {}", getReplicaId(), e);
-            throw new ReplicationException("failed to open connection to server", e);
+            throw new ReplicationException("failed to open connection to server", e, true);
         }
     }
 
@@ -114,7 +115,7 @@ public class MessageTemplate {
 
                 builder.hostnameVerifier((hostname, session) -> true);
             } catch (Exception e) {
-                throw new ReplicationException("error while configuring SSLSocketFactory", e);
+                throw new ReplicationException("error while configuring SSLSocketFactory", e, true);
             }
         }
 

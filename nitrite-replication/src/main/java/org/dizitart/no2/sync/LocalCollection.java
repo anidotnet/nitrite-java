@@ -29,7 +29,7 @@ import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
  */
 @Slf4j
 class LocalCollection implements ReplicationOperation {
-    private ReplicationConfig config;
+    private Config config;
     private NitriteCollection collection;
     private ObjectMapper objectMapper;
     private ExecutorService executorService;
@@ -37,7 +37,7 @@ class LocalCollection implements ReplicationOperation {
     private AtomicBoolean isConnected;
     private String replicaId;
 
-    public LocalCollection(ReplicationConfig config, final AtomicBoolean connected) {
+    public LocalCollection(Config config, final AtomicBoolean connected) {
         this.config = config;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();

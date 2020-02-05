@@ -11,7 +11,7 @@ import java.net.Proxy;
  * @author Anindya Chatterjee
  */
 @Data
-public class ReplicationConfig {
+public class Config {
     private NitriteCollection collection;
     private Integer chunkSize;
     private String userName;

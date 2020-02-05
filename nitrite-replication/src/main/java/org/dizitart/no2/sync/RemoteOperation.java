@@ -18,7 +18,7 @@ class RemoteOperation implements ReplicationOperation {
     private MessageTransformer messageTransformer;
     private String replicaId;
 
-    public RemoteOperation(ReplicationConfig config, String replicaId) {
+    public RemoteOperation(Config config, String replicaId) {
         this.replicaId = replicaId;
         this.collection = config.getCollection();
         this.crdt = createReplicatedDataType();

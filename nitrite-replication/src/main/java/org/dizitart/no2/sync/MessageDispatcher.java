@@ -5,14 +5,8 @@ import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
-import org.dizitart.no2.sync.handlers.ConnectAckHandler;
-import org.dizitart.no2.sync.handlers.DisconnectAckHandler;
-import org.dizitart.no2.sync.handlers.MessageHandler;
-import org.dizitart.no2.sync.handlers.ErrorHandler;
-import org.dizitart.no2.sync.message.ConnectAck;
-import org.dizitart.no2.sync.message.DataGateMessage;
-import org.dizitart.no2.sync.message.DisconnectAck;
-import org.dizitart.no2.sync.message.ErrorMessage;
+import org.dizitart.no2.sync.handlers.*;
+import org.dizitart.no2.sync.message.*;
 
 import java.util.concurrent.ExecutorService;
 
@@ -23,14 +17,12 @@ import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
  */
 @Slf4j
 public class MessageDispatcher extends WebSocketListener {
-    private ReplicationConfig config;
-    private LocalReplica replica;
+    private ReplicationTemplate replicationTemplate;
     private MessageTransformer transformer;
     private ExecutorService executorService;
 
-    public MessageDispatcher(ReplicationConfig config, LocalReplica replica) {
-        this.config = config;
-        this.replica = replica;
+    public MessageDispatcher(Config config, ReplicationTemplate replicationTemplate) {
+        this.replicationTemplate = replicationTemplate;
         this.transformer = new MessageTransformer(config.getObjectMapper());
         this.executorService = ExecutorServiceManager.getThreadPool(1, SYNC_THREAD_NAME);
     }
@@ -38,36 +30,37 @@ public class MessageDispatcher extends WebSocketListener {
     @Override
     public void onMessage(WebSocket webSocket, String text) {
         DataGateMessage message = transformer.transform(text);
-        dispatch(webSocket, message);
+        MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
+        dispatch(messageTemplate, message);
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
         log.error("Communication failure", t);
-        replica.getConnectedIndicator().compareAndSet(true, false);
-        replica.getMessageTemplate().closeConnection(t.getMessage());
+        replicationTemplate.setDisconnected();
+        replicationTemplate.getMessageTemplate().closeConnection(t.getMessage());
     }
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
         log.warn("Connection to server is closed due to {}", reason);
-        replica.close(reason);
+        replicationTemplate.stopReplication(reason);
     }
 
-    private <M extends DataGateMessage> void dispatch(WebSocket webSocket, M message) {
+    private <M extends DataGateMessage> void dispatch(MessageTemplate messageTemplate, M message) {
         MessageHandler<M> handler = findHandler(message);
         if (handler != null) {
             executorService.submit(() -> {
                 try {
-                    handler.handleMessage(webSocket, message);
+                    handler.handleMessage(messageTemplate, message);
                 } catch (ReplicationException error) {
                     log.error("Error occurred while handling {} message", message.getMessageHeader().getMessageType(), error);
                     if (error.isFatal()) {
-                        replica.close("Fatal replica error - " + error.getMessage());
+                        replicationTemplate.stopReplication("Fatal replica error - " + error.getMessage());
                     }
                 } catch (Exception e) {
                     log.error("Error occurred while handling {} message", message.getMessageHeader().getMessageType(), e);
-                    replica.close("Fatal replica error - " + e.getMessage());
+                    replicationTemplate.stopReplication("Fatal replica error - " + e.getMessage());
                 }
             });
         }
@@ -75,14 +68,20 @@ public class MessageDispatcher extends WebSocketListener {
 
     @SuppressWarnings("unchecked")
     private <M extends DataGateMessage> MessageHandler<M> findHandler(DataGateMessage message) {
-        // TODO: have to move logic in handler as much as possible
-        // Create different getter field for ChangeManager, MessageTemplate, Crdt etc and use them in logic of handler
         if (message instanceof ConnectAck) {
-            return (MessageHandler<M>) new ConnectAckHandler(replica);
+            return (MessageHandler<M>) new ConnectAckHandler(replicationTemplate);
         } else if (message instanceof ErrorMessage) {
-            return (MessageHandler<M>) new ErrorHandler(replica);
+            return (MessageHandler<M>) new ErrorHandler(replicationTemplate);
         } else if (message instanceof DisconnectAck) {
-            return (MessageHandler<M>) new DisconnectAckHandler(replica);
+            return (MessageHandler<M>) new DisconnectAckHandler(replicationTemplate);
+        } else if (message instanceof DataGateFeed) {
+            if (replicationTemplate.shouldExchangeFeed()) {
+                return (MessageHandler<M>) new DataGateFeedHandler(replicationTemplate);
+            }
+        } else if (message instanceof DataGateFeedAck) {
+            if (replicationTemplate.shouldExchangeFeed()) {
+                return (MessageHandler<M>) new DataGateFeedAckHandler(replicationTemplate);
+            }
         }
         return null;
     }

@@ -12,12 +12,12 @@ import java.util.*;
  * @author Anindya Chatterjee
  */
 public class ChangeManager {
-    private LocalReplica replica;
     private Timer timer;
+    private ReplicationTemplate replica;
     private Set<NitriteId> acceptedChanges;
     private Set<NitriteId> acceptedTombstones;
 
-    public ChangeManager(LocalReplica replica) {
+    public ChangeManager(ReplicationTemplate replica) {
         this.replica = replica;
         this.acceptedChanges = new LinkedHashSet<>();
         this.acceptedTombstones = new LinkedHashSet<>();
@@ -71,7 +71,9 @@ public class ChangeManager {
     }
 
     public void shutdown() {
-
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     private BatchChangeStart createStart(MessageFactory factory, String uuid, Long lastSyncTime) {

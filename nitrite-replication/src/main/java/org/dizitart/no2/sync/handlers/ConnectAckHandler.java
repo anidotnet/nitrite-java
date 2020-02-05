@@ -1,8 +1,8 @@
 package org.dizitart.no2.sync.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.WebSocket;
-import org.dizitart.no2.sync.LocalReplica;
+import org.dizitart.no2.sync.MessageTemplate;
+import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.ConnectAck;
 
 /**
@@ -10,16 +10,16 @@ import org.dizitart.no2.sync.message.ConnectAck;
  */
 @Slf4j
 public class ConnectAckHandler implements MessageHandler<ConnectAck> {
-    private LocalReplica replica;
+    private ReplicationTemplate replica;
 
-    public ConnectAckHandler(LocalReplica replica) {
+    public ConnectAckHandler(ReplicationTemplate replica) {
         this.replica = replica;
     }
 
     @Override
-    public void handleMessage(WebSocket webSocket, ConnectAck message) {
-        replica.getConnectedIndicator().compareAndSet(false, true);
-        recieveFeed();
-        replica.getChangeManager().sendChanges();
+    public void handleMessage(MessageTemplate messageTemplate, ConnectAck message) {
+        replica.setConnected();
+        replica.startFeedExchange();
+        replica.sendChanges();
     }
 }
