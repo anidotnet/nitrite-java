@@ -1,38 +1,37 @@
 package org.dizitart.no2.sync;
 
-import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.BatchChangeContinue;
+import org.dizitart.no2.sync.message.BatchChangeEnd;
 import org.dizitart.no2.sync.message.BatchChangeStart;
 
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 
 /**
  * @author Anindya Chatterjee
  */
-public class ChangeManager {
+public class BatchChangeScheduler {
     private Timer timer;
     private ReplicationTemplate replica;
-    private Set<NitriteId> acceptedChanges;
-    private Set<NitriteId> acceptedTombstones;
 
-    public ChangeManager(ReplicationTemplate replica) {
+    public BatchChangeScheduler(ReplicationTemplate replica) {
         this.replica = replica;
-        this.acceptedChanges = new LinkedHashSet<>();
-        this.acceptedTombstones = new LinkedHashSet<>();
     }
 
-    public void sendChanges() {
+    public void schedule() {
         if (replica.isConnected()) {
             Long lastSyncTime = replica.getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
 
             MessageFactory factory = replica.getMessageFactory();
             MessageTemplate messageTemplate = replica.getMessageTemplate();
+            FeedJournal journal = replica.getFeedJournal();
 
             BatchChangeStart message = createStart(factory, uuid, lastSyncTime);
             messageTemplate.sendMessage(message);
+            journal.write(message.getState());
 
             timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -48,17 +47,11 @@ public class ChangeManager {
                     }
 
                     if (hasMore) {
-                        BatchChangeContinue startMessage = factory.createChangeContinue(replica.getConfig(),
-                            replica.getReplicaId(), uuid);
+                        BatchChangeContinue message = factory.createChangeContinue(replica.getConfig(),
+                            replica.getReplicaId(), uuid, state);
 
-                        for (Document document : state.getChanges()) {
-                            acceptedChanges.add(document.getId());
-                        }
-
-                        for (Map.Entry<Long, Long> entry : state.getTombstones().entrySet()) {
-                            acceptedTombstones.add(NitriteId.createId(entry.getKey()));
-                        }
-
+                        messageTemplate.sendMessage(message);
+                        journal.write(state);
                         start = start + replica.getConfig().getChunkSize();
                     }
 
@@ -67,6 +60,9 @@ public class ChangeManager {
                     }
                 }
             }, 0, replica.getConfig().getDebounce());
+
+            BatchChangeEnd endMessage = factory.createChangeEnd(replica.getConfig(), replica.getReplicaId(), uuid);
+            messageTemplate.sendMessage(endMessage);
         }
     }
 
@@ -82,14 +78,6 @@ public class ChangeManager {
 
         LastWriteWinState state = replica.getCrdt().getChangesSince(lastSyncTime, 0,
             replica.getConfig().getChunkSize());
-
-        for (Document document : state.getChanges()) {
-            acceptedChanges.add(document.getId());
-        }
-
-        for (Map.Entry<Long, Long> entry : state.getTombstones().entrySet()) {
-            acceptedTombstones.add(NitriteId.createId(entry.getKey()));
-        }
 
         startMessage.setState(state);
         return startMessage;

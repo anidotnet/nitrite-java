@@ -232,7 +232,7 @@ class LocalCollection implements ReplicationOperation {
     private String createFeedMessage(LastWriteWinState state) {
         try {
             DataGateFeed feed = new DataGateFeed();
-            feed.setMessageHeader(createHeader(MessageType.Feed));
+            feed.setMessageHeader(createHeader(MessageType.DataGateFeed));
             feed.setFeed(state);
             return objectMapper.writeValueAsString(feed);
         } catch (JsonProcessingException e) {

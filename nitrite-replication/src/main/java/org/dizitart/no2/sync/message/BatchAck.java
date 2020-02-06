@@ -6,6 +6,7 @@ import lombok.Data;
  * @author Anindya Chatterjee
  */
 @Data
-public class FeedAck implements DataGateMessage {
+public class BatchAck implements DataGateMessage {
     private MessageHeader messageHeader;
+    private Receipt receipt;
 }

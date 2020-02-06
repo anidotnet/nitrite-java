@@ -24,7 +24,9 @@ public class MessageDispatcher extends WebSocketListener {
     public MessageDispatcher(Config config, ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
         this.transformer = new MessageTransformer(config.getObjectMapper());
-        this.executorService = ExecutorServiceManager.getThreadPool(1, SYNC_THREAD_NAME);
+
+        int core = Runtime.getRuntime().availableProcessors();
+        this.executorService = ExecutorServiceManager.getThreadPool(core, SYNC_THREAD_NAME);
     }
 
     @Override
@@ -68,20 +70,38 @@ public class MessageDispatcher extends WebSocketListener {
 
     @SuppressWarnings("unchecked")
     private <M extends DataGateMessage> MessageHandler<M> findHandler(DataGateMessage message) {
-        if (message instanceof ConnectAck) {
-            return (MessageHandler<M>) new ConnectAckHandler(replicationTemplate);
-        } else if (message instanceof ErrorMessage) {
-            return (MessageHandler<M>) new ErrorHandler(replicationTemplate);
-        } else if (message instanceof DisconnectAck) {
-            return (MessageHandler<M>) new DisconnectAckHandler(replicationTemplate);
-        } else if (message instanceof DataGateFeed) {
-            if (replicationTemplate.shouldExchangeFeed()) {
-                return (MessageHandler<M>) new DataGateFeedHandler(replicationTemplate);
-            }
-        } else if (message instanceof DataGateFeedAck) {
-            if (replicationTemplate.shouldExchangeFeed()) {
-                return (MessageHandler<M>) new DataGateFeedAckHandler(replicationTemplate);
-            }
+        switch (message.getMessageHeader().getMessageType()) {
+            case Error:
+                return (MessageHandler<M>) new ErrorHandler(replicationTemplate);
+            case Connect:
+                // impossible case, server will never initiate connection
+                break;
+            case ConnectAck:
+                return (MessageHandler<M>) new ConnectAckHandler(replicationTemplate);
+            case Disconnect:
+                return (MessageHandler<M>) new DisconnectHandler(replicationTemplate);
+            case DisconnectAck:
+                return (MessageHandler<M>) new DisconnectAckHandler(replicationTemplate);
+            case BatchChangeStart:
+                break;
+            case BatchChangeContinue:
+                break;
+            case BatchChangeEnd:
+                break;
+            case BatchAck:
+                return (MessageHandler<M>) new BatchAckHandler(replicationTemplate);
+            case BatchEndAck:
+                return (MessageHandler<M>) new BatchEndAckHandler(replicationTemplate);
+            case DataGateFeed:
+                if (replicationTemplate.shouldExchangeFeed()) {
+                    return (MessageHandler<M>) new DataGateFeedHandler(replicationTemplate);
+                }
+                break;
+            case DataGateFeedAck:
+                if (replicationTemplate.shouldExchangeFeed()) {
+                    return (MessageHandler<M>) new DataGateFeedAckHandler(replicationTemplate);
+                }
+                break;
         }
         return null;
     }

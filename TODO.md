@@ -27,19 +27,25 @@ send over websocket
 
 
 
+## DataGate Protocol
 
-
-
-title DataGate Message Protocol
-
+title DataGate Message Communication
 
 Replica (R1)->Server: Connect Message
 note left of Server: Validates Auth token in message
 
-Replica (R2)->Server: DataGateFeed (r2f1)
+note over Replica (R1)
+    Somehow need to bar Replica from 
+    sending DataGateFeed message to
+    Server before receiving ConnectAck
+end note
 
 alt Valid token
+    Server->Server: Stores replica id
     Server->Replica (R1): ConnectAck Message
+    note left of Replica (R1):
+        Replica can now receive DataGateFeed
+    end note
 else Validation failed
     Server->Replica (R1): Error Message
     note left of Replica (R1): 
@@ -51,93 +57,102 @@ else Validation failed
 end
 
 Replica (R1)->Replica (R1): Find last sync time
-Replica (R1)->Server: BatchChangeStart Message
-
-Replica (R2)->Server: DataGateFeed (r2f2)
-
-Server->Replica (R1): BatchChangeAck Message
 Replica (R1)->Replica (R1): Find changes since last sync
+
+Replica (R1)->Server: BatchChangeStart Message
+note right of Replica (R1)
+    In replica keep the list of NitriteIds of
+    the Documents sending to servers. Server
+    would send back BatchChangeAck message with
+    list of NitriteIds accepted by Server. Replica
+    will remove those ids from it's list. Finally
+    after exchange is completed this list size should
+    be 0.
+end note
+
 note right of Replica (R1): 
     If changes exists sends changes 
     in chunks, size is sets in replication
     config
 end note
 
-Replica (R1)->Server: BatchChangeContinue Message
+Server->Replica (R1): BatchAck
+note left of Server
+    BatchChangeAck will contain list of
+    NitriteIds accepted by Server.
+end note
 
+Replica (R1)->Server: BatchChangeContinue Message
+Server->Replica (R1): BatchAck
 note left of Server:
-    Server creates DataGateFeed message
-    from BatchChangeContinue and broadcast
+    Server broadcast the BatchChangeContinue 
     to all connected peers
 end note
 
-Server-> Replica (R2): DataGateFeed message (r1f1)
-Replica (R2)->Replica (R2): Save message header time as last sync time
 Replica (R1)->Server: BatchChangeContinue Message
+Server->Replica (R1): BatchAck
 
-Replica (R2)->Server: DataGateFeed (r2f3)
-Server-> Replica (R2): DataGateFeed message (r1f2)
-Replica (R2)->Replica (R2): Save message header time as last sync time
+Server->Replica (R1): DataGateFeed
+Replica (R1)->Server: FeedAck
 
 note right of Replica (R1): 
     When there is no more changes to send
     send BatchChangeEnd with last sync time
 end note
+
 Replica (R1)->Server: BatchChangeEnd Message
-
-Replica (R2)->Server: DataGateFeed (r2f4)
-
-note left of Server:
-    From this point on Server can send 
-    DataGateFeed broadcast messages to R1.
-    
-    Server stores replica id for further
-    feed message.
-    
-    Find last sync time from BatchChangeEnd 
-    message
+note right of Replica (R1): 
+    BatchChangeEnd message will contain replicaId,
+    batchSize and last sync time
 end note
-Server->Server: Stores replica id
-Server->Server: Find changes since last sync
-
-note left of Server:
-    Changes found are: 
-    r2f1, r2f2, r2f3, r2f4
-end note
-
-Replica (R2)->Server: DataGateFeed (r2f5)
-Server->Replica (R1): DataGateFeed (r2f5)
-Replica (R1)->Replica (R1): Save message header time as last sync time
-
+Server->Replica (R1): BatchEndAck
+Replica (R1)->Replica (R1): Check from journal for failed entries
+Replica (R1)->Server: Retry failed entries in DataGateFeed
+Server->Replica (R1): FeedAck
 
 Server->Replica (R1): BatchChangeStart Message
-Replica (R1)->Server: BatchChangeAck Message
-note left of Server: If changes exists sends changes in chunks
-Server->Replica (R1): BatchChangeContinue Message
-
-Replica (R2)->Server: DataGateFeed (r2f6)
-Server->Replica (R1): DataGateFeed (r2f6)
-Replica (R1)->Replica (R1): Save message header time as last sync time
+Replica (R1)->Server: BatchAck
+note left of Server:
+    Server should ensure all message sent to replica
+    by keeping track of replicaId and nitriteId map
+end note
 
 Server->Replica (R1): BatchChangeContinue Message
+Replica (R1)->Server: BatchAck
 Server->Replica (R1): BatchChangeEnd Message
+Replica (R1)->Server: BatchEndAck
+
+note left of Server:
+    Server stores replica id for further
+    Checkpoint message.
+end note
+
+Server->Server: Stores replica id
+Server->Replica (R1): Checkpoint Message
 Replica (R1)->Replica (R1): Save message header time as last sync time
 
-Replica (R1)->Server: RegisterFeed Message
-note left of Server: Server stores replica id for further feed message
+note left of Server:
+    From now on Server sends 
+    Checkpoint message to replica 
+    after certain interval of time
+end note
 
 
-Replica (R1)->Server: DataGateFeed Message
-Server->Replica (R1): DataGateFeedAck Message
+Replica (R1)->Server: DataGateFeed
+Server->Replica (R1): FeedAck
+Replica (R1)->Replica (R1): Check from journal for failed entries
+Replica (R1)-->Server: Retry failed entries in DataGateFeed
+Server-->Replica (R1): FeedAck
+
+Server->Replica (R1): Checkpoint Message
 Replica (R1)->Replica (R1): Save message header time as last sync time
 
-note right of Server: Broadcast DataGateFeed message to peers
-Server->Replica (R1): DataGateFeed Message
-Replica (R1)->Replica (R1): Save message header time as last sync time
 
 Replica (R1)->Server: Disconnect Message
 Server->Server: Removes replica id
-
+Server->Replica (R1): DisconnectAck Message
+Replica (R1)->Replica (R1): Save message header time as last sync time
+Replica (R1)->Replica (R1): Closes connection
 
 
 

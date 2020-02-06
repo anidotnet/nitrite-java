@@ -12,7 +12,7 @@ import java.util.Set;
  * @author Anindya Chatterjee.
  */
 @Data
-public class DataGateFeed implements DataGateMessage, ChangeMessage {
+public class DataGateFeed implements DataGateMessage {
     private MessageHeader messageHeader;
     private LastWriteWinState feed;
 

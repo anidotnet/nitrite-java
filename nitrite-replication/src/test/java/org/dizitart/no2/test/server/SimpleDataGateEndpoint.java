@@ -82,7 +82,7 @@ public class SimpleDataGateEndpoint {
             } else if (message.contains(MessageType.BatchChangeEnd.code())) {
                 BatchChangeEnd batchChangeEnd = objectMapper.readValue(message, BatchChangeEnd.class);
                 handleBatchChangeEnd(session, batchChangeEnd);
-            } else if (message.contains(MessageType.Feed.code())) {
+            } else if (message.contains(MessageType.DataGateFeed.code())) {
                 DataGateFeed feed = objectMapper.readValue(message, DataGateFeed.class);
                 handleDataGateFeed(session, feed);
             }
@@ -195,7 +195,7 @@ public class SimpleDataGateEndpoint {
         LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(batchChangeContinue.getFeed());
 
-        feed.setMessageHeader(createHeader(MessageType.Feed, collection, userName, replicaId));
+        feed.setMessageHeader(createHeader(MessageType.DataGateFeed, collection, userName, replicaId));
         feed.setFeed(batchChangeContinue.getFeed());
 
         try {
@@ -324,8 +324,8 @@ public class SimpleDataGateEndpoint {
 
     private String createAck(String collection, String userName, Long syncTime) {
         try {
-            FeedAck ack = new FeedAck();
-            MessageHeader header = createHeader(MessageType.Ack, collection, userName, repository.getServerId());
+            DataGateFeedAck ack = new DataGateFeedAck();
+            MessageHeader header = createHeader(MessageType.DataGateFeedAck, collection, userName, repository.getServerId());
             header.setTimestamp(syncTime);
             ack.setMessageHeader(header);
             return objectMapper.writeValueAsString(ack);

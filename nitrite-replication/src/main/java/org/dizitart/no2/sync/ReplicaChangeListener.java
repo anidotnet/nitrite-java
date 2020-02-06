@@ -45,6 +45,7 @@ public class ReplicaChangeListener implements CollectionEventListener {
         LastWriteWinState state = new LastWriteWinState();
         NitriteId nitriteId = document.getId();
         Long deleteTime = document.getLastModifiedSinceEpoch();
+
         if (replica.getCrdt() != null) {
             replica.getCrdt().getTombstones().put(nitriteId, deleteTime);
             state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
@@ -61,6 +62,9 @@ public class ReplicaChangeListener implements CollectionEventListener {
     private void sendFeed(LastWriteWinState state) {
         MessageFactory factory = replica.getMessageFactory();
         DataGateFeed feedMessage = factory.createFeedMessage(replica.getConfig(), replica.getReplicaId(), state);
+
+        FeedJournal journal = replica.getFeedJournal();
         messageTemplate.sendMessage(feedMessage);
+        journal.write(state);
     }
 }

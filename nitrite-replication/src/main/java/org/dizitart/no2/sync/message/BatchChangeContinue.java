@@ -7,7 +7,7 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  * @author Anindya Chatterjee
  */
 @Data
-public class BatchChangeContinue implements BatchMessage, ChangeMessage {
+public class BatchChangeContinue implements DataGateMessage {
     private MessageHeader messageHeader;
     private LastWriteWinState feed;
     private String uuid;

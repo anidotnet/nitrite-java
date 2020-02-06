@@ -1,25 +1,23 @@
 package org.dizitart.no2.sync.handlers;
 
-import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
-import org.dizitart.no2.sync.message.DisconnectAck;
+import org.dizitart.no2.sync.message.Disconnect;
 
 /**
  * @author Anindya Chatterjee
  */
-@Slf4j
-public class DisconnectAckHandler implements MessageHandler<DisconnectAck> {
+public class DisconnectHandler implements MessageHandler<Disconnect> {
     private ReplicationTemplate replicationTemplate;
 
-    public DisconnectAckHandler(ReplicationTemplate replicationTemplate) {
+    public DisconnectHandler(ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, DisconnectAck message) {
-        log.debug("Disconnect is successful");
+    public void handleMessage(MessageTemplate messageTemplate, Disconnect message) throws Exception {
         Long time = message.getMessageHeader().getTimestamp();
         replicationTemplate.saveLastSyncTime(time);
+        replicationTemplate.stopReplication("Server disconnect");
     }
 }

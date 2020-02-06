@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class MessageTemplate {
     private Config config;
-    private MessageDispatcher dispatcher;
     private WebSocket webSocket;
     private ReplicationTemplate replica;
 
@@ -56,8 +55,8 @@ public class MessageTemplate {
             builder.addHeader("Initiator", getReplicaId());
             Request request = builder.build();
 
-            this.dispatcher = new MessageDispatcher(config, replica);
-            webSocket = client.newWebSocket(request, this.dispatcher);
+            MessageDispatcher dispatcher = new MessageDispatcher(config, replica);
+            webSocket = client.newWebSocket(request, dispatcher);
         } catch (Exception e) {
             log.error("Error while establishing connection from {}", getReplicaId(), e);
             throw new ReplicationException("failed to open connection to server", e, true);

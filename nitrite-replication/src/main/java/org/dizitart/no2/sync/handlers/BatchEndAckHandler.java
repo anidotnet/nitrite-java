@@ -5,26 +5,25 @@ import org.dizitart.no2.sync.MessageFactory;
 import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
+import org.dizitart.no2.sync.message.BatchEndAck;
 import org.dizitart.no2.sync.message.DataGateFeed;
-import org.dizitart.no2.sync.message.DataGateFeedAck;
 import org.dizitart.no2.sync.message.Receipt;
 
 /**
  * @author Anindya Chatterjee
  */
 @Getter
-public class DataGateFeedAckHandler implements MessageHandler<DataGateFeedAck>, JournalAware {
+public class BatchEndAckHandler implements MessageHandler<BatchEndAck>, JournalAware {
     private ReplicationTemplate replicationTemplate;
 
-    public DataGateFeedAckHandler(ReplicationTemplate replicationTemplate) {
+    public BatchEndAckHandler(ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, DataGateFeedAck message) {
-        Receipt receipt = message.getReceipt();
+    public void handleMessage(MessageTemplate messageTemplate, BatchEndAck message) {
+        Receipt finalReceipt = getJournal().getFinalReceipt();
 
-        Receipt finalReceipt = getJournal().accumulate(receipt);
         if (shouldRetry(finalReceipt)) {
             LastWriteWinState state = createState(finalReceipt);
 

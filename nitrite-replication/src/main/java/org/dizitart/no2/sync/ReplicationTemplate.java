@@ -25,9 +25,10 @@ public class ReplicationTemplate implements ReplicationOperation {
     private MessageFactory messageFactory;
     private MessageTemplate messageTemplate;
     private LastWriteWinMap crdt;
+    private FeedJournal feedJournal;
 
     @Getter(AccessLevel.NONE)
-    private ChangeManager changeManager;
+    private BatchChangeScheduler batchChangeScheduler;
 
     @Getter(AccessLevel.NONE)
     private String replicaId;
@@ -51,7 +52,7 @@ public class ReplicationTemplate implements ReplicationOperation {
     public void connect() {
         this.messageTemplate = new MessageTemplate(config, this);
         this.crdt = createReplicatedDataType();
-        this.changeManager = new ChangeManager(this);
+        this.batchChangeScheduler = new BatchChangeScheduler(this);
 
         Connect message = messageFactory.createConnect(config, getReplicaId());
         messageTemplate.openConnection();
@@ -72,7 +73,7 @@ public class ReplicationTemplate implements ReplicationOperation {
 
     public void stopReplication(String reason) {
         // release resources
-        changeManager.shutdown();
+        batchChangeScheduler.shutdown();
         connected.compareAndSet(true, false);
         exchangeFlag.compareAndSet(true, false);
         messageTemplate.closeConnection(reason);
@@ -85,13 +86,14 @@ public class ReplicationTemplate implements ReplicationOperation {
     }
 
     public void sendChanges() {
-        changeManager.sendChanges();
+        batchChangeScheduler.schedule();
     }
 
     public void startFeedExchange() {
         if (replicaChangeListener != null) {
             this.getCollection().unsubscribe(replicaChangeListener);
         }
+        this.feedJournal = new FeedJournal(this);
         this.replicaChangeListener = new ReplicaChangeListener(this, messageTemplate);
         this.getCollection().subscribe(replicaChangeListener);
         this.exchangeFlag.compareAndSet(false, true);

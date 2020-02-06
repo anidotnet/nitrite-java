@@ -23,17 +23,6 @@ public class MessageFactory {
         return message;
     }
 
-    private MessageHeader createHeader(MessageType messageType, String collectionName,
-                                       String replicaId, String userName) {
-        MessageHeader messageHeader = new MessageHeader();
-        messageHeader.setCollection(collectionName);
-        messageHeader.setMessageType(messageType);
-        messageHeader.setOrigin(replicaId);
-        messageHeader.setTimestamp(System.currentTimeMillis());
-        messageHeader.setUserName(userName);
-        return messageHeader;
-    }
-
     public BatchChangeStart createChangeStart(Config config, String replicaId, String uuid) {
         BatchChangeStart message = new BatchChangeStart();
         message.setMessageHeader(createHeader(MessageType.BatchChangeStart, config.getCollection().getName(),
@@ -44,9 +33,31 @@ public class MessageFactory {
         return message;
     }
 
+    public BatchChangeContinue createChangeContinue(Config config, String replicaId,
+                                                    String uuid, LastWriteWinState state) {
+        BatchChangeContinue message = new BatchChangeContinue();
+        message.setMessageHeader(createHeader(MessageType.BatchChangeContinue, config.getCollection().getName(),
+            replicaId, config.getUserName()));
+        message.setUuid(uuid);
+        message.setBatchSize(config.getChunkSize());
+        message.setDebounce(config.getDebounce());
+        message.setFeed(state);
+        return message;
+    }
+
+    public BatchChangeEnd createChangeEnd(Config config, String replicaId, String uuid) {
+        BatchChangeEnd message = new BatchChangeEnd();
+        message.setMessageHeader(createHeader(MessageType.BatchChangeStart, config.getCollection().getName(),
+            replicaId, config.getUserName()));
+        message.setUuid(uuid);
+        message.setBatchSize(config.getChunkSize());
+        message.setDebounce(config.getDebounce());
+        return message;
+    }
+
     public DataGateFeed createFeedMessage(Config config, String replicaId, LastWriteWinState state) {
         DataGateFeed feed = new DataGateFeed();
-        feed.setMessageHeader(createHeader(MessageType.Feed, config.getCollection().getName(),
+        feed.setMessageHeader(createHeader(MessageType.DataGateFeed, config.getCollection().getName(),
             replicaId, config.getUserName()));
         feed.setFeed(state);
         return feed;
@@ -54,9 +65,20 @@ public class MessageFactory {
 
     public DataGateFeedAck createFeedAck(Config config, String replicaId, Receipt receipt) {
         DataGateFeedAck ack = new DataGateFeedAck();
-        ack.setMessageHeader(createHeader(MessageType.Feed, config.getCollection().getName(),
+        ack.setMessageHeader(createHeader(MessageType.DataGateFeed, config.getCollection().getName(),
             replicaId, config.getUserName()));
         ack.setReceipt(receipt);
         return ack;
+    }
+
+    private MessageHeader createHeader(MessageType messageType, String collectionName,
+                                       String replicaId, String userName) {
+        MessageHeader messageHeader = new MessageHeader();
+        messageHeader.setCollection(collectionName);
+        messageHeader.setMessageType(messageType);
+        messageHeader.setOrigin(replicaId);
+        messageHeader.setTimestamp(System.currentTimeMillis());
+        messageHeader.setUserName(userName);
+        return messageHeader;
     }
 }

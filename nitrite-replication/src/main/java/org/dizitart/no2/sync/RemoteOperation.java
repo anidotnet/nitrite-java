@@ -45,14 +45,14 @@ class RemoteOperation implements ReplicationOperation {
             case BatchChangeEnd:
                 handleBatchChangeEnd((BatchChangeEnd) message);
                 break;
-            case Feed:
+            case DataGateFeed:
                 handleFeed((DataGateFeed) message);
                 break;
             case Error:
                 handleError((ErrorMessage) message);
                 break;
-            case Ack:
-                handleAck((FeedAck) message);
+            case DataGateFeedAck:
+                handleAck((DataGateFeedAck) message);
                 break;
         }
     }
@@ -92,7 +92,7 @@ class RemoteOperation implements ReplicationOperation {
         saveLastSyncTime(lastSyncTime);
     }
 
-    private void handleAck(FeedAck message) {
+    private void handleAck(DataGateFeedAck message) {
         Long lastSyncTime = message.getMessageHeader().getTimestamp();
         saveLastSyncTime(lastSyncTime);
     }
