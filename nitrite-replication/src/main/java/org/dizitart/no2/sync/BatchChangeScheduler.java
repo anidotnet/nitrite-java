@@ -31,7 +31,7 @@ public class BatchChangeScheduler {
 
             BatchChangeStart message = createStart(factory, uuid, lastSyncTime);
             messageTemplate.sendMessage(message);
-            journal.write(message.getState());
+            journal.write(message.getFeed());
 
             timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -79,7 +79,7 @@ public class BatchChangeScheduler {
         LastWriteWinState state = replica.getCrdt().getChangesSince(lastSyncTime, 0,
             replica.getConfig().getChunkSize());
 
-        startMessage.setState(state);
+        startMessage.setFeed(state);
         return startMessage;
     }
 }

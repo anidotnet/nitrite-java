@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.filters.FluentFilter.where;
-import static org.dizitart.no2.common.concurrent.ExecutorServiceManager.shutdownExecutors;
+import static org.dizitart.no2.common.concurrent.ThreadPoolManager.shutdownPools;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -159,7 +159,7 @@ public class MultiThreadedTest {
         }
 
         if (executor != null && !executor.isShutdown()) {
-            shutdownExecutors(5);
+            shutdownPools(5);
             executor = null;
         }
     }

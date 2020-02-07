@@ -18,7 +18,7 @@
 
 package org.dizitart.no2.common.event;
 
-import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 
 import java.util.Collections;
 import java.util.Set;
@@ -74,7 +74,7 @@ public abstract class NitriteEventBus<EventInfo, EventListener>
      */
     protected ExecutorService getEventExecutor() {
         if (eventExecutor == null) {
-            eventExecutor = ExecutorServiceManager.commonPool();
+            eventExecutor = ThreadPoolManager.commonPool();
         }
         return eventExecutor;
     }

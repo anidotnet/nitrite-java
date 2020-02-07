@@ -4,9 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
-import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
+import org.dizitart.no2.common.util.StringUtils;
+import org.dizitart.no2.sync.event.ReplicationEvent;
+import org.dizitart.no2.sync.event.ReplicationEventBus;
+import org.dizitart.no2.sync.event.ReplicationEventType;
 import org.dizitart.no2.sync.handlers.*;
-import org.dizitart.no2.sync.message.*;
+import org.dizitart.no2.sync.message.DataGateMessage;
 
 import java.util.concurrent.ExecutorService;
 
@@ -20,33 +24,42 @@ public class MessageDispatcher extends WebSocketListener {
     private ReplicationTemplate replicationTemplate;
     private MessageTransformer transformer;
     private ExecutorService executorService;
+    private ReplicationEventBus eventBus;
 
     public MessageDispatcher(Config config, ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
         this.transformer = new MessageTransformer(config.getObjectMapper());
 
         int core = Runtime.getRuntime().availableProcessors();
-        this.executorService = ExecutorServiceManager.getThreadPool(core, SYNC_THREAD_NAME);
+        this.executorService = ThreadPoolManager.getThreadPool(core, SYNC_THREAD_NAME);
+        this.eventBus = replicationTemplate.getEventBus();
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
-        DataGateMessage message = transformer.transform(text);
-        MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
-        dispatch(messageTemplate, message);
+        try {
+            DataGateMessage message = transformer.transform(text);
+            validateMessage(message);
+            MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
+            dispatch(messageTemplate, message);
+        } catch (Exception e) {
+            log.error("Error while sending message", e);
+            eventBus.post(new ReplicationEvent(ReplicationEventType.Error, e));
+            replicationTemplate.stopReplication("Error - " + e.getMessage());
+        }
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
         log.error("Communication failure", t);
-        replicationTemplate.setDisconnected();
-        replicationTemplate.getMessageTemplate().closeConnection(t.getMessage());
+        eventBus.post(new ReplicationEvent(ReplicationEventType.Error, t));
+        replicationTemplate.stopReplication("Error - " + t.getMessage());
     }
 
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
         log.warn("Connection to server is closed due to {}", reason);
-        replicationTemplate.stopReplication(reason);
+        replicationTemplate.stopReplication("Error - " + reason);
     }
 
     private <M extends DataGateMessage> void dispatch(MessageTemplate messageTemplate, M message) {
@@ -58,11 +71,13 @@ public class MessageDispatcher extends WebSocketListener {
                 } catch (ReplicationException error) {
                     log.error("Error occurred while handling {} message", message.getMessageHeader().getMessageType(), error);
                     if (error.isFatal()) {
-                        replicationTemplate.stopReplication("Fatal replica error - " + error.getMessage());
+                        eventBus.post(new ReplicationEvent(ReplicationEventType.Error, error));
+                        replicationTemplate.stopReplication("Error - " + error.getMessage());
                     }
                 } catch (Exception e) {
                     log.error("Error occurred while handling {} message", message.getMessageHeader().getMessageType(), e);
-                    replicationTemplate.stopReplication("Fatal replica error - " + e.getMessage());
+                    eventBus.post(new ReplicationEvent(ReplicationEventType.Error, e));
+                    replicationTemplate.stopReplication("Error - " + e.getMessage());
                 }
             });
         }
@@ -82,12 +97,17 @@ public class MessageDispatcher extends WebSocketListener {
                 return (MessageHandler<M>) new DisconnectHandler(replicationTemplate);
             case DisconnectAck:
                 return (MessageHandler<M>) new DisconnectAckHandler(replicationTemplate);
+            case Checkpoint:
+                if (replicationTemplate.shouldAcceptCheckpoint()) {
+                    return (MessageHandler<M>) new CheckpointHandler(replicationTemplate);
+                }
+                break;
             case BatchChangeStart:
-                break;
+                return (MessageHandler<M>) new BatchChangeStartHandler(replicationTemplate);
             case BatchChangeContinue:
-                break;
+                return (MessageHandler<M>) new BatchChangeContinueHandler(replicationTemplate);
             case BatchChangeEnd:
-                break;
+                return (MessageHandler<M>) new BatchChangeEndHandler(replicationTemplate);
             case BatchAck:
                 return (MessageHandler<M>) new BatchAckHandler(replicationTemplate);
             case BatchEndAck:
@@ -104,5 +124,21 @@ public class MessageDispatcher extends WebSocketListener {
                 break;
         }
         return null;
+    }
+
+    private void validateMessage(DataGateMessage message) {
+        if (message == null) {
+            throw new ReplicationException("a null message is received for "
+                + replicationTemplate.getReplicaId(), true);
+        } else if (message.getMessageHeader() == null) {
+            throw new ReplicationException("a message without header is received for "
+                + replicationTemplate.getReplicaId(), true);
+        } else if (StringUtils.isNullOrEmpty(message.getMessageHeader().getCollection())) {
+            throw new ReplicationException("a message without collection info is received for "
+                + replicationTemplate.getReplicaId(), true);
+        } else if (message.getMessageHeader().getMessageType() == null) {
+            throw new ReplicationException("a message without any type is received for "
+                + replicationTemplate.getReplicaId(), true);
+        }
     }
 }

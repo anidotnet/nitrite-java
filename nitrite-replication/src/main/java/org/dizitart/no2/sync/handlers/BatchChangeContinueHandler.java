@@ -4,30 +4,30 @@ import lombok.Data;
 import org.dizitart.no2.sync.MessageFactory;
 import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
-import org.dizitart.no2.sync.message.DataGateFeed;
-import org.dizitart.no2.sync.message.DataGateFeedAck;
+import org.dizitart.no2.sync.message.BatchAck;
+import org.dizitart.no2.sync.message.BatchChangeContinue;
 import org.dizitart.no2.sync.message.Receipt;
 
 /**
  * @author Anindya Chatterjee
  */
 @Data
-public class DataGateFeedHandler implements MessageHandler<DataGateFeed>, ReceiptAckSender<DataGateFeedAck> {
+public class BatchChangeContinueHandler implements MessageHandler<BatchChangeContinue>, ReceiptAckSender<BatchAck> {
     private ReplicationTemplate replicationTemplate;
 
-    public DataGateFeedHandler(ReplicationTemplate replicationTemplate) {
+    public BatchChangeContinueHandler(ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, DataGateFeed message) {
+    public void handleMessage(MessageTemplate messageTemplate, BatchChangeContinue message) {
         sendAck(messageTemplate, message);
     }
 
     @Override
-    public DataGateFeedAck createAck(Receipt receipt) {
+    public BatchAck createAck(Receipt receipt) {
         MessageFactory factory = replicationTemplate.getMessageFactory();
-        return factory.createFeedAck(replicationTemplate.getConfig(),
+        return factory.createBatchAck(replicationTemplate.getConfig(),
             replicationTemplate.getReplicaId(), receipt);
     }
 }

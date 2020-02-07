@@ -7,6 +7,9 @@ import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
+import org.dizitart.no2.sync.event.ReplicationEvent;
+import org.dizitart.no2.sync.event.ReplicationEventBus;
+import org.dizitart.no2.sync.event.ReplicationEventListener;
 import org.dizitart.no2.sync.message.Connect;
 import org.dizitart.no2.sync.message.Disconnect;
 
@@ -14,6 +17,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.dizitart.no2.collection.meta.Attributes.REPLICA;
+import static org.dizitart.no2.sync.event.ReplicationEventType.Started;
+import static org.dizitart.no2.sync.event.ReplicationEventType.Stopped;
 
 /**
  * @author Anindya Chatterjee
@@ -42,11 +47,19 @@ public class ReplicationTemplate implements ReplicationOperation {
     @Getter(AccessLevel.NONE)
     private AtomicBoolean exchangeFlag;
 
+    @Getter(AccessLevel.NONE)
+    private AtomicBoolean acceptCheckpoint;
+
+    @Getter(AccessLevel.PACKAGE)
+    private ReplicationEventBus eventBus;
+
     public ReplicationTemplate(Config config) {
         this.config = config;
         this.messageFactory = new MessageFactory();
         this.connected = new AtomicBoolean(false);
         this.exchangeFlag = new AtomicBoolean(false);
+        this.acceptCheckpoint = new AtomicBoolean(false);
+        this.eventBus = new ReplicationEventBus();
     }
 
     public void connect() {
@@ -57,14 +70,11 @@ public class ReplicationTemplate implements ReplicationOperation {
         Connect message = messageFactory.createConnect(config, getReplicaId());
         messageTemplate.openConnection();
         messageTemplate.sendMessage(message);
+        eventBus.post(new ReplicationEvent(Started));
     }
 
     public void setConnected() {
         connected.compareAndSet(false, true);
-    }
-
-    public void setDisconnected() {
-        connected.compareAndSet(true, false);
     }
 
     public boolean isConnected() {
@@ -72,11 +82,12 @@ public class ReplicationTemplate implements ReplicationOperation {
     }
 
     public void stopReplication(String reason) {
-        // release resources
         batchChangeScheduler.shutdown();
+        eventBus.post(new ReplicationEvent(Stopped));
         connected.compareAndSet(true, false);
         exchangeFlag.compareAndSet(true, false);
         messageTemplate.closeConnection(reason);
+        eventBus.close();
     }
 
     public void disconnect() {
@@ -114,8 +125,24 @@ public class ReplicationTemplate implements ReplicationOperation {
         return replicaId;
     }
 
+    public void setAcceptCheckpoint() {
+        acceptCheckpoint.compareAndSet(false, true);
+    }
+
+    public boolean shouldAcceptCheckpoint() {
+        return acceptCheckpoint.get();
+    }
+
     @Override
     public NitriteCollection getCollection() {
         return config.getCollection();
+    }
+
+    public void subscribe(ReplicationEventListener listener) {
+        eventBus.register(listener);
+    }
+
+    public void unsubscribe(ReplicationEventListener listener) {
+        eventBus.deregister(listener);
     }
 }

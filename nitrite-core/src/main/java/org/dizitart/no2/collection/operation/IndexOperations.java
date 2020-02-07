@@ -7,7 +7,7 @@ import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.common.KeyValuePair;
-import org.dizitart.no2.common.concurrent.ExecutorServiceManager;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.index.IndexEntry;
@@ -181,7 +181,7 @@ class IndexOperations {
         this.indexCatalog = nitriteStore.getIndexCatalog();
         this.collectionName = nitriteMap.getName();
         this.indexBuildRegistry = new ConcurrentHashMap<>();
-        this.rebuildExecutor = ExecutorServiceManager.commonPool();
+        this.rebuildExecutor = ThreadPoolManager.commonPool();
     }
 
     private Indexer findIndexer(String indexType) {

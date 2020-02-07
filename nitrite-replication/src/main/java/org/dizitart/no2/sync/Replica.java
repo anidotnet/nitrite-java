@@ -1,6 +1,7 @@
 package org.dizitart.no2.sync;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.sync.event.ReplicationEventListener;
 
 /**
  * @author Anindya Chatterjee
@@ -39,8 +40,20 @@ public final class Replica implements AutoCloseable {
         }
     }
 
+    public void subscribe(ReplicationEventListener listener) {
+        replicationTemplate.subscribe(listener);
+    }
+
+    public void unsubscribe(ReplicationEventListener listener) {
+        replicationTemplate.unsubscribe(listener);
+    }
+
     private String getReplicaId() {
         return replicationTemplate.getReplicaId();
+    }
+
+    public boolean isConnected() {
+        return replicationTemplate.isConnected();
     }
 
     @Override

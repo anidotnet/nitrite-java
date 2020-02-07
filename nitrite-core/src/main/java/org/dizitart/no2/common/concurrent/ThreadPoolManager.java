@@ -33,7 +33,7 @@ import static org.dizitart.no2.common.Constants.DAEMON_THREAD_NAME;
  * @since 4.0.0
  */
 @Slf4j
-public class ExecutorServiceManager {
+public class ThreadPoolManager {
     private static Map<String, ExecutorService> registry;
     private static final Object lock;
 
@@ -68,7 +68,7 @@ public class ExecutorServiceManager {
      *
      * @param timeout the timeout in seconds
      */
-    public static void shutdownExecutors(int timeout) {
+    public static void shutdownPools(int timeout) {
         for (ExecutorService value : registry.values()) {
             shutdownAndAwaitTermination(value, timeout);
         }

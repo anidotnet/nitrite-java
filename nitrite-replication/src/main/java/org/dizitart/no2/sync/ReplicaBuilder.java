@@ -15,10 +15,6 @@ import java.util.concurrent.TimeUnit;
  * @author Anindya Chatterjee.
  */
 public class ReplicaBuilder {
-    private static final String AUTHORIZATION = "Authorization";
-    private static final String BASIC = "Basic ";
-    private static final String BEARER = "Bearer ";
-
     private NitriteCollection collection;
     private String replicationServer;
     private String authToken;
@@ -111,7 +107,7 @@ public class ReplicaBuilder {
             config.setAuthToken(authToken);
             return new Replica(config);
         } else {
-            throw new ReplicationException("no collection or repository has been specified for replication");
+            throw new ReplicationException("no collection or repository has been specified for replication", true);
         }
     }
 

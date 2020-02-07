@@ -71,6 +71,21 @@ public class MessageFactory {
         return ack;
     }
 
+    public BatchAck createBatchAck(Config config, String replicaId, Receipt receipt) {
+        BatchAck ack = new BatchAck();
+        ack.setMessageHeader(createHeader(MessageType.DataGateFeed, config.getCollection().getName(),
+            replicaId, config.getUserName()));
+        ack.setReceipt(receipt);
+        return ack;
+    }
+
+    public BatchEndAck createBatchEndAck(Config config, String replicaId) {
+        BatchEndAck ack = new BatchEndAck();
+        ack.setMessageHeader(createHeader(MessageType.DataGateFeed, config.getCollection().getName(),
+            replicaId, config.getUserName()));
+        return ack;
+    }
+
     private MessageHeader createHeader(MessageType messageType, String collectionName,
                                        String replicaId, String userName) {
         MessageHeader messageHeader = new MessageHeader();
