@@ -19,7 +19,7 @@ public interface ReceiptAckSender<Ack extends DataGateMessage> {
             LastWriteWinState state = message.getFeed();
             getReplicationTemplate().getCrdt().merge(state);
 
-            Receipt receipt = message.getReceipt();
+            Receipt receipt = message.calculateReceipt();
             Ack ack = createAck(receipt);
             messageTemplate.sendMessage(ack);
         }

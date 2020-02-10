@@ -66,6 +66,29 @@ public class ReplicaTest {
     }
 
     @Test
+    public void testReplica() throws InterruptedException {
+        Nitrite db = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        NitriteCollection collection = db.getCollection("testReplica");
+        Replica replica = Replica.builder()
+            .of(collection)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testReplica")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+        replica.connect();
+        Thread.sleep(10000);
+        Document document = createDocument().put("firstName", "Anindya")
+            .put("lastName", "Chatterjee")
+            .put("address", createDocument("street", "1234 Abcd Street")
+                .put("pin", 123456));
+        collection.insert(document);
+        Thread.sleep(10000);
+
+        replica.disconnect();
+    }
+
+    @Test
     public void testSingleUserSingleReplica() {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)

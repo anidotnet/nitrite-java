@@ -1,5 +1,6 @@
 package org.dizitart.no2.sync;
 
+import lombok.SneakyThrows;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.BatchChangeContinue;
 import org.dizitart.no2.sync.message.BatchChangeEnd;
@@ -20,8 +21,12 @@ public class BatchChangeScheduler {
         this.replica = replica;
     }
 
+    @SneakyThrows
     public void schedule() {
         if (replica.isConnected()) {
+
+            Thread.sleep(10000);
+
             Long lastSyncTime = replica.getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
 
@@ -61,7 +66,7 @@ public class BatchChangeScheduler {
                 }
             }, 0, replica.getConfig().getDebounce());
 
-            BatchChangeEnd endMessage = factory.createChangeEnd(replica.getConfig(), replica.getReplicaId(), uuid);
+            BatchChangeEnd endMessage = factory.createChangeEnd(replica.getConfig(), replica.getReplicaId(), uuid, lastSyncTime);
             messageTemplate.sendMessage(endMessage);
         }
     }

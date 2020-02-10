@@ -17,7 +17,7 @@ public class CheckpointHandler implements MessageHandler<Checkpoint> {
     @Override
     public void handleMessage(MessageTemplate messageTemplate, Checkpoint message) {
         if (message != null) {
-            Long timestamp = message.getMessageHeader().getTimestamp();
+            Long timestamp = message.getHeader().getTimestamp();
             replicationTemplate.saveLastSyncTime(timestamp);
         }
     }

@@ -7,5 +7,5 @@ import lombok.Data;
  */
 @Data
 public class BatchEndAck implements DataGateMessage {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
 }

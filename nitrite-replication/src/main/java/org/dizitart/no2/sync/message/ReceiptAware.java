@@ -13,7 +13,7 @@ import java.util.Set;
 public interface ReceiptAware {
     LastWriteWinState getFeed();
 
-    default Receipt getReceipt() {
+    default Receipt calculateReceipt() {
         Set<Long> added = new HashSet<>();
         Set<Long> removed = new HashSet<>();
 

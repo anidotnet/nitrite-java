@@ -8,6 +8,6 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  */
 @Data
 public class DataGateFeed implements DataGateMessage, ReceiptAware {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
     private LastWriteWinState feed;
 }

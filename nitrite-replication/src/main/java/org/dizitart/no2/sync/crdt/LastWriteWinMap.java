@@ -61,32 +61,34 @@ public class LastWriteWinMap {
     }
 
     private void put(Document value) {
-        NitriteId key = value.getId();
+        if (value != null) {
+            NitriteId key = value.getId();
 
-        Document entry = collection.getById(key);
-        if (entry == null) {
-            if (tombstones.containsKey(key)) {
-                Long tombstoneTime = tombstones.get(key);
-                Long docModifiedTime = value.getLastModifiedSinceEpoch();
+            Document entry = collection.getById(key);
+            if (entry == null) {
+                if (tombstones.containsKey(key)) {
+                    Long tombstoneTime = tombstones.get(key);
+                    Long docModifiedTime = value.getLastModifiedSinceEpoch();
 
-                if (docModifiedTime >= tombstoneTime) {
+                    if (docModifiedTime >= tombstoneTime) {
+                        value.put(DOC_SOURCE, REPLICATOR);
+                        collection.insert(value);
+                    }
+                } else {
                     value.put(DOC_SOURCE, REPLICATOR);
                     collection.insert(value);
                 }
             } else {
-                value.put(DOC_SOURCE, REPLICATOR);
-                collection.insert(value);
-            }
-        } else {
-            Long oldTime = entry.getLastModifiedSinceEpoch();
-            Long newTime = value.getLastModifiedSinceEpoch();
+                Long oldTime = entry.getLastModifiedSinceEpoch();
+                Long newTime = value.getLastModifiedSinceEpoch();
 
-            if (newTime > oldTime) {
-                entry.put(DOC_SOURCE, REPLICATOR);
-                collection.remove(byId(key));
+                if (newTime > oldTime) {
+                    entry.put(DOC_SOURCE, REPLICATOR);
+                    collection.remove(byId(key));
 
-                value.put(DOC_SOURCE, REPLICATOR);
-                collection.insert(value);
+                    value.put(DOC_SOURCE, REPLICATOR);
+                    collection.insert(value);
+                }
             }
         }
     }

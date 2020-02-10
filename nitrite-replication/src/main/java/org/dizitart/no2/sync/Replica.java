@@ -1,7 +1,9 @@
 package org.dizitart.no2.sync;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dizitart.no2.sync.event.ReplicationEvent;
 import org.dizitart.no2.sync.event.ReplicationEventListener;
+import org.dizitart.no2.sync.event.ReplicationEventType;
 
 /**
  * @author Anindya Chatterjee
@@ -21,10 +23,12 @@ public final class Replica implements AutoCloseable {
     public void connect() {
         try {
             replicationTemplate.connect();
-        } catch (ReplicationException re) {
-            throw re;
         } catch (Exception e) {
             log.error("Error while connecting the replica {}", getReplicaId(), e);
+            replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, e));
+            if (e instanceof ReplicationException) {
+                throw e;
+            }
             throw new ReplicationException("failed to open connection", e, true);
         }
     }
@@ -32,10 +36,12 @@ public final class Replica implements AutoCloseable {
     public void disconnect() {
         try {
             replicationTemplate.disconnect();
-        } catch (ReplicationException re) {
-            throw re;
         } catch (Exception e) {
+            replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, e));
             log.error("Error while disconnecting the replica {}", getReplicaId(), e);
+            if (e instanceof ReplicationException) {
+                throw e;
+            }
             throw new ReplicationException("failed to disconnect the replica", e, true);
         }
     }

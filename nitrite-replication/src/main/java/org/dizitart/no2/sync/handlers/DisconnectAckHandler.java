@@ -19,7 +19,7 @@ public class DisconnectAckHandler implements MessageHandler<DisconnectAck> {
     @Override
     public void handleMessage(MessageTemplate messageTemplate, DisconnectAck message) {
         log.debug("Disconnect is successful");
-        Long time = message.getMessageHeader().getTimestamp();
+        Long time = message.getHeader().getTimestamp();
         replicationTemplate.saveLastSyncTime(time);
     }
 }

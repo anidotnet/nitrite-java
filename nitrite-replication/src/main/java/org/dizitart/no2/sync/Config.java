@@ -17,7 +17,7 @@ public class Config {
     private String userName;
     private Integer debounce;
     private ObjectMapper objectMapper;
-    private TimeSpan connectTimeout;
+    private TimeSpan timeout;
     private Request.Builder requestBuilder;
     private Proxy proxy;
     private String authToken;

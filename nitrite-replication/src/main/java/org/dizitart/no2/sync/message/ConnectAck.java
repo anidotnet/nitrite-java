@@ -7,6 +7,5 @@ import lombok.Data;
  */
 @Data
 public class ConnectAck implements DataGateMessage {
-    private MessageHeader messageHeader;
-    private String uuid;
+    private MessageHeader header;
 }

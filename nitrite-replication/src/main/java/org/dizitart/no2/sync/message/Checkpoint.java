@@ -7,5 +7,5 @@ import lombok.Data;
  */
 @Data
 public class Checkpoint implements DataGateMessage {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
 }

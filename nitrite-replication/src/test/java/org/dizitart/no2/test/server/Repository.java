@@ -5,9 +5,8 @@ import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import javax.websocket.Session;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,7 +20,7 @@ public class Repository {
     private Map<String, LastWriteWinMap> replicaStore;
     private Nitrite db;
     private String serverId;
-//    private Map<String, Session> sessionMap;
+    private Set<Session> authorizedSessions;
 
     private Repository() {
         reset();
@@ -35,7 +34,7 @@ public class Repository {
         collectionReplicaMap = new ConcurrentHashMap<>();
         userReplicaMap = new ConcurrentHashMap<>();
         replicaStore = new ConcurrentHashMap<>();
-//        sessionMap = new ConcurrentHashMap<>();
+        authorizedSessions = new HashSet<>();
 
         db = NitriteBuilder.get().openOrCreate();
         serverId = UUID.randomUUID().toString();

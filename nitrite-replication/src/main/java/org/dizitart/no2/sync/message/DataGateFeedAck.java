@@ -7,6 +7,6 @@ import lombok.Data;
  */
 @Data
 public class DataGateFeedAck implements DataGateMessage {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
     private Receipt receipt;
 }

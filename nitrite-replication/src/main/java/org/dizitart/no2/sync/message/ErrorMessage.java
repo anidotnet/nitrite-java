@@ -7,7 +7,7 @@ import lombok.Data;
  */
 @Data
 public class ErrorMessage implements DataGateMessage {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
     private String error;
     private Boolean isFatal;
 }

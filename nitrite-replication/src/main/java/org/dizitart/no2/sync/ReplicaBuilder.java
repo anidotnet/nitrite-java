@@ -18,7 +18,7 @@ public class ReplicaBuilder {
     private NitriteCollection collection;
     private String replicationServer;
     private String authToken;
-    private TimeSpan connectTimeout;
+    private TimeSpan timeout;
     private TimeSpan debounce;
     private Integer chunkSize;
     private String userName;
@@ -28,7 +28,7 @@ public class ReplicaBuilder {
 
     ReplicaBuilder() {
         chunkSize = 10;
-        connectTimeout = new TimeSpan(5, TimeUnit.SECONDS);
+        timeout = new TimeSpan(5, TimeUnit.SECONDS);
         debounce = new TimeSpan(1, TimeUnit.SECONDS);
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new DocumentModule());
@@ -60,8 +60,8 @@ public class ReplicaBuilder {
         return this;
     }
 
-    public ReplicaBuilder connectTimeout(TimeSpan timeSpan) {
-        this.connectTimeout = timeSpan;
+    public ReplicaBuilder timeout(TimeSpan timeSpan) {
+        this.timeout = timeSpan;
         return this;
     }
 
@@ -100,7 +100,7 @@ public class ReplicaBuilder {
             config.setUserName(userName);
             config.setDebounce(getTimeoutInMillis(debounce));
             config.setObjectMapper(objectMapper);
-            config.setConnectTimeout(connectTimeout);
+            config.setTimeout(timeout);
             config.setRequestBuilder(builder);
             config.setProxy(proxy);
             config.setAcceptAllCertificates(acceptAllCertificates);

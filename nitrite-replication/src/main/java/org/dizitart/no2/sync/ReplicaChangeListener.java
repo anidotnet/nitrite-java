@@ -1,10 +1,13 @@
 package org.dizitart.no2.sync;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
+import org.dizitart.no2.sync.event.ReplicationEvent;
+import org.dizitart.no2.sync.event.ReplicationEventType;
 import org.dizitart.no2.sync.message.DataGateFeed;
 
 import java.util.Collections;
@@ -12,32 +15,38 @@ import java.util.Collections;
 /**
  * @author Anindya Chatterjee
  */
+@Slf4j
 public class ReplicaChangeListener implements CollectionEventListener {
-    private ReplicationTemplate replica;
+    private ReplicationTemplate replicationTemplate;
     private MessageTemplate messageTemplate;
 
-    public ReplicaChangeListener(ReplicationTemplate replica, MessageTemplate messageTemplate) {
-        this.replica = replica;
+    public ReplicaChangeListener(ReplicationTemplate replicationTemplate, MessageTemplate messageTemplate) {
+        this.replicationTemplate = replicationTemplate;
         this.messageTemplate = messageTemplate;
     }
 
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
-        if (replica.shouldExchangeFeed()) {
-            switch (eventInfo.getEventType()) {
-                case Insert:
-                case Update:
-                    Document document = (Document) eventInfo.getItem();
-                    handleModifyEvent(document);
-                    break;
-                case Remove:
-                    document = (Document) eventInfo.getItem();
-                    handleRemoveEvent(document);
-                    break;
-                case IndexStart:
-                case IndexEnd:
-                    break;
+        try {
+            if (replicationTemplate.shouldExchangeFeed()) {
+                switch (eventInfo.getEventType()) {
+                    case Insert:
+                    case Update:
+                        Document document = (Document) eventInfo.getItem();
+                        handleModifyEvent(document);
+                        break;
+                    case Remove:
+                        document = (Document) eventInfo.getItem();
+                        handleRemoveEvent(document);
+                        break;
+                    case IndexStart:
+                    case IndexEnd:
+                        break;
+                }
             }
+        } catch (Exception e) {
+            log.error("Error while processing collection event", e);
+            replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, e));
         }
     }
 
@@ -46,8 +55,8 @@ public class ReplicaChangeListener implements CollectionEventListener {
         NitriteId nitriteId = document.getId();
         Long deleteTime = document.getLastModifiedSinceEpoch();
 
-        if (replica.getCrdt() != null) {
-            replica.getCrdt().getTombstones().put(nitriteId, deleteTime);
+        if (replicationTemplate.getCrdt() != null) {
+            replicationTemplate.getCrdt().getTombstones().put(nitriteId, deleteTime);
             state.setTombstones(Collections.singletonMap(nitriteId.getIdValue(), deleteTime));
             sendFeed(state);
         }
@@ -60,10 +69,10 @@ public class ReplicaChangeListener implements CollectionEventListener {
     }
 
     private void sendFeed(LastWriteWinState state) {
-        MessageFactory factory = replica.getMessageFactory();
-        DataGateFeed feedMessage = factory.createFeedMessage(replica.getConfig(), replica.getReplicaId(), state);
+        MessageFactory factory = replicationTemplate.getMessageFactory();
+        DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(), replicationTemplate.getReplicaId(), state);
 
-        FeedJournal journal = replica.getFeedJournal();
+        FeedJournal journal = replicationTemplate.getFeedJournal();
         messageTemplate.sendMessage(feedMessage);
         journal.write(state);
     }

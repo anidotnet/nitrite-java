@@ -7,6 +7,6 @@ import lombok.Data;
  */
 @Data
 public class Connect implements DataGateMessage {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
     private String authToken;
 }

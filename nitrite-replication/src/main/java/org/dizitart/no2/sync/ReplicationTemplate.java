@@ -50,7 +50,7 @@ public class ReplicationTemplate implements ReplicationOperation {
     @Getter(AccessLevel.NONE)
     private AtomicBoolean acceptCheckpoint;
 
-    @Getter(AccessLevel.PACKAGE)
+    @Getter(AccessLevel.NONE)
     private ReplicationEventBus eventBus;
 
     public ReplicationTemplate(Config config) {
@@ -144,5 +144,9 @@ public class ReplicationTemplate implements ReplicationOperation {
 
     public void unsubscribe(ReplicationEventListener listener) {
         eventBus.deregister(listener);
+    }
+
+    public void postEvent(ReplicationEvent event) {
+        eventBus.post(event);
     }
 }

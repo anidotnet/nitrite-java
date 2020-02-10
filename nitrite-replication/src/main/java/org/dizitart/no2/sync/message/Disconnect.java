@@ -7,5 +7,5 @@ import lombok.Data;
  */
 @Data
 public class Disconnect implements DataGateMessage {
-    private MessageHeader messageHeader;
+    private MessageHeader header;
 }

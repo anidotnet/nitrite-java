@@ -16,7 +16,7 @@ public class DisconnectHandler implements MessageHandler<Disconnect> {
 
     @Override
     public void handleMessage(MessageTemplate messageTemplate, Disconnect message) throws Exception {
-        Long time = message.getMessageHeader().getTimestamp();
+        Long time = message.getHeader().getTimestamp();
         replicationTemplate.saveLastSyncTime(time);
         replicationTemplate.stopReplication("Server disconnect");
     }

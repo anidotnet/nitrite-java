@@ -3,11 +3,13 @@ package org.dizitart.no2.test.server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.store.NitriteMap;
+import org.dizitart.no2.sync.MessageFactory;
+import org.dizitart.no2.sync.MessageTransformer;
 import org.dizitart.no2.sync.ReplicationException;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
@@ -16,6 +18,7 @@ import org.dizitart.no2.sync.message.*;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -23,68 +26,60 @@ import java.util.*;
  */
 @Slf4j
 @Data
-@ServerEndpoint(value="/datagate/{user}/{collection}", configurator = SimpleDataGateServerConfig.class)
+@ServerEndpoint(value="/datagate/{user}/{collection}")
 public class SimpleDataGateEndpoint {
     private ObjectMapper objectMapper;
     private Repository repository;
+    private MessageFactory factory;
+    private Timer timer;
+    private MessageTransformer transformer;
 
     public SimpleDataGateEndpoint() {
         objectMapper = new ObjectMapper();
         repository = Repository.getInstance();
+        factory = new MessageFactory();
+        timer = new Timer();
+        transformer = new MessageTransformer(objectMapper);
     }
 
     @OnOpen
     public void onOpen(@PathParam("user") String user,
                        @PathParam("collection") String collection,
-                       Session session,
-                       EndpointConfig config) {
-        String error = (String) config.getUserProperties().get("error");
-        String replicaId = (String) config.getUserProperties().get("Replica");
-        log.info("New request from {}", replicaId);
-
-        if (StringUtils.isNullOrEmpty(error)) {
-            log.info("DataGate server connection established with {}", replicaId);
-            session.getUserProperties().put("collection", user + "@" + collection);
-            session.getUserProperties().put("replica", replicaId);
-        } else {
-            log.error("Error while establishing connection from {} - {}", replicaId, error);
-            try {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setMessageHeader(createHeader(MessageType.Error, null, null, repository.getServerId()));
-                errorMessage.setError(error);
-                errorMessage.setIsFatal(true);
-                String message = objectMapper.writeValueAsString(errorMessage);
-                session.getBasicRemote().sendText(message);
-            } catch (Exception e) {
-                throw new ReplicationException("failed to send ErrorMessage", e);
-            }
-        }
+                       Session session) {
+        log.info("DataGate server connection established");
+        session.getUserProperties().put("collection", user + "@" + collection);
+        startCheckpointSender(session, collection, user);
     }
 
     @OnClose
     public void onClose(CloseReason reason, Session session) {
         log.warn("DataGate server closed due to {}", reason.getReasonPhrase());
+        repository.getAuthorizedSessions().remove(session);
     }
 
     @OnMessage
     public void onMessage(String message, Session session) {
         try {
             log.info("Message received at server {}", message);
-            if (message.contains(MessageType.Connect.code()) || message.contains(MessageType.Disconnect.code())) {
-                Connect connect = objectMapper.readValue(message, Connect.class);
+            DataGateMessage dataGateMessage = transformer.transform(message);
+            if (dataGateMessage instanceof Connect) {
+                Connect connect = (Connect) dataGateMessage;
                 handleConnect(session, connect);
-            } else if (message.contains(MessageType.BatchChangeStart.code())) {
-                BatchChangeStart batchChangeStart = objectMapper.readValue(message, BatchChangeStart.class);
+            } else if (dataGateMessage instanceof BatchChangeStart) {
+                BatchChangeStart batchChangeStart = (BatchChangeStart) dataGateMessage;
                 handleBatchChangeStart(session, batchChangeStart);
-            } else if (message.contains(MessageType.BatchChangeContinue.code())) {
-                BatchChangeContinue batchChangeContinue = objectMapper.readValue(message, BatchChangeContinue.class);
+            } else if (dataGateMessage instanceof BatchChangeContinue) {
+                BatchChangeContinue batchChangeContinue = (BatchChangeContinue) dataGateMessage;
                 handleBatchChangeContinue(session, batchChangeContinue);
-            } else if (message.contains(MessageType.BatchChangeEnd.code())) {
-                BatchChangeEnd batchChangeEnd = objectMapper.readValue(message, BatchChangeEnd.class);
+            } else if (dataGateMessage instanceof BatchChangeEnd) {
+                BatchChangeEnd batchChangeEnd = (BatchChangeEnd) dataGateMessage;
                 handleBatchChangeEnd(session, batchChangeEnd);
-            } else if (message.contains(MessageType.DataGateFeed.code())) {
-                DataGateFeed feed = objectMapper.readValue(message, DataGateFeed.class);
-                handleDataGateFeed(session, feed);
+            } else if (dataGateMessage instanceof DataGateFeed) {
+                DataGateFeed dataGateFeed = (DataGateFeed) dataGateMessage;
+                handleDataGateFeed(session, dataGateFeed);
+            } else if (dataGateMessage instanceof Disconnect) {
+                Disconnect disconnect = (Disconnect) dataGateMessage;
+                handleDisconnect(session, disconnect);
             }
         } catch (Exception e) {
             log.error("Error while handling message {}", message, e);
@@ -97,22 +92,28 @@ public class SimpleDataGateEndpoint {
 
         try {
             ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setMessageHeader(createHeader(MessageType.Error, null, null, repository.getServerId()));
+            errorMessage.setHeader(createHeader(MessageType.Error, null, null, repository.getServerId()));
             errorMessage.setError(ex.getMessage());
             errorMessage.setIsFatal(isFatal(ex));
             String message = objectMapper.writeValueAsString(errorMessage);
             session.getBasicRemote().sendText(message);
         } catch (Exception e) {
-            throw new ReplicationException("failed to send ErrorMessage", e);
+            throw new ReplicationException("failed to send ErrorMessage", e, false);
         }
     }
 
-    protected void handleConnect(Session channel, Connect connect) {
-        String replicaId = connect.getReplicaId();
-        String userName = connect.getMessageHeader().getUserName();
-        String collection = userName + "@" + connect.getMessageHeader().getCollection();
+    protected void handleConnect(Session session, Connect connect) throws IOException {
+        String replicaId = connect.getHeader().getOrigin();
+        String userName = connect.getHeader().getUserName();
+        String collection = userName + "@" + connect.getHeader().getCollection();
 
-        if (connect.getMessageHeader().getMessageType() == MessageType.Connect) {
+        if (isValidAuth(userName, connect.getAuthToken())) {
+            session.getUserProperties().put("authorized", true);
+            session.getUserProperties().put("collection", collection);
+            session.getUserProperties().put("replica", replicaId);
+
+            repository.getAuthorizedSessions().add(session);
+
             if (repository.getCollectionReplicaMap().containsKey(collection)) {
                 List<String> replicas = repository.getCollectionReplicaMap().get(collection);
                 if (!replicas.contains(replicaId)) {
@@ -141,15 +142,43 @@ public class SimpleDataGateEndpoint {
                 LastWriteWinMap replica = createCrdt(collection);
                 repository.getReplicaStore().put(collection, replica);
             }
-        } else if (connect.getMessageHeader().getMessageType() == MessageType.Disconnect) {
-            repository.getCollectionReplicaMap().get(collection).remove(replicaId);
-            repository.getUserReplicaMap().get(userName).remove(replicaId);
+
+            ConnectAck ack = new ConnectAck();
+            ack.setHeader(createHeader(MessageType.ConnectAck,
+                connect.getHeader().getCollection(), userName, connect.getHeader().getOrigin()));
+            String message = objectMapper.writeValueAsString(ack);
+            session.getBasicRemote().sendText(message);
+        } else {
+            session.getUserProperties().put("authorized", false);
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setIsFatal(true);
+            errorMessage.setError("Unauthorized");
+            errorMessage.setHeader(createHeader(MessageType.Error,
+                connect.getHeader().getCollection(), userName, connect.getHeader().getOrigin()));
+            String message = objectMapper.writeValueAsString(errorMessage);
+            session.getBasicRemote().sendText(message);
         }
     }
 
+    protected void handleDisconnect(Session session, Disconnect connect) throws IOException {
+        String replicaId = connect.getHeader().getOrigin();
+        String userName = connect.getHeader().getUserName();
+        String collection = userName + "@" + connect.getHeader().getCollection();
+
+        repository.getCollectionReplicaMap().get(collection).remove(replicaId);
+        repository.getUserReplicaMap().get(userName).remove(replicaId);
+        repository.getAuthorizedSessions().remove(session);
+
+        DisconnectAck ack = new DisconnectAck();
+        ack.setHeader(createHeader(MessageType.DisconnectAck, collection, userName, replicaId));
+        String message = objectMapper.writeValueAsString(ack);
+        session.getBasicRemote().sendText(message);
+    }
+
     protected void handleDataGateFeed(Session channel, DataGateFeed feed) {
-        String userName = feed.getMessageHeader().getUserName();
-        String collection = userName + "@" + feed.getMessageHeader().getCollection();
+        String userName = feed.getHeader().getUserName();
+        String collection = userName + "@" + feed.getHeader().getCollection();
+        String replicaId = feed.getHeader().getOrigin();
 
         LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(feed.getFeed());
@@ -160,54 +189,93 @@ public class SimpleDataGateEndpoint {
             channel.getBasicRemote().sendText(ackMessage);
 
             // other peers will take this time as last sync times
-            feed.getMessageHeader().setTimestamp(syncTime);
+            feed.getHeader().setTimestamp(syncTime);
             String message = objectMapper.writeValueAsString(feed);
-            broadcast(channel, collection, message);
+            broadcast(replicaId, collection, message);
         } catch (Exception e) {
-            throw new ReplicationException("failed to broadcast DataGateFeed", e);
+            throw new ReplicationException("failed to broadcast DataGateFeed", e, false);
         }
     }
 
-    private void broadcast(Session channel, String collection, String message) {
-        channel.getOpenSessions().stream()
+    private void broadcast(String origin, String collection, String message) {
+        repository.getAuthorizedSessions().stream()
             .filter(s -> collection.equals(s.getUserProperties().get("collection")))
+            .filter(s -> !origin.equals(s.getUserProperties().get("replica")))
             .forEach(s -> s.getAsyncRemote().sendText(message));
     }
 
-    protected void handleBatchChangeEnd(Session channel, BatchChangeEnd batchChangeEnd) {
+    protected void handleBatchChangeEnd(Session session, BatchChangeEnd batchChangeEnd) throws IOException {
         Long lastSync = batchChangeEnd.getLastSynced();
         Integer batchSize = batchChangeEnd.getBatchSize();
         Integer debounce = batchChangeEnd.getDebounce();
-        String userName = batchChangeEnd.getMessageHeader().getUserName();
-        String collection = userName + "@" + batchChangeEnd.getMessageHeader().getCollection();
+        String userName = batchChangeEnd.getHeader().getUserName();
+        String collection = userName + "@" + batchChangeEnd.getHeader().getCollection();
+        String replicaId = batchChangeEnd.getHeader().getOrigin();
+
+        BatchEndAck ack = new BatchEndAck();
+        ack.setHeader(createHeader(MessageType.BatchEndAck, collection, userName, replicaId));
+
+        String message = objectMapper.writeValueAsString(ack);
+        session.getBasicRemote().sendText(message);
 
         LastWriteWinMap replica = repository.getReplicaStore().get(collection);
-        sendChanges(batchChangeEnd.getMessageHeader().getCollection(), userName, lastSync,
-            batchSize, debounce, replica, channel, repository.getServerId());
+        sendChanges(batchChangeEnd.getHeader().getCollection(), userName, lastSync,
+            batchSize, debounce, replica, session, repository.getServerId());
     }
 
-    protected void handleBatchChangeContinue(Session channel, BatchChangeContinue batchChangeContinue) {
+    protected void handleBatchChangeContinue(Session session, BatchChangeContinue batchChangeContinue) {
         DataGateFeed feed = new DataGateFeed();
 
-        String userName = batchChangeContinue.getMessageHeader().getUserName();
-        String collection = userName + "@" + batchChangeContinue.getMessageHeader().getCollection();
-        String replicaId = batchChangeContinue.getMessageHeader().getOrigin();
+        String userName = batchChangeContinue.getHeader().getUserName();
+        String collection = userName + "@" + batchChangeContinue.getHeader().getCollection();
+        String replicaId = batchChangeContinue.getHeader().getOrigin();
         LastWriteWinMap replica = repository.getReplicaStore().get(collection);
         replica.merge(batchChangeContinue.getFeed());
 
-        feed.setMessageHeader(createHeader(MessageType.DataGateFeed, collection, userName, replicaId));
+        feed.setHeader(createHeader(MessageType.DataGateFeed, collection, userName, replicaId));
         feed.setFeed(batchChangeContinue.getFeed());
 
+        BatchAck ack = new BatchAck();
+        ack.setReceipt(feed.calculateReceipt());
+        ack.setHeader(createHeader(MessageType.BatchAck, collection, userName, replicaId));
+
         try {
-            String message = objectMapper.writeValueAsString(feed);
-            broadcast(channel, collection, message);
+            String message = objectMapper.writeValueAsString(ack);
+            session.getBasicRemote().sendText(message);
+
+            message = objectMapper.writeValueAsString(feed);
+            broadcast(replicaId, collection, message);
         } catch (Exception e) {
-            throw new ReplicationException("failed to broadcast DataGateFeed", e);
+            throw new ReplicationException("failed to broadcast DataGateFeed", e, false);
         }
     }
 
-    protected void handleBatchChangeStart(Session channel, BatchChangeStart batchChangeStart) {
+    protected void handleBatchChangeStart(Session session, BatchChangeStart batchChangeStart) {
         log.debug("BatchChangeStart message received " + batchChangeStart);
+        DataGateFeed feed = new DataGateFeed();
+
+        String userName = batchChangeStart.getHeader().getUserName();
+        String collection = userName + "@" + batchChangeStart.getHeader().getCollection();
+        String replicaId = batchChangeStart.getHeader().getOrigin();
+        LastWriteWinMap replica = repository.getReplicaStore().get(collection);
+        replica.merge(batchChangeStart.getFeed());
+
+        feed.setHeader(createHeader(MessageType.DataGateFeed, collection, userName, replicaId));
+        feed.setFeed(batchChangeStart.getFeed());
+
+        BatchAck ack = new BatchAck();
+        ack.setReceipt(feed.calculateReceipt());
+        ack.setHeader(createHeader(MessageType.BatchAck, collection, userName, replicaId));
+
+        try {
+            String message = objectMapper.writeValueAsString(ack);
+            session.getBasicRemote().sendText(message);
+
+            message = objectMapper.writeValueAsString(feed);
+            broadcast(replicaId, collection, message);
+        } catch (Exception e) {
+            throw new ReplicationException("failed to broadcast DataGateFeed", e, false);
+        }
     }
 
     private LastWriteWinMap createCrdt(String collection) {
@@ -225,7 +293,7 @@ public class SimpleDataGateEndpoint {
             String uuid = UUID.randomUUID().toString();
 
             try {
-                String initMessage = createChangeStart(uuid, collection, userName,
+                String initMessage = createChangeStart(uuid, crdt, lastSyncTime, collection, userName,
                     replicaId, chunkSize, debounce);
                 log.info("Sending BatchChangeStart message {} from server to {}", initMessage, replicaId);
                 channel.getBasicRemote().sendText(initMessage);
@@ -236,7 +304,7 @@ public class SimpleDataGateEndpoint {
             final Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
                 boolean hasMore = true;
-                int start = 0;
+                int start = chunkSize;
 
                 @Override
                 public void run() {
@@ -257,6 +325,10 @@ public class SimpleDataGateEndpoint {
 
                         start = start + chunkSize;
                     }
+
+                    if (!hasMore) {
+                        timer.cancel();
+                    }
                 }
             }, 0, debounce);
 
@@ -269,23 +341,26 @@ public class SimpleDataGateEndpoint {
                 log.error("Error while sending BatchChangeEnd for " + replicaId, e);
             }
         } catch (Exception e) {
-            throw new ReplicationException("failed to send local changes message for " + replicaId, e);
+            throw new ReplicationException("failed to send local changes message for " + replicaId, e, false);
         }
     }
 
-    private String createChangeStart(String uuid,
+    private String createChangeStart(String uuid, LastWriteWinMap crdt, Long lastSyncTime,
                                      String collection, String userName, String replicaId,
                                      Integer chunkSize, Integer debounce) {
         try {
             BatchChangeStart message = new BatchChangeStart();
-            message.setMessageHeader(createHeader(MessageType.BatchChangeStart,
+            message.setHeader(createHeader(MessageType.BatchChangeStart,
                 collection, userName, replicaId));
             message.setUuid(uuid);
             message.setBatchSize(chunkSize);
             message.setDebounce(debounce);
+
+            LastWriteWinState state = crdt.getChangesSince(lastSyncTime, 0, chunkSize);
+            message.setFeed(state);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create BatchChangeStart message", e);
+            throw new ReplicationException("failed to create BatchChangeStart message", e, false);
         }
     }
 
@@ -294,7 +369,7 @@ public class SimpleDataGateEndpoint {
                                         Integer chunkSize, Integer debounce) {
         try {
             BatchChangeContinue message = new BatchChangeContinue();
-            message.setMessageHeader(createHeader(MessageType.BatchChangeContinue,
+            message.setHeader(createHeader(MessageType.BatchChangeContinue,
                 collection, userName, replicaId));
             message.setFeed(state);
             message.setUuid(uuid);
@@ -302,7 +377,7 @@ public class SimpleDataGateEndpoint {
             message.setDebounce(debounce);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create BatchChangeContinue message", e);
+            throw new ReplicationException("failed to create BatchChangeContinue message", e, false);
         }
     }
 
@@ -310,7 +385,7 @@ public class SimpleDataGateEndpoint {
                                    String replicaId, Integer chunkSize, Integer debounce) {
         try {
             BatchChangeEnd message = new BatchChangeEnd();
-            message.setMessageHeader(createHeader(MessageType.BatchChangeEnd,
+            message.setHeader(createHeader(MessageType.BatchChangeEnd,
                 collection, userName, replicaId));
             message.setUuid(uuid);
             message.setLastSynced(System.currentTimeMillis());
@@ -318,7 +393,7 @@ public class SimpleDataGateEndpoint {
             message.setDebounce(debounce);
             return objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create BatchChangeEnd message", e);
+            throw new ReplicationException("failed to create BatchChangeEnd message", e, false);
         }
     }
 
@@ -327,10 +402,10 @@ public class SimpleDataGateEndpoint {
             DataGateFeedAck ack = new DataGateFeedAck();
             MessageHeader header = createHeader(MessageType.DataGateFeedAck, collection, userName, repository.getServerId());
             header.setTimestamp(syncTime);
-            ack.setMessageHeader(header);
+            ack.setHeader(header);
             return objectMapper.writeValueAsString(ack);
         } catch (JsonProcessingException e) {
-            throw new ReplicationException("failed to create DataGateAck message", e);
+            throw new ReplicationException("failed to create DataGateAck message", e, false);
         }
     }
 
@@ -347,5 +422,26 @@ public class SimpleDataGateEndpoint {
 
     private Boolean isFatal(Throwable ex) {
         return ex instanceof SecurityException;
+    }
+
+    private boolean isValidAuth(String userName, String authToken) {
+        return "anidotnet".equals(userName) && "abcd".equals(authToken);
+    }
+
+    private void startCheckpointSender(Session session, String collection, String user) {
+        timer.scheduleAtFixedRate(new TimerTask() {
+
+            @SneakyThrows
+            @Override
+            public void run() {
+                Checkpoint checkpoint = new Checkpoint();
+                checkpoint.setHeader(factory.createHeader(MessageType.Checkpoint,
+                    user + "@" + collection, "", user));
+                String message = objectMapper.writeValueAsString(checkpoint);
+                if (session.isOpen()) {
+                    session.getBasicRemote().sendText(message);
+                }
+            }
+        }, 0, 10000);
     }
 }

@@ -37,6 +37,7 @@ public class MessageTemplate {
             if (webSocket != null) {
                 ObjectMapper objectMapper = config.getObjectMapper();
                 String asString = objectMapper.writeValueAsString(message);
+                log.debug("Sending message to server {}", asString);
                 if (!webSocket.send(asString)) {
                     throw new ReplicationException("failed to deliver message " + asString, true);
                 }
@@ -72,10 +73,12 @@ public class MessageTemplate {
 
     private OkHttpClient createClient() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-            .connectTimeout(config.getConnectTimeout().getTime(),
-                config.getConnectTimeout().getTimeUnit())
-            .readTimeout(5, TimeUnit.SECONDS)
-            .writeTimeout(5, TimeUnit.SECONDS)
+            .connectTimeout(config.getTimeout().getTime(),
+                config.getTimeout().getTimeUnit())
+            .readTimeout(config.getTimeout().getTime(),
+                config.getTimeout().getTimeUnit())
+            .writeTimeout(config.getTimeout().getTime(),
+                config.getTimeout().getTimeUnit())
             .pingInterval(30, TimeUnit.SECONDS)
             .retryOnConnectionFailure(false);
 

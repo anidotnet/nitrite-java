@@ -7,7 +7,6 @@ import okhttp3.WebSocketListener;
 import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.event.ReplicationEvent;
-import org.dizitart.no2.sync.event.ReplicationEventBus;
 import org.dizitart.no2.sync.event.ReplicationEventType;
 import org.dizitart.no2.sync.handlers.*;
 import org.dizitart.no2.sync.message.DataGateMessage;
@@ -24,7 +23,6 @@ public class MessageDispatcher extends WebSocketListener {
     private ReplicationTemplate replicationTemplate;
     private MessageTransformer transformer;
     private ExecutorService executorService;
-    private ReplicationEventBus eventBus;
 
     public MessageDispatcher(Config config, ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
@@ -32,19 +30,19 @@ public class MessageDispatcher extends WebSocketListener {
 
         int core = Runtime.getRuntime().availableProcessors();
         this.executorService = ThreadPoolManager.getThreadPool(core, SYNC_THREAD_NAME);
-        this.eventBus = replicationTemplate.getEventBus();
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
         try {
+            log.debug("Message received from server {}", text);
             DataGateMessage message = transformer.transform(text);
             validateMessage(message);
             MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
             dispatch(messageTemplate, message);
         } catch (Exception e) {
-            log.error("Error while sending message", e);
-            eventBus.post(new ReplicationEvent(ReplicationEventType.Error, e));
+            log.error("Error while processing message", e);
+            replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, e));
             replicationTemplate.stopReplication("Error - " + e.getMessage());
         }
     }
@@ -52,7 +50,7 @@ public class MessageDispatcher extends WebSocketListener {
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response) {
         log.error("Communication failure", t);
-        eventBus.post(new ReplicationEvent(ReplicationEventType.Error, t));
+        replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, t));
         replicationTemplate.stopReplication("Error - " + t.getMessage());
     }
 
@@ -69,14 +67,14 @@ public class MessageDispatcher extends WebSocketListener {
                 try {
                     handler.handleMessage(messageTemplate, message);
                 } catch (ReplicationException error) {
-                    log.error("Error occurred while handling {} message", message.getMessageHeader().getMessageType(), error);
+                    log.error("Error occurred while handling {} message", message.getHeader().getMessageType(), error);
                     if (error.isFatal()) {
-                        eventBus.post(new ReplicationEvent(ReplicationEventType.Error, error));
+                        replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, error));
                         replicationTemplate.stopReplication("Error - " + error.getMessage());
                     }
                 } catch (Exception e) {
-                    log.error("Error occurred while handling {} message", message.getMessageHeader().getMessageType(), e);
-                    eventBus.post(new ReplicationEvent(ReplicationEventType.Error, e));
+                    log.error("Error occurred while handling {} message", message.getHeader().getMessageType(), e);
+                    replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, e));
                     replicationTemplate.stopReplication("Error - " + e.getMessage());
                 }
             });
@@ -85,7 +83,7 @@ public class MessageDispatcher extends WebSocketListener {
 
     @SuppressWarnings("unchecked")
     private <M extends DataGateMessage> MessageHandler<M> findHandler(DataGateMessage message) {
-        switch (message.getMessageHeader().getMessageType()) {
+        switch (message.getHeader().getMessageType()) {
             case Error:
                 return (MessageHandler<M>) new ErrorHandler(replicationTemplate);
             case Connect:
@@ -130,13 +128,13 @@ public class MessageDispatcher extends WebSocketListener {
         if (message == null) {
             throw new ReplicationException("a null message is received for "
                 + replicationTemplate.getReplicaId(), true);
-        } else if (message.getMessageHeader() == null) {
+        } else if (message.getHeader() == null) {
             throw new ReplicationException("a message without header is received for "
                 + replicationTemplate.getReplicaId(), true);
-        } else if (StringUtils.isNullOrEmpty(message.getMessageHeader().getCollection())) {
+        } else if (StringUtils.isNullOrEmpty(message.getHeader().getCollection())) {
             throw new ReplicationException("a message without collection info is received for "
                 + replicationTemplate.getReplicaId(), true);
-        } else if (message.getMessageHeader().getMessageType() == null) {
+        } else if (message.getHeader().getMessageType() == null) {
             throw new ReplicationException("a message without any type is received for "
                 + replicationTemplate.getReplicaId(), true);
         }

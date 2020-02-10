@@ -1,6 +1,7 @@
 package org.dizitart.no2.sync;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dizitart.no2.sync.message.*;
 
@@ -16,30 +17,33 @@ public class MessageTransformer {
 
     public DataGateMessage transform(String message) {
         try {
-            if (isError(message)) {
-                return objectMapper.readValue(message, ErrorMessage.class);
-            } else if (isConnect(message)) {
-                return objectMapper.readValue(message, Connect.class);
-            } else if (isConnectAck(message)) {
-                return objectMapper.readValue(message, ConnectAck.class);
-            } else if (isDisconnect(message)) {
-                return objectMapper.readValue(message, Disconnect.class);
-            } else if (isDisconnectAck(message)) {
-                return objectMapper.readValue(message, DisconnectAck.class);
-            } else if (isBatchChangeStart(message)) {
-                return objectMapper.readValue(message, BatchChangeStart.class);
-            } else if (isBatchChangeContinue(message)) {
-                return objectMapper.readValue(message, BatchChangeContinue.class);
-            } else if (isBatchChangeEnd(message)) {
-                return objectMapper.readValue(message, BatchChangeEnd.class);
-            } else if (isBatchAck(message)) {
-                return objectMapper.readValue(message, BatchAck.class);
-            } else if (isBatchEndAck(message)) {
-                return objectMapper.readValue(message, BatchEndAck.class);
-            } else if (isFeed(message)) {
-                return objectMapper.readValue(message, DataGateFeed.class);
-            } else if (isFeedAck(message)) {
-                return objectMapper.readValue(message, DataGateFeedAck.class);
+            JsonNode jsonNode = objectMapper.readTree(message);
+            if (isError(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, ErrorMessage.class);
+            } else if (isConnect(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, Connect.class);
+            } else if (isConnectAck(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, ConnectAck.class);
+            } else if (isDisconnect(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, Disconnect.class);
+            } else if (isDisconnectAck(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, DisconnectAck.class);
+            } else if (isBatchChangeStart(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, BatchChangeStart.class);
+            } else if (isBatchChangeContinue(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, BatchChangeContinue.class);
+            } else if (isBatchChangeEnd(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, BatchChangeEnd.class);
+            } else if (isBatchAck(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, BatchAck.class);
+            } else if (isBatchEndAck(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, BatchEndAck.class);
+            } else if (isFeed(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, DataGateFeed.class);
+            } else if (isFeedAck(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, DataGateFeedAck.class);
+            } else if (isCheckpoint(jsonNode)) {
+                return objectMapper.treeToValue(jsonNode, Checkpoint.class);
             }
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to transform message from server", e, true);
@@ -47,51 +51,55 @@ public class MessageTransformer {
         return null;
     }
 
-    private boolean isError(String message) {
-        return message.contains(MessageType.Error.code());
+    private boolean isError(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.Error.code());
     }
 
-    private boolean isConnect(String message) {
-        return message.contains(MessageType.Connect.code());
+    private boolean isConnect(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.Connect.code());
     }
 
-    private boolean isConnectAck(String message) {
-        return message.contains(MessageType.ConnectAck.code());
+    private boolean isConnectAck(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.ConnectAck.code());
     }
 
-    private boolean isDisconnect(String message) {
-        return message.contains(MessageType.Disconnect.code());
+    private boolean isDisconnect(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.Disconnect.code());
     }
 
-    private boolean isDisconnectAck(String message) {
-        return message.contains(MessageType.DisconnectAck.code());
+    private boolean isDisconnectAck(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.DisconnectAck.code());
     }
 
-    private boolean isBatchChangeStart(String message) {
-        return message.contains(MessageType.BatchChangeStart.code());
+    private boolean isBatchChangeStart(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.BatchChangeStart.code());
     }
 
-    private boolean isBatchChangeContinue(String message) {
-        return message.contains(MessageType.BatchChangeContinue.code());
+    private boolean isBatchChangeContinue(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.BatchChangeContinue.code());
     }
 
-    private boolean isBatchChangeEnd(String message) {
-        return message.contains(MessageType.BatchChangeEnd.code());
+    private boolean isBatchChangeEnd(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.BatchChangeEnd.code());
     }
 
-    private boolean isBatchAck(String message) {
-        return message.contains(MessageType.BatchAck.code());
+    private boolean isBatchAck(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.BatchAck.code());
     }
 
-    private boolean isBatchEndAck(String message) {
-        return message.contains(MessageType.BatchEndAck.code());
+    private boolean isBatchEndAck(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.BatchEndAck.code());
     }
 
-    private boolean isFeed(String message) {
-        return message.contains(MessageType.DataGateFeed.code());
+    private boolean isFeed(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.DataGateFeed.code());
     }
 
-    private boolean isFeedAck(String message) {
-        return message.contains(MessageType.DataGateFeedAck.code());
+    private boolean isFeedAck(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.DataGateFeedAck.code());
+    }
+
+    private boolean isCheckpoint(JsonNode jsonNode) {
+        return jsonNode.get("header").get("messageType").asText().equals(MessageType.Checkpoint.code());
     }
 }
