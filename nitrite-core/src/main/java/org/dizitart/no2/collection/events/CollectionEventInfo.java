@@ -55,14 +55,13 @@ public class CollectionEventInfo<T> {
     private long timestamp;
 
     /**
-     * Specifies the name of the thread where the change
-     * has been originated.
+     * Specifies the name of the originator who has initiated this event.
      *
-     * @param originatingThread name of originating thread.
-     * @returns name of originating thread.
+     * @param originator name of originator of the event.
+     * @returns name of the originator.
      * @since 4.0.0
      * */
-    private String originatingThread;
+    private String originator;
 
     public CollectionEventInfo(EventType eventType) {
         this.eventType = eventType;

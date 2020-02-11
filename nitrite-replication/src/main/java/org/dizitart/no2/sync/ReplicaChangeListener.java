@@ -12,6 +12,8 @@ import org.dizitart.no2.sync.message.DataGateFeed;
 
 import java.util.Collections;
 
+import static org.dizitart.no2.common.Constants.REPLICATOR;
+
 /**
  * @author Anindya Chatterjee
  */
@@ -28,20 +30,22 @@ public class ReplicaChangeListener implements CollectionEventListener {
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
         try {
-            if (replicationTemplate.shouldExchangeFeed()) {
-                switch (eventInfo.getEventType()) {
-                    case Insert:
-                    case Update:
-                        Document document = (Document) eventInfo.getItem();
-                        handleModifyEvent(document);
-                        break;
-                    case Remove:
-                        document = (Document) eventInfo.getItem();
-                        handleRemoveEvent(document);
-                        break;
-                    case IndexStart:
-                    case IndexEnd:
-                        break;
+            if (!REPLICATOR.equals(eventInfo.getOriginator())) {
+                if (replicationTemplate.shouldExchangeFeed()) {
+                    switch (eventInfo.getEventType()) {
+                        case Insert:
+                        case Update:
+                            Document document = (Document) eventInfo.getItem();
+                            handleModifyEvent(document);
+                            break;
+                        case Remove:
+                            document = (Document) eventInfo.getItem();
+                            handleRemoveEvent(document);
+                            break;
+                        case IndexStart:
+                        case IndexEnd:
+                            break;
+                    }
                 }
             }
         } catch (Exception e) {

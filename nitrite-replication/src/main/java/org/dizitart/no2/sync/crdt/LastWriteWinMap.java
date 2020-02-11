@@ -11,7 +11,6 @@ import org.dizitart.no2.store.NitriteMap;
 import java.util.Map;
 
 import static org.dizitart.no2.common.Constants.*;
-import static org.dizitart.no2.filters.Filter.byId;
 import static org.dizitart.no2.filters.FluentFilter.where;
 
 /**
@@ -84,7 +83,7 @@ public class LastWriteWinMap {
 
                 if (newTime > oldTime) {
                     entry.put(DOC_SOURCE, REPLICATOR);
-                    collection.remove(byId(key));
+                    collection.remove(entry);
 
                     value.put(DOC_SOURCE, REPLICATOR);
                     collection.insert(value);
@@ -97,7 +96,7 @@ public class LastWriteWinMap {
         Document entry = collection.getById(key);
         if (entry != null) {
             entry.put(DOC_SOURCE, REPLICATOR);
-            collection.remove(byId(key));
+            collection.remove(entry);
             tombstones.put(key, timestamp);
         }
     }

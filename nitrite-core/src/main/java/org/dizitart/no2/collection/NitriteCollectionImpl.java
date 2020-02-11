@@ -87,7 +87,7 @@ class NitriteCollectionImpl implements NitriteCollection {
         notNull(document, "a null document cannot be removed");
 
         if (document.hasId()) {
-            return remove(createUniqueFilter(document));
+            return collectionOperations.remove(document);
         } else {
             throw new NotIdentifiableException("remove operation failed as no id value found for the document");
         }
@@ -290,9 +290,6 @@ class NitriteCollectionImpl implements NitriteCollection {
         @Override
         public void post(CollectionEventInfo<?> collectionEventInfo) {
             for (final CollectionEventListener listener : getListeners()) {
-                String threadName = Thread.currentThread().getName();
-                collectionEventInfo.setOriginatingThread(threadName);
-
                 getEventExecutor().submit(() -> listener.onEvent(collectionEventInfo));
             }
         }

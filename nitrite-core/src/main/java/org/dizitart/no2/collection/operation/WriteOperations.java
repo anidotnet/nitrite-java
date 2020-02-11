@@ -47,6 +47,7 @@ class WriteOperations {
         for (Document document : documents) {
             Document item = document.clone();
             NitriteId nitriteId = item.getId();
+            String source = item.getSource();
 
             if (!REPLICATOR.contentEquals(item.getSource())) {
                 // if replicator is not inserting the document that means
@@ -83,11 +84,12 @@ class WriteOperations {
             nitriteIdList.add(nitriteId);
 
             Document eventDoc = item.clone();
-            CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
-            changedItem.setItem(eventDoc);
-            changedItem.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
-            changedItem.setEventType(EventType.Insert);
-            alert(EventType.Insert, changedItem);
+            CollectionEventInfo<Document> eventInfo = new CollectionEventInfo<>();
+            eventInfo.setItem(eventDoc);
+            eventInfo.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
+            eventInfo.setEventType(EventType.Insert);
+            eventInfo.setOriginator(source);
+            alert(EventType.Insert, eventInfo);
         }
 
         WriteResultImpl result = new WriteResultImpl();
@@ -137,6 +139,7 @@ class WriteOperations {
                 if (document != null) {
                     Document item = document.clone();
                     Document oldDocument = document.clone();
+                    String source = update.getSource();
 
                     NitriteId nitriteId = item.getId();
                     log.debug("Document to update {} in {}", item, nitriteMap.getName());
@@ -162,12 +165,13 @@ class WriteOperations {
 
                     indexOperations.updateIndex(oldDocument, item, nitriteId);
 
-                    CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
+                    CollectionEventInfo<Document> eventInfo = new CollectionEventInfo<>();
                     Document eventDoc = item.clone();
-                    changedItem.setItem(eventDoc);
-                    changedItem.setEventType(EventType.Update);
-                    changedItem.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
-                    alert(EventType.Update, changedItem);
+                    eventInfo.setItem(eventDoc);
+                    eventInfo.setEventType(EventType.Update);
+                    eventInfo.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
+                    eventInfo.setOriginator(source);
+                    alert(EventType.Update, eventInfo);
                 }
             }
         }
@@ -195,23 +199,10 @@ class WriteOperations {
 
         for (Document document : cursor) {
             Document item = document.clone();
-            NitriteId nitriteId = item.getId();
-            indexOperations.removeIndex(item, nitriteId);
-
-            item = nitriteMap.remove(nitriteId);
-            int rev = item.getRevision();
-            item.put(DOC_REVISION, rev + 1);
-            item.put(DOC_MODIFIED, System.currentTimeMillis());
-
-            log.debug("Document removed {} from {}", item, nitriteMap.getName());
-            result.addToList(nitriteId);
-
-            CollectionEventInfo<Document> changedItem = new CollectionEventInfo<>();
-            Document eventDoc = item.clone();
-            changedItem.setItem(eventDoc);
-            changedItem.setEventType(EventType.Remove);
-            changedItem.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
-            alert(EventType.Remove, changedItem);
+            CollectionEventInfo<Document> eventInfo = removeAndCreateEvent(item, result);
+            if (eventInfo != null) {
+                alert(EventType.Remove, eventInfo);
+            }
 
             if (justOne) {
                 return result;
@@ -220,6 +211,39 @@ class WriteOperations {
 
         log.debug("Returning write result {} for collection {}", result, nitriteMap.getName());
         return result;
+    }
+
+    public WriteResult remove(Document document) {
+        WriteResultImpl result = new WriteResultImpl();
+        CollectionEventInfo<Document> eventInfo = removeAndCreateEvent(document, result);
+        if (eventInfo != null) {
+            eventInfo.setOriginator(document.getSource());
+            alert(EventType.Remove, eventInfo);
+        }
+        return result;
+    }
+
+    private CollectionEventInfo<Document> removeAndCreateEvent(Document document, WriteResultImpl writeResult) {
+        NitriteId nitriteId = document.getId();
+        document = nitriteMap.remove(nitriteId);
+        if (document != null) {
+            indexOperations.removeIndex(document, nitriteId);
+            writeResult.addToList(nitriteId);
+
+            int rev = document.getRevision();
+            document.put(DOC_REVISION, rev + 1);
+            document.put(DOC_MODIFIED, System.currentTimeMillis());
+
+            log.debug("Document removed {} from {}", document, nitriteMap.getName());
+
+            CollectionEventInfo<Document> eventInfo = new CollectionEventInfo<>();
+            Document eventDoc = document.clone();
+            eventInfo.setItem(eventDoc);
+            eventInfo.setEventType(EventType.Remove);
+            eventInfo.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
+            return eventInfo;
+        }
+        return null;
     }
 
     private void alert(EventType action, CollectionEventInfo<?> changedItem) {

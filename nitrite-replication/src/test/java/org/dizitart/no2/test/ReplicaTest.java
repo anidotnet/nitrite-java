@@ -77,7 +77,6 @@ public class ReplicaTest {
             .jwtAuth("anidotnet", "abcd")
             .create();
         replica.connect();
-        Thread.sleep(10000);
         Document document = createDocument().put("firstName", "Anindya")
             .put("lastName", "Chatterjee")
             .put("address", createDocument("street", "1234 Abcd Street")

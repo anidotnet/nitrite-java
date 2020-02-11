@@ -133,6 +133,15 @@ public class CollectionOperations {
         }
     }
 
+    public WriteResult remove(Document document) {
+        try {
+            writeLock.lock();
+            return writeOperations.remove(document);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
     public WriteResult remove(Filter filter, boolean justOne) {
         try {
             writeLock.lock();

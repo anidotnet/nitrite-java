@@ -204,7 +204,7 @@ class RxObjectRepositoryImpl<T> implements RxObjectRepository<T> {
                 Object object = nitriteMapper.convert(item, getType());
                 CollectionEventInfo<?> collectionEventInfo = new CollectionEventInfo<>(object,
                     eventInfo.getEventType(),
-                    eventInfo.getTimestamp(), eventInfo.getOriginatingThread());
+                    eventInfo.getTimestamp(), eventInfo.getOriginator());
                 updates.onNext(collectionEventInfo);
             } catch (Exception e) {
                 log.error("Error while listening to repository events", e);
