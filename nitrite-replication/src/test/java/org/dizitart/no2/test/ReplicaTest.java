@@ -66,7 +66,7 @@ public class ReplicaTest {
     }
 
     @Test
-    public void testReplica() throws InterruptedException {
+    public void testReplica() {
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -82,7 +82,9 @@ public class ReplicaTest {
             .put("address", createDocument("street", "1234 Abcd Street")
                 .put("pin", 123456));
         collection.insert(document);
-        Thread.sleep(10000);
+
+        LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testReplica");
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
 
         replica.disconnect();
     }
