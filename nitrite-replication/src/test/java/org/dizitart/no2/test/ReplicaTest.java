@@ -83,6 +83,9 @@ public class ReplicaTest {
                 .put("pin", 123456));
         collection.insert(document);
 
+        assertEquals(repository.getUserReplicaMap().size(), 1);
+        assertTrue(repository.getUserReplicaMap().containsKey("anidotnet"));
+        assertTrue(repository.getCollectionReplicaMap().containsKey("anidotnet@testReplica"));
         LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testReplica");
         await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
 
