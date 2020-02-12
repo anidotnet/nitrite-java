@@ -26,8 +26,6 @@ public class MessageTransformer {
                 return objectMapper.treeToValue(jsonNode, ConnectAck.class);
             } else if (isDisconnect(jsonNode)) {
                 return objectMapper.treeToValue(jsonNode, Disconnect.class);
-            } else if (isDisconnectAck(jsonNode)) {
-                return objectMapper.treeToValue(jsonNode, DisconnectAck.class);
             } else if (isBatchChangeStart(jsonNode)) {
                 return objectMapper.treeToValue(jsonNode, BatchChangeStart.class);
             } else if (isBatchChangeContinue(jsonNode)) {
@@ -42,8 +40,6 @@ public class MessageTransformer {
                 return objectMapper.treeToValue(jsonNode, DataGateFeed.class);
             } else if (isFeedAck(jsonNode)) {
                 return objectMapper.treeToValue(jsonNode, DataGateFeedAck.class);
-            } else if (isCheckpoint(jsonNode)) {
-                return objectMapper.treeToValue(jsonNode, Checkpoint.class);
             }
         } catch (JsonProcessingException e) {
             throw new ReplicationException("failed to transform message from server", e, true);
@@ -65,10 +61,6 @@ public class MessageTransformer {
 
     private boolean isDisconnect(JsonNode jsonNode) {
         return jsonNode.get("header").get("messageType").asText().equals(MessageType.Disconnect.code());
-    }
-
-    private boolean isDisconnectAck(JsonNode jsonNode) {
-        return jsonNode.get("header").get("messageType").asText().equals(MessageType.DisconnectAck.code());
     }
 
     private boolean isBatchChangeStart(JsonNode jsonNode) {
@@ -97,9 +89,5 @@ public class MessageTransformer {
 
     private boolean isFeedAck(JsonNode jsonNode) {
         return jsonNode.get("header").get("messageType").asText().equals(MessageType.DataGateFeedAck.code());
-    }
-
-    private boolean isCheckpoint(JsonNode jsonNode) {
-        return jsonNode.get("header").get("messageType").asText().equals(MessageType.Checkpoint.code());
     }
 }

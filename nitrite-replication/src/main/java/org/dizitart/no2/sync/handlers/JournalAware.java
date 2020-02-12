@@ -34,7 +34,9 @@ public interface JournalAware {
             if (receipt.getAdded() != null) {
                 for (Long id : receipt.getAdded()) {
                     Document document = collection.getById(NitriteId.createId(id));
-                    state.getChanges().add(document);
+                    if (document != null) {
+                        state.getChanges().add(document);
+                    }
                 }
             }
 

@@ -8,5 +8,4 @@ import lombok.Data;
 @Data
 public class DisconnectAck implements DataGateMessage {
     private MessageHeader header;
-    private String uuid;
 }

@@ -1,5 +1,6 @@
 package org.dizitart.no2.sync;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
@@ -18,34 +19,32 @@ import static org.dizitart.no2.common.Constants.REPLICATOR;
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class ReplicaChangeListener implements CollectionEventListener {
+@Data
+class ReplicaChangeListener implements CollectionEventListener {
     private ReplicationTemplate replicationTemplate;
     private MessageTemplate messageTemplate;
 
-    public ReplicaChangeListener(ReplicationTemplate replicationTemplate, MessageTemplate messageTemplate) {
+    public ReplicaChangeListener(ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
-        this.messageTemplate = messageTemplate;
     }
 
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
         try {
             if (!REPLICATOR.equals(eventInfo.getOriginator())) {
-                if (replicationTemplate.shouldExchangeFeed()) {
-                    switch (eventInfo.getEventType()) {
-                        case Insert:
-                        case Update:
-                            Document document = (Document) eventInfo.getItem();
-                            handleModifyEvent(document);
-                            break;
-                        case Remove:
-                            document = (Document) eventInfo.getItem();
-                            handleRemoveEvent(document);
-                            break;
-                        case IndexStart:
-                        case IndexEnd:
-                            break;
-                    }
+                switch (eventInfo.getEventType()) {
+                    case Insert:
+                    case Update:
+                        Document document = (Document) eventInfo.getItem();
+                        handleModifyEvent(document);
+                        break;
+                    case Remove:
+                        document = (Document) eventInfo.getItem();
+                        handleRemoveEvent(document);
+                        break;
+                    case IndexStart:
+                    case IndexEnd:
+                        break;
                 }
             }
         } catch (Exception e) {
@@ -73,11 +72,13 @@ public class ReplicaChangeListener implements CollectionEventListener {
     }
 
     private void sendFeed(LastWriteWinState state) {
-        MessageFactory factory = replicationTemplate.getMessageFactory();
-        DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(), replicationTemplate.getReplicaId(), state);
+        if (replicationTemplate.shouldExchangeFeed() && messageTemplate != null) {
+            MessageFactory factory = replicationTemplate.getMessageFactory();
+            DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(), replicationTemplate.getReplicaId(), state);
 
-        FeedJournal journal = replicationTemplate.getFeedJournal();
-        messageTemplate.sendMessage(feedMessage);
-        journal.write(state);
+            FeedJournal journal = replicationTemplate.getFeedJournal();
+            messageTemplate.sendMessage(feedMessage);
+            journal.write(state);
+        }
     }
 }

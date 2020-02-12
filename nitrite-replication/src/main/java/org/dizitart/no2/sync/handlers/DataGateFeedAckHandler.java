@@ -33,5 +33,10 @@ public class DataGateFeedAckHandler implements MessageHandler<DataGateFeedAck>, 
                 replicationTemplate.getReplicaId(), state);
             messageTemplate.sendMessage(feedMessage);
         }
+
+        if (replicationTemplate.shouldAcceptCheckpoint()) {
+            Long time = message.getHeader().getTimestamp();
+            replicationTemplate.saveLastSyncTime(time);
+        }
     }
 }

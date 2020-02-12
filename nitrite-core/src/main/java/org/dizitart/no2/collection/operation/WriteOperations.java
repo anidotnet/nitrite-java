@@ -48,13 +48,14 @@ class WriteOperations {
             Document item = document.clone();
             NitriteId nitriteId = item.getId();
             String source = item.getSource();
+            long time = System.currentTimeMillis();
 
             if (!REPLICATOR.contentEquals(item.getSource())) {
                 // if replicator is not inserting the document that means
                 // it is being inserted by user, so update metadata
                 item.remove(DOC_SOURCE);
                 item.put(DOC_REVISION, 1);
-                item.put(DOC_MODIFIED, System.currentTimeMillis());
+                item.put(DOC_MODIFIED, time);
             } else {
                 // if replicator is inserting the document, remove the source
                 // but keep the revision intact
@@ -86,7 +87,7 @@ class WriteOperations {
             Document eventDoc = item.clone();
             CollectionEventInfo<Document> eventInfo = new CollectionEventInfo<>();
             eventInfo.setItem(eventDoc);
-            eventInfo.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
+            eventInfo.setTimestamp(time);
             eventInfo.setEventType(EventType.Insert);
             eventInfo.setOriginator(source);
             alert(EventType.Insert, eventInfo);
@@ -140,6 +141,7 @@ class WriteOperations {
                     Document item = document.clone();
                     Document oldDocument = document.clone();
                     String source = update.getSource();
+                    long time = System.currentTimeMillis();
 
                     NitriteId nitriteId = item.getId();
                     log.debug("Document to update {} in {}", item, nitriteMap.getName());
@@ -149,7 +151,7 @@ class WriteOperations {
                         item.merge(update);
                         int rev = item.getRevision();
                         item.put(DOC_REVISION, rev + 1);
-                        item.put(DOC_MODIFIED, System.currentTimeMillis());
+                        item.put(DOC_MODIFIED, time);
                     } else {
                         update.remove(DOC_SOURCE);
                         item.merge(update);
@@ -169,7 +171,7 @@ class WriteOperations {
                     Document eventDoc = item.clone();
                     eventInfo.setItem(eventDoc);
                     eventInfo.setEventType(EventType.Update);
-                    eventInfo.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
+                    eventInfo.setTimestamp(time);
                     eventInfo.setOriginator(source);
                     alert(EventType.Update, eventInfo);
                 }
@@ -227,12 +229,13 @@ class WriteOperations {
         NitriteId nitriteId = document.getId();
         document = nitriteMap.remove(nitriteId);
         if (document != null) {
+            long time = System.currentTimeMillis();
             indexOperations.removeIndex(document, nitriteId);
             writeResult.addToList(nitriteId);
 
             int rev = document.getRevision();
             document.put(DOC_REVISION, rev + 1);
-            document.put(DOC_MODIFIED, System.currentTimeMillis());
+            document.put(DOC_MODIFIED, time);
 
             log.debug("Document removed {} from {}", document, nitriteMap.getName());
 
@@ -240,7 +243,7 @@ class WriteOperations {
             Document eventDoc = document.clone();
             eventInfo.setItem(eventDoc);
             eventInfo.setEventType(EventType.Remove);
-            eventInfo.setTimestamp(eventDoc.getLastModifiedSinceEpoch());
+            eventInfo.setTimestamp(time);
             return eventInfo;
         }
         return null;

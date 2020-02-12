@@ -23,6 +23,8 @@ public class BatchChangeEndHandler implements MessageHandler<BatchChangeEnd> {
             replicationTemplate.getReplicaId());
 
         messageTemplate.sendMessage(batchEndAck);
+        Long time = message.getHeader().getTimestamp();
+        replicationTemplate.saveLastSyncTime(time);
         replicationTemplate.setAcceptCheckpoint();
     }
 }

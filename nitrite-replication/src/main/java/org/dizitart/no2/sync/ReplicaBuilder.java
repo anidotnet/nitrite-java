@@ -24,7 +24,7 @@ public class ReplicaBuilder {
     private String userName;
     private ObjectMapper objectMapper;
     private Proxy proxy;
-    private boolean acceptAllCertificates;
+    private boolean acceptAllCertificates = false;
 
     ReplicaBuilder() {
         chunkSize = 10;

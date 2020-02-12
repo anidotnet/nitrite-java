@@ -83,11 +83,12 @@ public class ReplicaTest {
                 .put("pin", 123456));
         collection.insert(document);
 
+        await().atMost(5, SECONDS).until(() -> repository.getCollectionReplicaMap().size() == 1);
         assertEquals(repository.getUserReplicaMap().size(), 1);
         assertTrue(repository.getUserReplicaMap().containsKey("anidotnet"));
         assertTrue(repository.getCollectionReplicaMap().containsKey("anidotnet@testReplica"));
         LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testReplica");
-        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 0);
+        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
 
         replica.disconnect();
     }
@@ -240,8 +241,11 @@ public class ReplicaTest {
         });
 
         r1.connect();
-
-        await().atMost(10, SECONDS).until(() -> c1.size() == 70 && c2.size() == 70);
+        System.out.println("**********Reconnected********");
+        await().atMost(10, SECONDS).until(() -> {
+            System.out.println("C1.size = " + c1.size() + " C2.size = " + c2.size());
+            return c1.size() == 70 && c2.size() == 70;
+        });
         TestUtils.assertEquals(c1, c2);
 
         executorService.submit(() -> {

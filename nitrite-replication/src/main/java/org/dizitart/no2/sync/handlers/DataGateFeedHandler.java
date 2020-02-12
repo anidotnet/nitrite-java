@@ -22,6 +22,10 @@ public class DataGateFeedHandler implements MessageHandler<DataGateFeed>, Receip
     @Override
     public void handleMessage(MessageTemplate messageTemplate, DataGateFeed message) {
         sendAck(messageTemplate, message);
+        if (replicationTemplate.shouldAcceptCheckpoint()) {
+            Long time = message.getHeader().getTimestamp();
+            replicationTemplate.saveLastSyncTime(time);
+        }
     }
 
     @Override

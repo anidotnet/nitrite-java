@@ -57,7 +57,7 @@ public class MessageDispatcher extends WebSocketListener {
     @Override
     public void onClosed(WebSocket webSocket, int code, String reason) {
         log.warn("Connection to server is closed due to {}", reason);
-        replicationTemplate.stopReplication("Error - " + reason);
+        replicationTemplate.stopReplication(reason);
     }
 
     private <M extends DataGateMessage> void dispatch(MessageTemplate messageTemplate, M message) {
@@ -93,13 +93,6 @@ public class MessageDispatcher extends WebSocketListener {
                 return (MessageHandler<M>) new ConnectAckHandler(replicationTemplate);
             case Disconnect:
                 return (MessageHandler<M>) new DisconnectHandler(replicationTemplate);
-            case DisconnectAck:
-                return (MessageHandler<M>) new DisconnectAckHandler(replicationTemplate);
-            case Checkpoint:
-                if (replicationTemplate.shouldAcceptCheckpoint()) {
-                    return (MessageHandler<M>) new CheckpointHandler(replicationTemplate);
-                }
-                break;
             case BatchChangeStart:
                 return (MessageHandler<M>) new BatchChangeStartHandler(replicationTemplate);
             case BatchChangeContinue:

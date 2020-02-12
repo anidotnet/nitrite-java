@@ -60,11 +60,12 @@ public class ReplicationTemplate implements ReplicationOperation {
         this.exchangeFlag = new AtomicBoolean(false);
         this.acceptCheckpoint = new AtomicBoolean(false);
         this.eventBus = new ReplicationEventBus();
+        init();
     }
 
     public void connect() {
         this.messageTemplate = new MessageTemplate(config, this);
-        this.crdt = createReplicatedDataType();
+        this.replicaChangeListener.setMessageTemplate(messageTemplate);
         this.batchChangeScheduler = new BatchChangeScheduler(this);
 
         Connect message = messageFactory.createConnect(config, getReplicaId());
@@ -101,12 +102,7 @@ public class ReplicationTemplate implements ReplicationOperation {
     }
 
     public void startFeedExchange() {
-        if (replicaChangeListener != null) {
-            this.getCollection().unsubscribe(replicaChangeListener);
-        }
         this.feedJournal = new FeedJournal(this);
-        this.replicaChangeListener = new ReplicaChangeListener(this, messageTemplate);
-        this.getCollection().subscribe(replicaChangeListener);
         this.exchangeFlag.compareAndSet(false, true);
     }
 
@@ -148,5 +144,11 @@ public class ReplicationTemplate implements ReplicationOperation {
 
     public void postEvent(ReplicationEvent event) {
         eventBus.post(event);
+    }
+
+    private void init() {
+        this.crdt = createReplicatedDataType();
+        this.replicaChangeListener = new ReplicaChangeListener(this);
+        this.getCollection().subscribe(replicaChangeListener);
     }
 }
