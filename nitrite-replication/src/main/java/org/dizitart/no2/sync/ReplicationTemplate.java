@@ -55,17 +55,10 @@ public class ReplicationTemplate implements ReplicationOperation {
 
     public ReplicationTemplate(Config config) {
         this.config = config;
-        this.messageFactory = new MessageFactory();
-        this.connected = new AtomicBoolean(false);
-        this.exchangeFlag = new AtomicBoolean(false);
-        this.acceptCheckpoint = new AtomicBoolean(false);
-        this.eventBus = new ReplicationEventBus();
         init();
     }
 
     public void connect() {
-        this.messageTemplate = new MessageTemplate(config, this);
-        this.replicaChangeListener.setMessageTemplate(messageTemplate);
         this.batchChangeScheduler = new BatchChangeScheduler(this);
 
         Connect message = messageFactory.createConnect(config, getReplicaId());
@@ -147,8 +140,14 @@ public class ReplicationTemplate implements ReplicationOperation {
     }
 
     private void init() {
+        this.messageFactory = new MessageFactory();
+        this.connected = new AtomicBoolean(false);
+        this.exchangeFlag = new AtomicBoolean(false);
+        this.acceptCheckpoint = new AtomicBoolean(false);
+        this.eventBus = new ReplicationEventBus();
+        this.messageTemplate = new MessageTemplate(config, this);
         this.crdt = createReplicatedDataType();
-        this.replicaChangeListener = new ReplicaChangeListener(this);
+        this.replicaChangeListener = new ReplicaChangeListener(this, messageTemplate);
         this.getCollection().subscribe(replicaChangeListener);
     }
 }

@@ -1,6 +1,5 @@
 package org.dizitart.no2.sync;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
@@ -19,13 +18,13 @@ import static org.dizitart.no2.common.Constants.REPLICATOR;
  * @author Anindya Chatterjee
  */
 @Slf4j
-@Data
 class ReplicaChangeListener implements CollectionEventListener {
     private ReplicationTemplate replicationTemplate;
     private MessageTemplate messageTemplate;
 
-    public ReplicaChangeListener(ReplicationTemplate replicationTemplate) {
+    public ReplicaChangeListener(ReplicationTemplate replicationTemplate, MessageTemplate messageTemplate) {
         this.replicationTemplate = replicationTemplate;
+        this.messageTemplate = messageTemplate;
     }
 
     @Override
