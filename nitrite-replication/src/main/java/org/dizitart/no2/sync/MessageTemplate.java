@@ -2,6 +2,7 @@ package org.dizitart.no2.sync;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,19 +14,25 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class MessageTemplate {
+public class MessageTemplate implements AutoCloseable {
     private Config config;
+    @Getter
     private WebSocket webSocket;
     private ReplicationTemplate replica;
+    private MessageDispatcher dispatcher;
+    private OkHttpClient client;
+    private ReentrantLock lock;
 
     public MessageTemplate(Config config, ReplicationTemplate replica) {
         this.config = config;
         this.replica = replica;
+        this.lock = new ReentrantLock();
     }
 
     private String getReplicaId() {
@@ -34,6 +41,12 @@ public class MessageTemplate {
 
     public void sendMessage(DataGateMessage message) {
         try {
+            if (webSocket == null && replica.isConnected()) {
+                System.out.println("websocket null");
+                openConnection();
+                System.out.println("after opening connection = " + webSocket);
+            }
+
             if (webSocket != null) {
                 ObjectMapper objectMapper = config.getObjectMapper();
                 String asString = objectMapper.writeValueAsString(message);
@@ -50,24 +63,40 @@ public class MessageTemplate {
 
     public void openConnection() {
         try {
-            OkHttpClient client = createClient();
+            // Look at = https://github.com/Rabtman/WsManager/blob/master/wsmanager/src/main/java/com/rabtman/wsmanager/WsManager.java
+
+            lock.lock();
+            client = createClient();
             Request.Builder builder = config.getRequestBuilder();
             // Server will keep track of Initiator and guarantee message correctness
             builder.addHeader("Initiator", getReplicaId());
             Request request = builder.build();
 
-            MessageDispatcher dispatcher = new MessageDispatcher(config, replica);
-            webSocket = client.newWebSocket(request, dispatcher);
+            this.dispatcher = new MessageDispatcher(config, replica);
+            this.webSocket = client.newWebSocket(request, dispatcher);
+            System.out.println("opened connection = " + this + " websocket = " + webSocket);
         } catch (Exception e) {
             log.error("Error while establishing connection from {}", getReplicaId(), e);
             throw new ReplicationException("failed to open connection to server", e, true);
+        } finally {
+            lock.unlock();
         }
     }
 
     public void closeConnection(String reason) {
-        if (webSocket != null) {
-            webSocket.close(1000, reason);
-            webSocket = null;
+        try {
+            lock.lock();
+            if (client != null) {
+                client.dispatcher().executorService().shutdown();
+            }
+
+            if (webSocket != null) {
+                webSocket.close(1000, reason);
+                webSocket = null;
+                dispatcher = null;
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -122,5 +151,12 @@ public class MessageTemplate {
         }
 
         return builder.build();
+    }
+
+    @Override
+    public void close() {
+        if (webSocket != null) {
+            webSocket.cancel();
+        }
     }
 }

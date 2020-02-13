@@ -65,5 +65,6 @@ public final class Replica implements AutoCloseable {
     @Override
     public void close() {
         replicationTemplate.stopReplication("Normal shutdown");
+        replicationTemplate.close();
     }
 }

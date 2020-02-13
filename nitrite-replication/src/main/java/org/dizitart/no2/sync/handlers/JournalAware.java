@@ -4,9 +4,12 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.sync.FeedJournal;
+import org.dizitart.no2.sync.MessageFactory;
+import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.crdt.LastWriteWinState;
+import org.dizitart.no2.sync.message.DataGateFeed;
 import org.dizitart.no2.sync.message.Receipt;
 
 import java.util.HashMap;
@@ -20,6 +23,19 @@ public interface JournalAware {
 
     default FeedJournal getJournal() {
         return getReplicationTemplate().getFeedJournal();
+    }
+
+    default void retryFailed(Receipt receipt) {
+        if (shouldRetry(receipt)) {
+            LastWriteWinState state = createState(receipt);
+
+            MessageFactory factory = getReplicationTemplate().getMessageFactory();
+            DataGateFeed feedMessage = factory.createFeedMessage(getReplicationTemplate().getConfig(),
+                getReplicationTemplate().getReplicaId(), state);
+
+            MessageTemplate messageTemplate = getReplicationTemplate().getMessageTemplate();
+            messageTemplate.sendMessage(feedMessage);
+        }
     }
 
     default LastWriteWinState createState(Receipt receipt) {

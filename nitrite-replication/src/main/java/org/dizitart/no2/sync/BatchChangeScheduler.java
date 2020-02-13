@@ -15,9 +15,15 @@ import java.util.UUID;
 public class BatchChangeScheduler {
     private Timer timer;
     private ReplicationTemplate replica;
+    private MessageFactory factory;
+    private MessageTemplate messageTemplate;
+    private FeedJournal journal;
 
     public BatchChangeScheduler(ReplicationTemplate replica) {
         this.replica = replica;
+        this.factory = replica.getMessageFactory();
+        this.messageTemplate = replica.getMessageTemplate();
+        this.journal = replica.getFeedJournal();
     }
 
     public void schedule() {
@@ -25,11 +31,10 @@ public class BatchChangeScheduler {
             Long lastSyncTime = replica.getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
 
-            MessageFactory factory = replica.getMessageFactory();
-            MessageTemplate messageTemplate = replica.getMessageTemplate();
-            FeedJournal journal = replica.getFeedJournal();
+            System.out.println("*****after schedule = " + messageTemplate.toString() + " websocket = " + messageTemplate.getWebSocket());
 
             BatchChangeStart message = createStart(factory, uuid, lastSyncTime);
+            System.out.println("sending batch message");
             messageTemplate.sendMessage(message);
             journal.write(message.getFeed());
 
@@ -66,7 +71,7 @@ public class BatchChangeScheduler {
         }
     }
 
-    public void shutdown() {
+    public void stop() {
         if (timer != null) {
             timer.cancel();
         }

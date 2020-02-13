@@ -1,7 +1,6 @@
 package org.dizitart.no2.sync.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.ErrorMessage;
 
@@ -17,7 +16,7 @@ public class ErrorHandler implements MessageHandler<ErrorMessage> {
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, ErrorMessage message) {
+    public void handleMessage(ErrorMessage message) {
         log.error("Received error message from server {}", message.getError());
         if (message.getIsFatal()) {
             replica.stopReplication(message.getError());

@@ -38,8 +38,7 @@ public class MessageDispatcher extends WebSocketListener {
             log.debug("Message received from server {}", text);
             DataGateMessage message = transformer.transform(text);
             validateMessage(message);
-            MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
-            dispatch(messageTemplate, message);
+            dispatch(message);
         } catch (Exception e) {
             log.error("Error while processing message", e);
             replicationTemplate.postEvent(new ReplicationEvent(ReplicationEventType.Error, e));
@@ -60,12 +59,12 @@ public class MessageDispatcher extends WebSocketListener {
         replicationTemplate.stopReplication(reason);
     }
 
-    private <M extends DataGateMessage> void dispatch(MessageTemplate messageTemplate, M message) {
+    private <M extends DataGateMessage> void dispatch(M message) {
         MessageHandler<M> handler = findHandler(message);
         if (handler != null) {
             executorService.submit(() -> {
                 try {
-                    handler.handleMessage(messageTemplate, message);
+                    handler.handleMessage(message);
                 } catch (ReplicationException error) {
                     log.error("Error occurred while handling {} message", message.getHeader().getMessageType(), error);
                     if (error.isFatal()) {

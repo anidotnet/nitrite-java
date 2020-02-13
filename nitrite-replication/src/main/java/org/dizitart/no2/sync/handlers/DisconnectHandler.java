@@ -1,6 +1,5 @@
 package org.dizitart.no2.sync.handlers;
 
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.Disconnect;
 
@@ -15,7 +14,7 @@ public class DisconnectHandler implements MessageHandler<Disconnect> {
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, Disconnect message) {
+    public void handleMessage(Disconnect message) {
         replicationTemplate.stopReplication("Server disconnect");
     }
 }

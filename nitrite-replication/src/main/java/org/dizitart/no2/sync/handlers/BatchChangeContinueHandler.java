@@ -2,7 +2,6 @@ package org.dizitart.no2.sync.handlers;
 
 import lombok.Data;
 import org.dizitart.no2.sync.MessageFactory;
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.BatchAck;
 import org.dizitart.no2.sync.message.BatchChangeContinue;
@@ -20,8 +19,8 @@ public class BatchChangeContinueHandler implements MessageHandler<BatchChangeCon
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, BatchChangeContinue message) {
-        sendAck(messageTemplate, message);
+    public void handleMessage(BatchChangeContinue message) {
+        sendAck(message);
     }
 
     @Override

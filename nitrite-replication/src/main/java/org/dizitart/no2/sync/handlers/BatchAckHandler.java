@@ -1,7 +1,6 @@
 package org.dizitart.no2.sync.handlers;
 
 import org.dizitart.no2.sync.FeedJournal;
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.BatchAck;
 import org.dizitart.no2.sync.message.Receipt;
@@ -17,7 +16,7 @@ public class BatchAckHandler implements MessageHandler<BatchAck> {
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, BatchAck message) {
+    public void handleMessage(BatchAck message) {
         Receipt receipt = message.getReceipt();
         FeedJournal journal = replicationTemplate.getFeedJournal();
         journal.accumulate(receipt);

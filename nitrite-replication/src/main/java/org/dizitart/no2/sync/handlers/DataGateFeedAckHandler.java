@@ -1,11 +1,7 @@
 package org.dizitart.no2.sync.handlers;
 
 import lombok.Getter;
-import org.dizitart.no2.sync.MessageFactory;
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
-import org.dizitart.no2.sync.crdt.LastWriteWinState;
-import org.dizitart.no2.sync.message.DataGateFeed;
 import org.dizitart.no2.sync.message.DataGateFeedAck;
 import org.dizitart.no2.sync.message.Receipt;
 
@@ -21,18 +17,11 @@ public class DataGateFeedAckHandler implements MessageHandler<DataGateFeedAck>, 
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, DataGateFeedAck message) {
+    public void handleMessage(DataGateFeedAck message) {
         Receipt receipt = message.getReceipt();
 
         Receipt finalReceipt = getJournal().accumulate(receipt);
-        if (shouldRetry(finalReceipt)) {
-            LastWriteWinState state = createState(finalReceipt);
-
-            MessageFactory factory = replicationTemplate.getMessageFactory();
-            DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(),
-                replicationTemplate.getReplicaId(), state);
-            messageTemplate.sendMessage(feedMessage);
-        }
+        retryFailed(finalReceipt);
 
         if (replicationTemplate.shouldAcceptCheckpoint()) {
             Long time = message.getHeader().getTimestamp();

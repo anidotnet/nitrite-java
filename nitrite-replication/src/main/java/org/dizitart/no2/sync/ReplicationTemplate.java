@@ -59,12 +59,12 @@ public class ReplicationTemplate implements ReplicationOperation {
     }
 
     public void connect() {
-        this.batchChangeScheduler = new BatchChangeScheduler(this);
-
-        Connect message = messageFactory.createConnect(config, getReplicaId());
         messageTemplate.openConnection();
+        Connect message = messageFactory.createConnect(config, getReplicaId());
         messageTemplate.sendMessage(message);
         eventBus.post(new ReplicationEvent(Started));
+
+        System.out.println("*****after connected = " + messageTemplate.toString() + " websocket = " +  messageTemplate.getWebSocket());
     }
 
     public void setConnected() {
@@ -75,19 +75,19 @@ public class ReplicationTemplate implements ReplicationOperation {
         return connected.get();
     }
 
-    public void stopReplication(String reason) {
-        batchChangeScheduler.shutdown();
-        eventBus.post(new ReplicationEvent(Stopped));
-        connected.compareAndSet(true, false);
-        exchangeFlag.compareAndSet(true, false);
-        messageTemplate.closeConnection(reason);
-        eventBus.close();
-    }
-
     public void disconnect() {
         Disconnect message = messageFactory.createDisconnect(config, getReplicaId());
         messageTemplate.sendMessage(message);
         stopReplication("User disconnect");
+    }
+
+    public void stopReplication(String reason) {
+        batchChangeScheduler.stop();
+        eventBus.post(new ReplicationEvent(Stopped));
+        connected.set(false);
+        exchangeFlag.set(false);
+        acceptCheckpoint.set(false);
+        messageTemplate.closeConnection(reason);
     }
 
     public void sendChanges() {
@@ -95,7 +95,6 @@ public class ReplicationTemplate implements ReplicationOperation {
     }
 
     public void startFeedExchange() {
-        this.feedJournal = new FeedJournal(this);
         this.exchangeFlag.compareAndSet(false, true);
     }
 
@@ -139,6 +138,13 @@ public class ReplicationTemplate implements ReplicationOperation {
         eventBus.post(event);
     }
 
+    public void close() {
+        eventBus.close();
+        messageTemplate.close();
+        batchChangeScheduler.stop();
+        this.getCollection().unsubscribe(replicaChangeListener);
+    }
+
     private void init() {
         this.messageFactory = new MessageFactory();
         this.connected = new AtomicBoolean(false);
@@ -147,6 +153,8 @@ public class ReplicationTemplate implements ReplicationOperation {
         this.eventBus = new ReplicationEventBus();
         this.messageTemplate = new MessageTemplate(config, this);
         this.crdt = createReplicatedDataType();
+        this.feedJournal = new FeedJournal(this);
+        this.batchChangeScheduler = new BatchChangeScheduler(this);
         this.replicaChangeListener = new ReplicaChangeListener(this, messageTemplate);
         this.getCollection().subscribe(replicaChangeListener);
     }

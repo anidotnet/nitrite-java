@@ -14,13 +14,14 @@ public interface ReceiptAckSender<Ack extends DataGateMessage> {
     ReplicationTemplate getReplicationTemplate();
     Ack createAck(Receipt receipt);
 
-    default void sendAck(MessageTemplate messageTemplate, ReceiptAware message) {
+    default void sendAck(ReceiptAware message) {
         if (message != null) {
             LastWriteWinState state = message.getFeed();
             getReplicationTemplate().getCrdt().merge(state);
 
             Receipt receipt = message.calculateReceipt();
             Ack ack = createAck(receipt);
+            MessageTemplate messageTemplate = getReplicationTemplate().getMessageTemplate();
             messageTemplate.sendMessage(ack);
         }
     }

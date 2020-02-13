@@ -243,7 +243,6 @@ public class ReplicaTest {
         r1.connect();
         System.out.println("**********Reconnected********");
         await().atMost(10, SECONDS).until(() -> {
-            System.out.println("C1.size = " + c1.size() + " C2.size = " + c2.size());
             return c1.size() == 70 && c2.size() == 70;
         });
         TestUtils.assertEquals(c1, c2);

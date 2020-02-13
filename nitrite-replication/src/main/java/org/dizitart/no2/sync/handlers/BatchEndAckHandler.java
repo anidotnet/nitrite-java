@@ -1,12 +1,8 @@
 package org.dizitart.no2.sync.handlers;
 
 import lombok.Getter;
-import org.dizitart.no2.sync.MessageFactory;
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
-import org.dizitart.no2.sync.crdt.LastWriteWinState;
 import org.dizitart.no2.sync.message.BatchEndAck;
-import org.dizitart.no2.sync.message.DataGateFeed;
 import org.dizitart.no2.sync.message.Receipt;
 
 /**
@@ -21,16 +17,8 @@ public class BatchEndAckHandler implements MessageHandler<BatchEndAck>, JournalA
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, BatchEndAck message) {
+    public void handleMessage(BatchEndAck message) {
         Receipt finalReceipt = getJournal().getFinalReceipt();
-
-        if (shouldRetry(finalReceipt)) {
-            LastWriteWinState state = createState(finalReceipt);
-
-            MessageFactory factory = replicationTemplate.getMessageFactory();
-            DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(),
-                replicationTemplate.getReplicaId(), state);
-            messageTemplate.sendMessage(feedMessage);
-        }
+        retryFailed(finalReceipt);
     }
 }

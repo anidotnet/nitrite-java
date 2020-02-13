@@ -17,11 +17,12 @@ public class BatchChangeEndHandler implements MessageHandler<BatchChangeEnd> {
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, BatchChangeEnd message) {
+    public void handleMessage(BatchChangeEnd message) {
         MessageFactory factory = replicationTemplate.getMessageFactory();
         BatchEndAck batchEndAck = factory.createBatchEndAck(replicationTemplate.getConfig(),
             replicationTemplate.getReplicaId());
 
+        MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
         messageTemplate.sendMessage(batchEndAck);
         Long time = message.getHeader().getTimestamp();
         replicationTemplate.saveLastSyncTime(time);

@@ -2,7 +2,6 @@ package org.dizitart.no2.sync.handlers;
 
 import lombok.Data;
 import org.dizitart.no2.sync.MessageFactory;
-import org.dizitart.no2.sync.MessageTemplate;
 import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.message.DataGateFeed;
 import org.dizitart.no2.sync.message.DataGateFeedAck;
@@ -20,8 +19,8 @@ public class DataGateFeedHandler implements MessageHandler<DataGateFeed>, Receip
     }
 
     @Override
-    public void handleMessage(MessageTemplate messageTemplate, DataGateFeed message) {
-        sendAck(messageTemplate, message);
+    public void handleMessage(DataGateFeed message) {
+        sendAck(message);
         if (replicationTemplate.shouldAcceptCheckpoint()) {
             Long time = message.getHeader().getTimestamp();
             replicationTemplate.saveLastSyncTime(time);
