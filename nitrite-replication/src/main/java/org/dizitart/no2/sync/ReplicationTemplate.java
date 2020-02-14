@@ -64,7 +64,7 @@ public class ReplicationTemplate implements ReplicationOperation {
         messageTemplate.sendMessage(message);
         eventBus.post(new ReplicationEvent(Started));
 
-        System.out.println("*****after connected = " + messageTemplate.toString() + " websocket = " +  messageTemplate.getWebSocket());
+        System.out.println("*****after connected = " + messageTemplate.toString() + " websocket = " +  messageTemplate.getDataGateSocket());
     }
 
     public void setConnected() {

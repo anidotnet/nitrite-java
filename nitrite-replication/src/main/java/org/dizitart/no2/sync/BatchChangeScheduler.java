@@ -31,7 +31,7 @@ public class BatchChangeScheduler {
             Long lastSyncTime = replica.getLastSyncTime();
             String uuid = UUID.randomUUID().toString();
 
-            System.out.println("*****after schedule = " + messageTemplate.toString() + " websocket = " + messageTemplate.getWebSocket());
+            System.out.println("*****after schedule = " + messageTemplate.toString() + " websocket = " + messageTemplate.getDataGateSocket());
 
             BatchChangeStart message = createStart(factory, uuid, lastSyncTime);
             System.out.println("sending batch message");

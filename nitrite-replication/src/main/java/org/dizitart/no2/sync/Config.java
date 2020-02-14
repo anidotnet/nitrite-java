@@ -22,4 +22,5 @@ public class Config {
     private Proxy proxy;
     private String authToken;
     private boolean acceptAllCertificates;
+    private String server;
 }

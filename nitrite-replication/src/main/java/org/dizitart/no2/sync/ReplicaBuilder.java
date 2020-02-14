@@ -105,6 +105,7 @@ public class ReplicaBuilder {
             config.setProxy(proxy);
             config.setAcceptAllCertificates(acceptAllCertificates);
             config.setAuthToken(authToken);
+            config.setServer(replicationServer);
             return new Replica(config);
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication", true);

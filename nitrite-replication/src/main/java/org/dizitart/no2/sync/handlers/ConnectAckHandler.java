@@ -20,7 +20,7 @@ public class ConnectAckHandler implements MessageHandler<ConnectAck> {
         System.out.println("reconnected");
         replica.setConnected();
         replica.startFeedExchange();
-        System.out.println("before send changes = " + replica.getMessageTemplate().getWebSocket());
+        System.out.println("before send changes = " + replica.getMessageTemplate().getDataGateSocket());
         replica.sendChanges();
     }
 }
