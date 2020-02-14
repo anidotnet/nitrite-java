@@ -285,7 +285,7 @@ public class DataGateSocket {
 
     private boolean isNetworkDisconnected() {
         try {
-            InetAddress[] addresses = InetAddress.getAllByName(url);
+            InetAddress[] addresses = InetAddress.getAllByName("127.0.0.1");
             for (InetAddress address : addresses) {
                 if (address.isReachable(2000)) {
                     return false;

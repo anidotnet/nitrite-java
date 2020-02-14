@@ -26,7 +26,7 @@ public class MessageTemplate implements AutoCloseable {
     }
 
     public void sendMessage(DataGateMessage message) {
-        if (dataGateSocket != null) {
+        if (dataGateSocket != null && dataGateSocket.isConnected()) {
             if (!dataGateSocket.sendMessage(message)) {
                 throw new ReplicationException("failed to deliver message " + message, true);
             }
