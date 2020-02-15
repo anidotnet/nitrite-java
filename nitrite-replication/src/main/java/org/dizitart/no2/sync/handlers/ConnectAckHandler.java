@@ -17,10 +17,8 @@ public class ConnectAckHandler implements MessageHandler<ConnectAck> {
 
     @Override
     public void handleMessage(ConnectAck message) {
-        System.out.println("reconnected");
         replica.setConnected();
         replica.startFeedExchange();
-        System.out.println("before send changes = " + replica.getMessageTemplate().getDataGateSocket());
         replica.sendChanges();
     }
 }

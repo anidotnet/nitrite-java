@@ -38,14 +38,10 @@ public class ReplicaTest {
     private ExecutorService executorService;
     private Repository repository;
 
-    @BeforeClass
-    public static void startServer() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         server = new SimpleDataGateServer(9090);
         server.start();
-    }
-
-    @Before
-    public void setUp() {
         dbFile = getRandomTempDbFile();
         executorService = Executors.newCachedThreadPool();
         repository = Repository.getInstance();
@@ -58,15 +54,13 @@ public class ReplicaTest {
         if (Files.exists(Paths.get(dbFile))) {
             Files.delete(Paths.get(dbFile));
         }
-    }
-
-    @AfterClass
-    public static void stopServer() {
         server.stop();
     }
 
     @Test
     public void testReplica() {
+        repository.getUserMap().put("anidotnet", "abcd");
+
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -95,6 +89,8 @@ public class ReplicaTest {
 
     @Test
     public void testSingleUserSingleReplica() {
+        repository.getUserMap().put("anidotnet", "abcd");
+
         Nitrite db = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -149,6 +145,8 @@ public class ReplicaTest {
 
     @Test
     public void testSingleUserMultiReplica() {
+        repository.getUserMap().put("anidotnet", "abcd");
+
         Nitrite db1 = NitriteBuilder.get()
             .filePath(dbFile)
             .openOrCreate();
@@ -241,10 +239,7 @@ public class ReplicaTest {
         });
 
         r1.connect();
-        System.out.println("**********Reconnected********");
-        await().atMost(10, SECONDS).until(() -> {
-            return c1.size() == 70 && c2.size() == 70;
-        });
+        await().atMost(10, SECONDS).until(() -> c1.size() == 70 && c2.size() == 70);
         TestUtils.assertEquals(c1, c2);
 
         executorService.submit(() -> {
@@ -258,6 +253,10 @@ public class ReplicaTest {
 
     @Test
     public void testMultiUserSingleReplica() {
+        repository.getUserMap().put("user1", "abcd");
+        repository.getUserMap().put("user2", "abcd");
+        repository.getUserMap().put("user3", "abcd");
+
         Nitrite db1 = NitriteBuilder.get()
             .openOrCreate();
         NitriteCollection c1 = db1.getCollection("testMultiUserSingleReplica");
@@ -321,6 +320,9 @@ public class ReplicaTest {
 
     @Test
     public void testMultiUserMultiReplica() {
+        repository.getUserMap().put("user1", "abcd");
+        repository.getUserMap().put("user2", "abcd");
+
         Nitrite db1 = NitriteBuilder.get()
             .openOrCreate();
         NitriteCollection c1 = db1.getCollection("testMultiUserSingleReplica1");
@@ -363,53 +365,9 @@ public class ReplicaTest {
     }
 
     @Test
-    public void testSingleUserMultiServer() throws Exception {
-        SimpleDataGateServer s2 = new SimpleDataGateServer(7070);
-        s2.start();
+    public void testSecurityInCorrectCredentials() {
+        repository.getUserMap().put("user", "abcd");
 
-        Nitrite db1 = NitriteBuilder.get()
-            .openOrCreate();
-        NitriteCollection c1 = db1.getCollection("testSingleUserMultiServer");
-
-        Nitrite db2 = NitriteBuilder.get()
-            .openOrCreate();
-        NitriteCollection c2 = db2.getCollection("testSingleUserMultiServer");
-
-        Replica r1 = Replica.builder()
-            .of(c1)
-            .remote("ws://127.0.0.1:9090/datagate/user/testSingleUserMultiServer")
-            .jwtAuth("user", "abcd")
-            .create();
-        r1.connect();
-
-        Replica r2 = Replica.builder()
-            .of(c2)
-            .remote("ws://127.0.0.1:7070/datagate/user/testSingleUserMultiServer")
-            .jwtAuth("user", "abcd")
-            .create();
-        r2.connect();
-
-        executorService.submit(() -> {
-            for (int i = 0; i < 10; i++) {
-                Document document = randomDocument();
-                c1.insert(document);
-            }
-        });
-
-        executorService.submit(() -> {
-            for (int i = 0; i < 20; i++) {
-                Document document = randomDocument();
-                c2.insert(document);
-            }
-        });
-
-        await().atMost(5, SECONDS).until(() -> c1.size() == 10 && c2.size() == 20);
-
-        TestUtils.assertNotEquals(c1, c2);
-    }
-
-    @Test
-    public void testSecurityCorrectCredentials() {
         Nitrite db1 = NitriteBuilder.get()
             .openOrCreate();
         NitriteCollection c1 = db1.getCollection("testSecurity");

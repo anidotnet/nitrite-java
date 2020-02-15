@@ -21,6 +21,7 @@ public class Repository {
     private Nitrite db;
     private String serverId;
     private Set<Session> authorizedSessions;
+    private Map<String, String> userMap;
 
     private Repository() {
         reset();
@@ -35,6 +36,7 @@ public class Repository {
         userReplicaMap = new ConcurrentHashMap<>();
         replicaStore = new ConcurrentHashMap<>();
         authorizedSessions = new HashSet<>();
+        userMap = new ConcurrentHashMap<>();
 
         db = NitriteBuilder.get().openOrCreate();
         serverId = UUID.randomUUID().toString();

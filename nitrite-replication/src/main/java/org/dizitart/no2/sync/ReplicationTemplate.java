@@ -63,8 +63,6 @@ public class ReplicationTemplate implements ReplicationOperation {
         Connect message = messageFactory.createConnect(config, getReplicaId());
         messageTemplate.sendMessage(message);
         eventBus.post(new ReplicationEvent(Started));
-
-        System.out.println("*****after connected = " + messageTemplate.toString() + " websocket = " +  messageTemplate.getDataGateSocket());
     }
 
     public void setConnected() {

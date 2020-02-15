@@ -419,6 +419,6 @@ public class SimpleDataGateEndpoint {
     }
 
     private boolean isValidAuth(String userName, String authToken) {
-        return "anidotnet".equals(userName) && "abcd".equals(authToken);
+        return repository.getUserMap().get(userName).equals(authToken);
     }
 }

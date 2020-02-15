@@ -13,9 +13,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.net.InetAddress;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,11 +40,17 @@ public class DataGateSocket {
     private ObjectMapper objectMapper;
     private String url;
     private Config config;
+    private CountDownLatch latch;
+
     private WebSocketListener webSocketListener = new WebSocketListener() {
         @Override
         public void onOpen(WebSocket webSocket, final Response response) {
             mWebSocket = webSocket;
             setCurrentStatus(Status.CONNECTED);
+            if (latch != null) {
+                latch.countDown();
+            }
+
             connected();
             if (listener != null) {
                 listener.onOpen(response);
@@ -96,34 +102,19 @@ public class DataGateSocket {
         this.objectMapper = config.getObjectMapper();
     }
 
-    private void initWebSocket() {
-        if (httpClient != null) {
-            httpClient.dispatcher().cancelAll();
-        }
-        try {
-            lock.lockInterruptibly();
-            try {
-                httpClient.newWebSocket(request, webSocketListener);
-            } finally {
-                lock.unlock();
-            }
-        } catch (InterruptedException ignored) {
-        }
-    }
-
     public void setListener(DataGateSocketListener listener) {
         this.listener = listener;
     }
 
-    public synchronized boolean isConnected() {
+    public boolean isConnected() {
         return currentStatus == Status.CONNECTED;
     }
 
-    public synchronized int getCurrentStatus() {
+    public int getCurrentStatus() {
         return currentStatus;
     }
 
-    public synchronized void setCurrentStatus(int status) {
+    public void setCurrentStatus(int status) {
         this.currentStatus = status;
     }
 
@@ -132,16 +123,17 @@ public class DataGateSocket {
         buildConnect();
     }
 
-    public void stopConnect() {
+    public void stopConnect(String reason) {
         manualClose = true;
-        disconnect();
+        disconnect(reason);
     }
 
     public boolean sendMessage(DataGateMessage message) {
         boolean isSent = false;
         try {
-            if (mWebSocket != null && currentStatus == Status.CONNECTED) {
+            if (mWebSocket != null && isConnected()) {
                 String text = objectMapper.writeValueAsString(message);
+                log.debug("Sending message to server {}", text);
                 isSent = mWebSocket.send(text);
 
                 if (!isSent) {
@@ -153,6 +145,23 @@ public class DataGateSocket {
             isSent = false;
         }
         return isSent;
+    }
+
+    private void initWebSocket() {
+        if (httpClient != null) {
+            httpClient.dispatcher().cancelAll();
+        }
+        try {
+            lock.lockInterruptibly();
+            try {
+                latch = new CountDownLatch(1);
+                httpClient.newWebSocket(request, webSocketListener);
+                latch.await();
+            } finally {
+                lock.unlock();
+            }
+        } catch (InterruptedException ignored) {
+        }
     }
 
     private OkHttpClient createClient() {
@@ -245,21 +254,18 @@ public class DataGateSocket {
         cancelReconnect();
     }
 
-    private void disconnect() {
+    private void disconnect(String reason) {
         if (currentStatus == Status.DISCONNECTED) {
             return;
         }
 
         cancelReconnect();
-        if (httpClient != null) {
-            httpClient.dispatcher().cancelAll();
-        }
 
         if (mWebSocket != null) {
-            boolean isClosed = mWebSocket.close(Status.CODE.NORMAL_CLOSE, Status.TIP.NORMAL_CLOSE);
+            boolean isClosed = mWebSocket.close(Status.CODE.NORMAL_CLOSE, reason);
             if (!isClosed) {
                 if (listener != null) {
-                    listener.onClosed(Status.CODE.ABNORMAL_CLOSE, Status.TIP.ABNORMAL_CLOSE);
+                    listener.onClosed(Status.CODE.ABNORMAL_CLOSE, reason);
                 }
             }
         }
@@ -267,7 +273,7 @@ public class DataGateSocket {
         setCurrentStatus(Status.DISCONNECTED);
     }
 
-    private synchronized void buildConnect() {
+    private void buildConnect() {
         if (isNetworkDisconnected()) {
             setCurrentStatus(Status.DISCONNECTED);
             return;
@@ -284,17 +290,6 @@ public class DataGateSocket {
     }
 
     private boolean isNetworkDisconnected() {
-        try {
-            InetAddress[] addresses = InetAddress.getAllByName("127.0.0.1");
-            for (InetAddress address : addresses) {
-                if (address.isReachable(2000)) {
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            log.error("Connection failed to {}", url, e);
-            return true;
-        }
-        return true;
+        return false;
     }
 }

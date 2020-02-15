@@ -35,7 +35,6 @@ public class MessageTemplate implements AutoCloseable {
 
     public void openConnection() {
         try {
-            // Look at = https://github.com/Rabtman/WsManager/blob/master/wsmanager/src/main/java/com/rabtman/wsmanager/WsManager.java
             dataGateSocket = new DataGateSocket(config);
             MessageDispatcher dispatcher = new MessageDispatcher(config, replica);
 
@@ -49,14 +48,14 @@ public class MessageTemplate implements AutoCloseable {
 
     public void closeConnection(String reason) {
         if (dataGateSocket != null) {
-            dataGateSocket.stopConnect();
+            dataGateSocket.stopConnect(reason);
         }
     }
 
     @Override
     public void close() {
         if (dataGateSocket != null) {
-            dataGateSocket.stopConnect();
+            dataGateSocket.stopConnect("normal close");
         }
     }
 }

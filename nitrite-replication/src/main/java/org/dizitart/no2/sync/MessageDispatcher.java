@@ -55,7 +55,6 @@ public class MessageDispatcher implements DataGateSocketListener {
     @Override
     public void onClosed(int code, String reason) {
         log.warn("Connection to server is closed due to {}", reason);
-        replicationTemplate.stopReplication(reason);
     }
 
     private <M extends DataGateMessage> void dispatch(M message) {
