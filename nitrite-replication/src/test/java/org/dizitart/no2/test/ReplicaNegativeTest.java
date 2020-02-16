@@ -6,7 +6,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
 import static org.dizitart.no2.test.ReplicaTest.getRandomTempDbFile;
@@ -28,7 +27,7 @@ public class ReplicaNegativeTest {
     }
 
     @After
-    public void cleanUp() throws IOException, InterruptedException {
+    public void cleanUp() {
         if (executorService != null) {
             executorService.shutdown();
         }
@@ -37,6 +36,6 @@ public class ReplicaNegativeTest {
 
     @Test
     public void testSingleUserMultiReplicaSameCollection() {
-
+        //TODO: Test MessageDispatcher onFailure
     }
 }
