@@ -26,7 +26,7 @@ package org.dizitart.no2.common.event;
  * @author Anindya Chatterjee
  * @since 1.0
  */
-public interface EventBus<EventInfo, EventListener> {
+public interface EventBus<EventInfo, EventListener> extends AutoCloseable {
     /**
      * Registers an event listener to the event-bus.
      *

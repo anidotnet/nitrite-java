@@ -15,6 +15,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -38,9 +39,9 @@ public class DataGateSocket {
     private int reconnectCount = 0;
     private Timer reconnectTimer;
     private ObjectMapper objectMapper;
-    private String url;
     private Config config;
     private CountDownLatch latch;
+    private Callable<Boolean> networkConnectivityChecker;
 
     private WebSocketListener webSocketListener = new WebSocketListener() {
         @Override
@@ -95,7 +96,7 @@ public class DataGateSocket {
 
     public DataGateSocket(Config config) {
         this.config = config;
-        this.url = config.getServer();
+        this.networkConnectivityChecker = config.getNetworkConnectivityChecker();
         this.lock = new ReentrantLock();
         this.httpClient = createClient();
         this.request = config.getRequestBuilder().build();
@@ -290,6 +291,11 @@ public class DataGateSocket {
     }
 
     private boolean isNetworkDisconnected() {
-        return false;
+        try {
+            return !networkConnectivityChecker.call();
+        } catch (Exception e) {
+            log.error("Network connectivity failed", e);
+            return true;
+        }
     }
 }

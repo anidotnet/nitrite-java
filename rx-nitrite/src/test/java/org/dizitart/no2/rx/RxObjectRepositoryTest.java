@@ -6,6 +6,7 @@ import io.reactivex.subscribers.TestSubscriber;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.EventType;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.filters.Filter;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.dizitart.no2.filters.FluentFilter.where;
@@ -148,7 +148,7 @@ public class RxObjectRepositoryTest extends RxBaseTest {
         assertEquals(repository.find().size().blockingGet().intValue(), 0);
 
         final PodamFactory factory = new PodamFactoryImpl();
-        ExecutorService pool = Executors.newCachedThreadPool();
+        ExecutorService pool = ThreadPoolManager.getThreadPool(2, "RxObjectRepositoryTest");
         final CountDownLatch latch = new CountDownLatch(10000);
         String[] names = new String[] {"Iron Man", "Captain America", "Thor", "Hulk", "Black Widow", "Black Panther"};
 
@@ -174,6 +174,7 @@ public class RxObjectRepositoryTest extends RxBaseTest {
 
         insertSubscriber.dispose();
         updateSubscriber.dispose();
+        pool.shutdown();
     }
 
     @Test

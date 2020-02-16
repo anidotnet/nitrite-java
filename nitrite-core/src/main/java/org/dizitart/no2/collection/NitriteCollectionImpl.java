@@ -200,6 +200,9 @@ class NitriteCollectionImpl implements NitriteCollection {
 
     @Override
     public void close() {
+        if (collectionOperations != null) {
+            collectionOperations.close();
+        }
         this.nitriteMap = null;
         this.nitriteConfig = null;
         this.collectionOperations = null;

@@ -2,6 +2,7 @@ package org.dizitart.no2.sync;
 
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
+import org.dizitart.no2.common.Constants;
 import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.event.ReplicationEvent;
@@ -12,13 +13,11 @@ import org.dizitart.no2.sync.net.DataGateSocketListener;
 
 import java.util.concurrent.ExecutorService;
 
-import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
-
 /**
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class MessageDispatcher implements DataGateSocketListener {
+public class MessageDispatcher implements DataGateSocketListener, AutoCloseable {
     private ReplicationTemplate replicationTemplate;
     private MessageTransformer transformer;
     private ExecutorService executorService;
@@ -26,9 +25,6 @@ public class MessageDispatcher implements DataGateSocketListener {
     public MessageDispatcher(Config config, ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
         this.transformer = new MessageTransformer(config.getObjectMapper());
-
-        int core = Runtime.getRuntime().availableProcessors();
-        this.executorService = ThreadPoolManager.getThreadPool(core, SYNC_THREAD_NAME);
     }
 
     @Override
@@ -60,7 +56,7 @@ public class MessageDispatcher implements DataGateSocketListener {
     private <M extends DataGateMessage> void dispatch(M message) {
         MessageHandler<M> handler = findHandler(message);
         if (handler != null) {
-            executorService.submit(() -> {
+            getExecutorService().submit(() -> {
                 try {
                     handler.handleMessage(message);
                 } catch (ReplicationException error) {
@@ -127,6 +123,23 @@ public class MessageDispatcher implements DataGateSocketListener {
         } else if (message.getHeader().getMessageType() == null) {
             throw new ReplicationException("a message without any type is received for "
                 + replicationTemplate.getReplicaId(), true);
+        }
+    }
+
+    private ExecutorService getExecutorService() {
+        if (executorService == null
+            || executorService.isShutdown()
+            || executorService.isTerminated()) {
+            int core = Runtime.getRuntime().availableProcessors();
+            executorService = ThreadPoolManager.getThreadPool(core, Constants.SYNC_THREAD_NAME);
+        }
+        return executorService;
+    }
+
+    @Override
+    public void close() {
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 }

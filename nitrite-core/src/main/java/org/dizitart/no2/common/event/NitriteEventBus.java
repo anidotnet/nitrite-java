@@ -30,19 +30,17 @@ import java.util.concurrent.ExecutorService;
  *
  * @param <EventInfo>     the event information type parameter
  * @param <EventListener> the event listener type parameter
- *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 public abstract class NitriteEventBus<EventInfo, EventListener>
-        implements EventBus<EventInfo, EventListener> {
+    implements EventBus<EventInfo, EventListener>, AutoCloseable {
 
     private Set<EventListener> listeners;
     private ExecutorService eventExecutor;
 
     /**
      * Instantiates a new Nitrite event bus.
-     *
      */
     public NitriteEventBus() {
         this.listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -65,6 +63,9 @@ public abstract class NitriteEventBus<EventInfo, EventListener>
     @Override
     public void close() {
         listeners.clear();
+        if (eventExecutor != null) {
+            eventExecutor.shutdown();
+        }
     }
 
     /**
@@ -73,8 +74,10 @@ public abstract class NitriteEventBus<EventInfo, EventListener>
      * @return the {@link ExecutorService}.
      */
     protected ExecutorService getEventExecutor() {
-        if (eventExecutor == null) {
-            eventExecutor = ThreadPoolManager.commonPool();
+        if (eventExecutor == null
+            || eventExecutor.isShutdown()
+            || eventExecutor.isTerminated()) {
+            eventExecutor = ThreadPoolManager.workerPool();
         }
         return eventExecutor;
     }

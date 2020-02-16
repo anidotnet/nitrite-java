@@ -6,6 +6,7 @@ import okhttp3.Request;
 import org.dizitart.no2.collection.NitriteCollection;
 
 import java.net.Proxy;
+import java.util.concurrent.Callable;
 
 /**
  * @author Anindya Chatterjee
@@ -22,5 +23,5 @@ public class Config {
     private Proxy proxy;
     private String authToken;
     private boolean acceptAllCertificates;
-    private String server;
+    private Callable<Boolean> networkConnectivityChecker;
 }

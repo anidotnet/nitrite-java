@@ -20,6 +20,7 @@ package org.dizitart.no2;
 
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
@@ -44,7 +44,8 @@ public class NitriteCorruptedTest {
     private NitriteCollection collection;
     private String fileName = getRandomTempDbFile();
     private Thread thread;
-    private ExecutorService dbPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private ExecutorService dbPool = ThreadPoolManager.getThreadPool(Runtime.getRuntime().availableProcessors(),
+        "NitriteCorruptedTest");
 
     @Before
     public void setUp() {

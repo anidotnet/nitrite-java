@@ -10,7 +10,9 @@ import org.dizitart.no2.sync.Replica;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.test.server.Repository;
 import org.dizitart.no2.test.server.SimpleDataGateServer;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -55,36 +57,6 @@ public class ReplicaTest {
             Files.delete(Paths.get(dbFile));
         }
         server.stop();
-    }
-
-    @Test
-    public void testReplica() {
-        repository.getUserMap().put("anidotnet", "abcd");
-
-        Nitrite db = NitriteBuilder.get()
-            .filePath(dbFile)
-            .openOrCreate();
-        NitriteCollection collection = db.getCollection("testReplica");
-        Replica replica = Replica.builder()
-            .of(collection)
-            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testReplica")
-            .jwtAuth("anidotnet", "abcd")
-            .create();
-        replica.connect();
-        Document document = createDocument().put("firstName", "Anindya")
-            .put("lastName", "Chatterjee")
-            .put("address", createDocument("street", "1234 Abcd Street")
-                .put("pin", 123456));
-        collection.insert(document);
-
-        await().atMost(5, SECONDS).until(() -> repository.getCollectionReplicaMap().size() == 1);
-        assertEquals(repository.getUserReplicaMap().size(), 1);
-        assertTrue(repository.getUserReplicaMap().containsKey("anidotnet"));
-        assertTrue(repository.getCollectionReplicaMap().containsKey("anidotnet@testReplica"));
-        LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testReplica");
-        await().atMost(5, SECONDS).until(() -> lastWriteWinMap.getCollection().size() == 1);
-
-        replica.disconnect();
     }
 
     @Test
@@ -388,6 +360,123 @@ public class ReplicaTest {
         await().atMost(5, SECONDS).until(() -> !r1.isConnected());
     }
 
+    @Test
+    public void testCloseDbAndReconnect() {
+        repository.getUserMap().put("anidotnet", "abcd");
+
+        Nitrite db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+
+        NitriteCollection c1 = db1.getCollection("testCloseDbAndReconnect");
+        NitriteCollection c2 = db2.getCollection("testCloseDbAndReconnect");
+
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testCloseDbAndReconnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        Replica r2 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testCloseDbAndReconnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        r1.connect();
+
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+        }
+
+        NitriteCollection finalC1 = c1;
+        await().atMost(5, SECONDS).until(() -> finalC1.size() == 10);
+        assertEquals(c2.size(), 0);
+
+        r2.connect();
+        await().atMost(5, SECONDS).until(() -> c2.size() == 10);
+
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+            try {
+                Thread.sleep(random.nextInt(100));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 20; i++) {
+                Document document = randomDocument();
+                c2.insert(document);
+                try {
+                    Thread.sleep(random.nextInt(100));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        NitriteCollection finalC2 = c1;
+        await().atMost(10, SECONDS).until(() -> finalC2.size() == 40);
+        assertEquals(c2.size(), 40);
+
+        r1.disconnect();
+        r1.close();
+        db1.close();
+
+        db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        c1 = db1.getCollection("testCloseDbAndReconnect");
+        r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testCloseDbAndReconnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+            try {
+                Thread.sleep(random.nextInt(100));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        executorService.submit(() -> {
+            for (int i = 0; i < 20; i++) {
+                Document document = randomDocument();
+                c2.insert(document);
+                try {
+                    Thread.sleep(random.nextInt(100));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        r1.connect();
+        NitriteCollection finalC = c1;
+        await().atMost(10, SECONDS).until(() -> finalC.size() == 70 && c2.size() == 70);
+        TestUtils.assertEquals(c1, c2);
+
+        executorService.submit(() -> {
+            c2.remove(Filter.ALL);
+        });
+
+        await().atMost(10, SECONDS).until(() -> c2.size() == 0);
+        await().atMost(5, SECONDS).until(() -> finalC.size() == 0);
+        TestUtils.assertEquals(c1, c2);
+    }
+
     public static String getRandomTempDbFile() {
         String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
         File file = new File(dataDir);
@@ -404,11 +493,10 @@ public class ReplicaTest {
      * 2. Single user, two replica, random write using threads, connect - disconnect
      * 3. Multi-user, one replica
      * 4. Multi-user, multiple collection
-     * 5. Single user, two replicas, two servers (each for one replica)
-     * 6. Handle security for jwt tokens - extract user info only from jwt token
      * 7. connect, close db, open db, connect and assert
      * 8. Garbage Collection of tombstones
      *
      * 9. FIXME: After closing due to server error (invalid token), message is still being passed
+     *
      * */
 }

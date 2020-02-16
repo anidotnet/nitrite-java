@@ -1,6 +1,5 @@
 package org.dizitart.no2.sync;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.sync.message.DataGateMessage;
 import org.dizitart.no2.sync.net.DataGateSocket;
@@ -12,9 +11,8 @@ import org.dizitart.no2.sync.net.DataGateSocket;
 public class MessageTemplate implements AutoCloseable {
     private Config config;
     private ReplicationTemplate replica;
-
-    @Getter
     private DataGateSocket dataGateSocket;
+    private MessageDispatcher dispatcher;
 
     public MessageTemplate(Config config, ReplicationTemplate replica) {
         this.config = config;
@@ -36,7 +34,7 @@ public class MessageTemplate implements AutoCloseable {
     public void openConnection() {
         try {
             dataGateSocket = new DataGateSocket(config);
-            MessageDispatcher dispatcher = new MessageDispatcher(config, replica);
+            dispatcher = new MessageDispatcher(config, replica);
 
             dataGateSocket.setListener(dispatcher);
             dataGateSocket.startConnect();
@@ -50,12 +48,20 @@ public class MessageTemplate implements AutoCloseable {
         if (dataGateSocket != null) {
             dataGateSocket.stopConnect(reason);
         }
+
+        if (dispatcher != null) {
+            dispatcher.close();
+        }
     }
 
     @Override
     public void close() {
         if (dataGateSocket != null) {
             dataGateSocket.stopConnect("normal close");
+        }
+
+        if (dispatcher != null) {
+            dispatcher.close();
         }
     }
 }

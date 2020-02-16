@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.common.SortOrder;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.index.IndexOptions;
@@ -32,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
@@ -351,7 +351,7 @@ public class NitriteTest {
         final PodamFactory factory = new PodamFactoryImpl();
         final String[] refs = new String[] {"1", "2", "3", "4", "5"};
         final Random random = new Random();
-        ExecutorService pool = Executors.newCachedThreadPool();
+        ExecutorService pool = ThreadPoolManager.workerPool();
 
         final CountDownLatch latch = new CountDownLatch(10000);
         for (int i = 0; i < 10000; i++) {
@@ -366,6 +366,7 @@ public class NitriteTest {
 
         latch.await();
         assertTrue(repository.find().size() <= 5);
+        pool.shutdown();
     }
 
     @Test

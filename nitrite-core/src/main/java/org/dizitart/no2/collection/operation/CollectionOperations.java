@@ -215,6 +215,12 @@ public class CollectionOperations {
         }
     }
 
+    public void close() {
+        if (indexOperations != null) {
+            indexOperations.close();
+        }
+    }
+
     private void init() {
         ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
         this.readLock = readWriteLock.readLock();

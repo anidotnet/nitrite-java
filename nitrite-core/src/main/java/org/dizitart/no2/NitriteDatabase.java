@@ -3,7 +3,6 @@ package org.dizitart.no2;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.CollectionFactory;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.SecurityException;
@@ -127,13 +126,11 @@ class NitriteDatabase implements Nitrite {
 
             closeCollections();
             store.close();
+            log.info("Nitrite database has been closed successfully.");
         } catch (Throwable error) {
             if (!nitriteConfig.getStoreConfig().isReadOnly()) {
                 throw new NitriteIOException("error while shutting down nitrite", error);
             }
-        } finally {
-            shutdown();
-            log.info("Nitrite database has been closed successfully.");
         }
     }
 
@@ -192,17 +189,6 @@ class NitriteDatabase implements Nitrite {
     private void checkOpened() {
         if (store == null || store.isClosed()) {
             throw new NitriteIOException("store is closed");
-        }
-    }
-
-    private void shutdown() {
-        try {
-            int timeout = nitriteConfig.getPoolShutdownTimeout();
-            ThreadPoolManager.shutdownPools(timeout);
-        } catch (Throwable t) {
-            log.error("Error while shutting down database gracefully", t);
-        } finally {
-            store = null;
         }
     }
 }

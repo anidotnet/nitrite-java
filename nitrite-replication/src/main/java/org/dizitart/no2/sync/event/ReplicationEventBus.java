@@ -11,6 +11,7 @@ import static org.dizitart.no2.common.Constants.SYNC_THREAD_NAME;
  * @author Anindya Chatterjee
  */
 public class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, ReplicationEventListener> {
+    private ExecutorService executorService;
 
     @Override
     public void post(ReplicationEvent replicationEvent) {
@@ -21,7 +22,12 @@ public class ReplicationEventBus extends NitriteEventBus<ReplicationEvent, Repli
 
     @Override
     protected ExecutorService getEventExecutor() {
-        int core = Runtime.getRuntime().availableProcessors();
-        return ThreadPoolManager.getThreadPool(core, SYNC_THREAD_NAME);
+        if (executorService == null
+            || executorService.isTerminated()
+            || executorService.isShutdown()) {
+            int core = Runtime.getRuntime().availableProcessors();
+            executorService = ThreadPoolManager.getThreadPool(core, SYNC_THREAD_NAME);
+        }
+        return executorService;
     }
 }

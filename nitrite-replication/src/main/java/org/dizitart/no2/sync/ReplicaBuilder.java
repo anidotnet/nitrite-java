@@ -9,6 +9,7 @@ import org.dizitart.no2.sync.module.DocumentModule;
 import java.math.BigInteger;
 import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,6 +26,7 @@ public class ReplicaBuilder {
     private ObjectMapper objectMapper;
     private Proxy proxy;
     private boolean acceptAllCertificates = false;
+    private Callable<Boolean> networkConnectivityChecker = () -> true;
 
     ReplicaBuilder() {
         chunkSize = 10;
@@ -90,6 +92,11 @@ public class ReplicaBuilder {
         return this;
     }
 
+    public ReplicaBuilder networkConnectivityChecker(Callable<Boolean> callable) {
+        this.networkConnectivityChecker = callable;
+        return this;
+    }
+
     public Replica create() {
         if (collection != null) {
             Request.Builder builder = createRequestBuilder();
@@ -105,7 +112,7 @@ public class ReplicaBuilder {
             config.setProxy(proxy);
             config.setAcceptAllCertificates(acceptAllCertificates);
             config.setAuthToken(authToken);
-            config.setServer(replicationServer);
+            config.setNetworkConnectivityChecker(networkConnectivityChecker);
             return new Replica(config);
         } else {
             throw new ReplicationException("no collection or repository has been specified for replication", true);

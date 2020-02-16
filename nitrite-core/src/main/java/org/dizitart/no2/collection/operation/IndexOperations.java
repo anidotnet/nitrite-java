@@ -27,7 +27,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.validateDocumentIndex
 /**
  * @author Anindya Chatterjee
  */
-class IndexOperations {
+class IndexOperations implements AutoCloseable {
     private String collectionName;
     private NitriteConfig nitriteConfig;
     private NitriteMap<NitriteId, Document> nitriteMap;
@@ -181,7 +181,7 @@ class IndexOperations {
         this.indexCatalog = nitriteStore.getIndexCatalog();
         this.collectionName = nitriteMap.getName();
         this.indexBuildRegistry = new ConcurrentHashMap<>();
-        this.rebuildExecutor = ThreadPoolManager.commonPool();
+        this.rebuildExecutor = ThreadPoolManager.workerPool();
     }
 
     private Indexer findIndexer(String indexType) {
@@ -273,6 +273,13 @@ class IndexOperations {
         eventInfo.setEventType(eventType);
         if (eventBus != null) {
             eventBus.post(eventInfo);
+        }
+    }
+
+    @Override
+    public void close() {
+        if (rebuildExecutor != null) {
+            this.rebuildExecutor.shutdown();
         }
     }
 }

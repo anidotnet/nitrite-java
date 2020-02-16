@@ -21,8 +21,9 @@ package org.dizitart.no2;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.index.IndexOptions;
+import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.junit.After;
 import org.junit.Test;
@@ -33,14 +34,11 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.filters.FluentFilter.where;
-import static org.dizitart.no2.common.concurrent.ThreadPoolManager.shutdownPools;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -56,17 +54,7 @@ public class MultiThreadedTest {
     private static final String fileName = getRandomTempDbFile();
     private Random generator = new Random();
     private AtomicInteger docCounter = new AtomicInteger(0);
-    private ExecutorService executor = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
-
-        private int i = 0;
-
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(r);
-            t.setName("Thread-" + i++);
-            return t;
-        }
-    });
+    private ExecutorService executor = ThreadPoolManager.getThreadPool(threadCount, "MultiThreadedTest");
 
     private final CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -159,7 +147,7 @@ public class MultiThreadedTest {
         }
 
         if (executor != null && !executor.isShutdown()) {
-            shutdownPools(5);
+            executor.shutdown();
             executor = null;
         }
     }
