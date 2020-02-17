@@ -537,6 +537,7 @@ public class ReplicaTest {
         }
         await().atMost(5, SECONDS).until(() -> c1.size() == 10);
         c1.remove(Filter.ALL);
+        assertEquals(c1.size(), 0);
 
         r1.disconnect();
         r1.close();
@@ -551,10 +552,27 @@ public class ReplicaTest {
             .jwtAuth("anidotnet", "abcd")
             .create();
         r2.connect();
-        await().atMost(5, SECONDS).until(() -> {
-            System.out.println("C2.size = " + c2.size());
-            return c2.size() == 0;
-        });
+
+        for (int i = 0; i < 5; i++) {
+            Document document = randomDocument();
+            c2.insert(document);
+        }
+
+        db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        NitriteCollection c3 = db1.getCollection("testDelayedConnect");
+        r1 = Replica.builder()
+            .of(c3)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testDelayedConnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        r1.connect();
+        await().atMost(5, SECONDS).until(() -> c3.size() == 5 && c2.size() == 5);
+        TestUtils.assertEquals(c3, c2);
+        LastWriteWinMap lastWriteWinMap = repository.getReplicaStore().get("anidotnet@testDelayedConnect");
+        assertEquals(lastWriteWinMap.getTombstones().size(), 10);
     }
 
     public static String getRandomTempDbFile() {
@@ -569,7 +587,6 @@ public class ReplicaTest {
     /*
      * Test case
      *
-     * 1. connect, close db, connect new replica and assert
      * 2. Garbage Collection of tombstones
      *
      *

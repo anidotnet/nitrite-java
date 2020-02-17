@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
  * @author Anindya Chatterjee
  */
 @Slf4j
-public class MessageDispatcher implements DataGateSocketListener, AutoCloseable {
+class MessageDispatcher implements DataGateSocketListener, AutoCloseable {
     private ReplicationTemplate replicationTemplate;
     private MessageTransformer transformer;
     private ExecutorService executorService;

@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * @author Anindya Chatterjee
  */
-public class BatchChangeScheduler {
+class BatchChangeScheduler {
     private Timer timer;
     private ReplicationTemplate replica;
     private MessageFactory factory;
