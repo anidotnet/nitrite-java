@@ -1,6 +1,7 @@
 1. All exception message must be detailed and unique as no number is there now.
 2. LuceneIndexer, test with testIssue174()
 3. Ensure every error event in replication
+4. Tombstone Garbage Collection
 
 
 
