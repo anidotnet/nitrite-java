@@ -477,6 +477,86 @@ public class ReplicaTest {
         TestUtils.assertEquals(c1, c2);
     }
 
+    @Test
+    public void testDelayedConnect() {
+        repository.getUserMap().put("anidotnet", "abcd");
+
+        Nitrite db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        NitriteCollection c1 = db1.getCollection("testDelayedConnect");
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testDelayedConnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        r1.connect();
+
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+        }
+        await().atMost(5, SECONDS).until(() -> c1.size() == 10);
+
+        r1.disconnect();
+        r1.close();
+        db1.close();
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db2.getCollection("testDelayedConnect");
+        Replica r2 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testDelayedConnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+        r2.connect();
+        await().atMost(5, SECONDS).until(() -> c2.size() == 10);
+    }
+
+    @Test
+    public void testDelayedConnectRemoveAll() {
+        repository.getUserMap().put("anidotnet", "abcd");
+
+        Nitrite db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        NitriteCollection c1 = db1.getCollection("testDelayedConnect");
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testDelayedConnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        r1.connect();
+
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+        }
+        await().atMost(5, SECONDS).until(() -> c1.size() == 10);
+        c1.remove(Filter.ALL);
+
+        r1.disconnect();
+        r1.close();
+        db1.close();
+
+        Nitrite db2 = NitriteBuilder.get()
+            .openOrCreate();
+        NitriteCollection c2 = db2.getCollection("testDelayedConnect");
+        Replica r2 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testDelayedConnect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+        r2.connect();
+        await().atMost(5, SECONDS).until(() -> {
+            System.out.println("C2.size = " + c2.size());
+            return c2.size() == 0;
+        });
+    }
+
     public static String getRandomTempDbFile() {
         String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
         File file = new File(dataDir);

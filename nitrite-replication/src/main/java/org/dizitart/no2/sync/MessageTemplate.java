@@ -48,10 +48,6 @@ public class MessageTemplate implements AutoCloseable {
         if (dataGateSocket != null) {
             dataGateSocket.stopConnect(reason);
         }
-
-        if (dispatcher != null) {
-            dispatcher.close();
-        }
     }
 
     @Override
