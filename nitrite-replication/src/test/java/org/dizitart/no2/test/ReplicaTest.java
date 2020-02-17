@@ -489,14 +489,9 @@ public class ReplicaTest {
     /*
      * Test case
      *
-     * 1. Single user, one replica
-     * 2. Single user, two replica, random write using threads, connect - disconnect
-     * 3. Multi-user, one replica
-     * 4. Multi-user, multiple collection
-     * 7. connect, close db, open db, connect and assert
-     * 8. Garbage Collection of tombstones
+     * 1. connect, close db, connect new replica and assert
+     * 2. Garbage Collection of tombstones
      *
-     * 9. FIXME: After closing due to server error (invalid token), message is still being passed
      *
      * */
 }
