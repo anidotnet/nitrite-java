@@ -78,3 +78,11 @@ configurations.errorprone {
 nexusStaging {
     packageGroup = "org.dizitart"
 }
+
+
+gradle.buildFinished { BuildResult result ->
+    if (result.failure && !JavaVersion.current().isJava8Compatible()) {
+        println("\n* Warning:\nJDK ${JavaVersion.VERSION_1_8} is minimal requirement for building nitrite. " +
+            "You have ${JavaVersion.current()}.")
+    }
+}

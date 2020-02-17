@@ -3,9 +3,8 @@ plugins {
     id 'signing'
     id 'maven'
     id 'com.github.hauner.jarTest'
+    id 'jacoco'
 }
-
-apply from: 'jacoco.gradle'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -38,10 +37,18 @@ dependencies {
     testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 }
 
+test {
+    testLogging.showStandardStreams = false
+    testLogging.exceptionFormat = 'full'
+}
 
-gradle.buildFinished { BuildResult result ->
-    if (result.failure && !JavaVersion.current().isJava8Compatible()) {
-        println("\n* Warning:\nJDK ${JavaVersion.VERSION_1_8} is minimal requirement for building nitrite. " +
-            "You have ${JavaVersion.current()}.")
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        xml.destination file("${buildDir}/reports/jacoco/report.xml")
+        csv.enabled false
+        html.destination file("${buildDir}/reports/coverage")
     }
 }
+
+check.dependsOn jacocoTestReport

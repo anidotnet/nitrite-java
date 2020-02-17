@@ -3,6 +3,7 @@ plugins {
     id 'signing'
     id 'maven'
     id 'com.github.hauner.jarTest'
+    id 'jacoco'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -34,3 +35,14 @@ test {
     testLogging.showStandardStreams = false
     testLogging.exceptionFormat = 'full'
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        xml.destination file("${buildDir}/reports/jacoco/report.xml")
+        csv.enabled false
+        html.destination file("${buildDir}/reports/coverage")
+    }
+}
+
+check.dependsOn jacocoTestReport

@@ -33,23 +33,9 @@ jar {
 dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.objenesis:objenesis:$objenesisVersion"
-//    compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion") {
-//        exclude module: 'jackson-annotations'
-//    }
-//    compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
     implementation "org.jasypt:jasypt:$jasyptVersion"
-//    compile "com.squareup.okhttp3:okhttp:$okhttpVersion"
-//    compile "org.locationtech.jts:jts-core:$jtsVersion"
-
 
     testImplementation "junit:junit:$junitVersion"
-}
-
-gradle.buildFinished { BuildResult result ->
-    if (result.failure && !JavaVersion.current().isJava8Compatible()) {
-        println("\n* Warning:\nJDK ${JavaVersion.VERSION_1_8} is minimal requirement for building nitrite. " +
-                "You have ${JavaVersion.current()}.")
-    }
 }
 
 test {
