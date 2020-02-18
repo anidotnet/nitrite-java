@@ -145,6 +145,7 @@ public class SimpleDataGateEndpoint {
             ConnectAck ack = new ConnectAck();
             ack.setHeader(createHeader(MessageType.ConnectAck,
                 connect.getHeader().getCollection(), userName, repository.getServerId()));
+            ack.setTombstoneTtl(repository.getGcTtl());
             String message = objectMapper.writeValueAsString(ack);
             session.getBasicRemote().sendText(message);
         } else {

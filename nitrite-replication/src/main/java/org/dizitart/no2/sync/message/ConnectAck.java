@@ -8,4 +8,5 @@ import lombok.Data;
 @Data
 public class ConnectAck implements DataGateMessage {
     private MessageHeader header;
+    private Long tombstoneTtl;
 }

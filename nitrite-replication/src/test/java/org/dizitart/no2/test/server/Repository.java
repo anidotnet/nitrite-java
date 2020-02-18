@@ -22,6 +22,7 @@ public class Repository {
     private String serverId;
     private Set<Session> authorizedSessions;
     private Map<String, String> userMap;
+    private Long gcTtl;
 
     private Repository() {
         reset();
@@ -40,5 +41,6 @@ public class Repository {
 
         db = NitriteBuilder.get().openOrCreate();
         serverId = UUID.randomUUID().toString();
+        gcTtl = 0L;
     }
 }

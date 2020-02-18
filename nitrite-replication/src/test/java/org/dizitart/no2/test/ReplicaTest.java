@@ -1,5 +1,6 @@
 package org.dizitart.no2.test;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
@@ -7,6 +8,7 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.sync.Replica;
+import org.dizitart.no2.sync.ReplicationTemplate;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.test.server.Repository;
 import org.dizitart.no2.test.server.SimpleDataGateServer;
@@ -15,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Random;
@@ -575,6 +578,53 @@ public class ReplicaTest {
         assertEquals(lastWriteWinMap.getTombstones().size(), 10);
     }
 
+    @Test
+    public void testGarbageCollect() throws InterruptedException {
+        repository.getUserMap().put("anidotnet", "abcd");
+        Nitrite db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        NitriteCollection c1 = db1.getCollection("testGarbageCollect");
+        Replica r1 = Replica.builder()
+            .of(c1)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testGarbageCollect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        r1.connect();
+
+        for (int i = 0; i < 10; i++) {
+            Document document = randomDocument();
+            c1.insert(document);
+        }
+        await().atMost(5, SECONDS).until(() -> c1.size() == 10);
+        c1.remove(Filter.ALL);
+        assertEquals(c1.size(), 0);
+
+        r1.disconnect();
+        r1.close();
+        db1.close();
+
+        repository.setGcTtl(1L);
+
+        db1 = NitriteBuilder.get()
+            .filePath(dbFile)
+            .openOrCreate();
+        NitriteCollection c2 = db1.getCollection("testGarbageCollect");
+        r1 = Replica.builder()
+            .of(c2)
+            .remote("ws://127.0.0.1:9090/datagate/anidotnet/testGarbageCollect")
+            .jwtAuth("anidotnet", "abcd")
+            .create();
+
+        r1.connect();
+
+        LastWriteWinMap lastWriteWinMap = getCrdt(r1);
+
+        await().atMost(5, SECONDS).until(() -> c2.size() == 0
+            && lastWriteWinMap.getTombstones().size() == 0);
+    }
+
     public static String getRandomTempDbFile() {
         String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
         File file = new File(dataDir);
@@ -584,11 +634,11 @@ public class ReplicaTest {
         return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
 
-    /*
-     * Test case
-     *
-     * 2. Garbage Collection of tombstones
-     *
-     *
-     * */
+    @SneakyThrows
+    private LastWriteWinMap getCrdt(Replica replica) {
+        Field field = Replica.class.getDeclaredField("replicationTemplate");
+        field.setAccessible(true);
+        ReplicationTemplate replicationTemplate = (ReplicationTemplate) field.get(replica);
+        return replicationTemplate.getCrdt();
+    }
 }

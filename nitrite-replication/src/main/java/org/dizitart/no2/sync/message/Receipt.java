@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -13,6 +14,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Receipt {
-    private Set<Long> added;
-    private Set<Long> removed;
+    private Set<Long> added = new HashSet<>();
+    private Set<Long> removed = new HashSet<>();
 }

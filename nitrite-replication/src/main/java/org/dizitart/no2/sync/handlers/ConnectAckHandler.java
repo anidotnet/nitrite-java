@@ -17,6 +17,7 @@ public class ConnectAckHandler implements MessageHandler<ConnectAck> {
 
     @Override
     public void handleMessage(ConnectAck message) {
+        replica.collectGarbage(message.getTombstoneTtl());
         replica.setConnected();
         replica.startFeedExchange();
         replica.sendChanges();

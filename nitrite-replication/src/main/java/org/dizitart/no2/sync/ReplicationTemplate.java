@@ -4,7 +4,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.meta.Attributes;
+import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.sync.crdt.LastWriteWinMap;
 import org.dizitart.no2.sync.event.ReplicationEvent;
@@ -12,7 +14,10 @@ import org.dizitart.no2.sync.event.ReplicationEventBus;
 import org.dizitart.no2.sync.event.ReplicationEventListener;
 import org.dizitart.no2.sync.message.Connect;
 import org.dizitart.no2.sync.message.Disconnect;
+import org.dizitart.no2.sync.message.Receipt;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -141,6 +146,28 @@ public class ReplicationTemplate implements ReplicationOperation {
         messageTemplate.close();
         batchChangeScheduler.stop();
         this.getCollection().unsubscribe(replicaChangeListener);
+    }
+
+    public void collectGarbage(Long ttl) {
+        if (ttl != null && ttl > 0) {
+            long collectTime = System.currentTimeMillis() - ttl;
+            if (crdt != null && crdt.getTombstones() != null) {
+                Set<NitriteId> removeSet = new HashSet<>();
+                for (KeyValuePair<NitriteId, Long> entry : crdt.getTombstones().entries()) {
+                    if (entry.getValue() < collectTime) {
+                        removeSet.add(entry.getKey());
+                    }
+                }
+
+                Receipt garbage = new Receipt();
+                for (NitriteId nitriteId : removeSet) {
+                    crdt.getTombstones().remove(nitriteId);
+                    garbage.getRemoved().add(nitriteId.getIdValue());
+                }
+
+                feedJournal.accumulate(garbage);
+            }
+        }
     }
 
     private void init() {
