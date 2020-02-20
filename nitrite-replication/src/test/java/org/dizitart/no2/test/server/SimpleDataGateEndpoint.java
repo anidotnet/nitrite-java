@@ -30,14 +30,12 @@ public class SimpleDataGateEndpoint {
     private ObjectMapper objectMapper;
     private Repository repository;
     private MessageFactory factory;
-    private Timer timer;
     private MessageTransformer transformer;
 
     public SimpleDataGateEndpoint() {
         objectMapper = new ObjectMapper();
         repository = Repository.getInstance();
         factory = new MessageFactory();
-        timer = new Timer();
         transformer = new MessageTransformer(objectMapper);
     }
 
