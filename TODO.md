@@ -1,13 +1,10 @@
 1. All exception message must be detailed and unique as no number is there now.
 2. LuceneIndexer, test with testIssue174()
 3. Ensure every error event in replication
-4. Tombstone Garbage Collection
-
+4. Add Message Id and Correlation Id in header
 
 
 DataGate Server:
-
-
 
 https://stackoverflow.com/questions/42644779/how-to-secure-a-websocket-endpoint-in-java-ee
 https://github.com/ls1intum/jReto
