@@ -7,7 +7,6 @@ import org.dizitart.no2.sync.message.BatchChangeStart;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 
 /**
  * @author Anindya Chatterjee
@@ -29,9 +28,8 @@ class BatchChangeScheduler {
     public void schedule() {
         if (replica.isConnected()) {
             Long lastSyncTime = replica.getLastSyncTime();
-            String uuid = UUID.randomUUID().toString();
 
-            BatchChangeStart message = createStart(factory, uuid, lastSyncTime);
+            BatchChangeStart message = createStart(factory, lastSyncTime);
             messageTemplate.sendMessage(message);
             journal.write(message.getFeed());
 
@@ -50,7 +48,7 @@ class BatchChangeScheduler {
 
                     if (hasMore) {
                         BatchChangeContinue message = factory.createChangeContinue(replica.getConfig(),
-                            replica.getReplicaId(), uuid, state);
+                            replica.getReplicaId(), "", state);
 
                         messageTemplate.sendMessage(message);
                         journal.write(state);
@@ -63,7 +61,7 @@ class BatchChangeScheduler {
                 }
             }, 0, replica.getConfig().getDebounce());
 
-            BatchChangeEnd endMessage = factory.createChangeEnd(replica.getConfig(), replica.getReplicaId(), uuid, lastSyncTime);
+            BatchChangeEnd endMessage = factory.createChangeEnd(replica.getConfig(), replica.getReplicaId(), "", lastSyncTime);
             messageTemplate.sendMessage(endMessage);
         }
     }
@@ -74,9 +72,9 @@ class BatchChangeScheduler {
         }
     }
 
-    private BatchChangeStart createStart(MessageFactory factory, String uuid, Long lastSyncTime) {
+    private BatchChangeStart createStart(MessageFactory factory, Long lastSyncTime) {
         BatchChangeStart startMessage = factory.createChangeStart(replica.getConfig(),
-            replica.getReplicaId(), uuid);
+            replica.getReplicaId(), "");
 
         LastWriteWinState state = replica.getCrdt().getChangesSince(lastSyncTime, 0,
             replica.getConfig().getChunkSize());

@@ -7,7 +7,7 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  * @author Anindya Chatterjee.
  */
 @Data
-public class DataGateFeed implements DataGateMessage, ReceiptAware {
+public class DataGateFeed implements ReceiptAware {
     private MessageHeader header;
     private LastWriteWinState feed;
 }

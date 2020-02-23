@@ -44,18 +44,18 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     @Test(expected = ValidationException.class)
     public void testFindOptionsNegativeOffset() {
         insert();
-        collection.find().limit(-1, 1);
+        collection.find().skipLimit(-1, 1);
     }
 
     @Test(expected = ValidationException.class)
     public void testFindOptionsNegativeSize() {
         insert();
-        collection.find().limit(0, -1);
+        collection.find().skipLimit(0, -1);
     }
 
     public void testFindOptionsInvalidOffset() {
         insert();
-        assertEquals(collection.find().limit(10, 1).size(), 0);
+        assertEquals(collection.find().skipLimit(10, 1).size(), 0);
     }
 
     @Test(expected = ValidationException.class)
@@ -81,7 +81,7 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     public void testInvalidProjection() {
         insert();
         DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
-                sort("firstName", SortOrder.Ascending).limit(0, 3);
+                sort("firstName", SortOrder.Ascending).skipLimit(0, 3);
 
         Document projection = createDocument("firstName", null)
                 .put("lastName", "ln2");

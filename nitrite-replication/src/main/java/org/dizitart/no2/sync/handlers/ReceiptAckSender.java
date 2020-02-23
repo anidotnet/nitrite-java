@@ -12,7 +12,7 @@ import org.dizitart.no2.sync.message.ReceiptAware;
  */
 public interface ReceiptAckSender<Ack extends DataGateMessage> {
     ReplicationTemplate getReplicationTemplate();
-    Ack createAck(Receipt receipt);
+    Ack createAck(String correlationId, Receipt receipt);
 
     default void sendAck(ReceiptAware message) {
         if (message != null) {
@@ -20,7 +20,7 @@ public interface ReceiptAckSender<Ack extends DataGateMessage> {
             getReplicationTemplate().getCrdt().merge(state);
 
             Receipt receipt = message.calculateReceipt();
-            Ack ack = createAck(receipt);
+            Ack ack = createAck(message.getHeader().getId(), receipt);
             MessageTemplate messageTemplate = getReplicationTemplate().getMessageTemplate();
             messageTemplate.sendMessage(ack);
         }

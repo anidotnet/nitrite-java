@@ -28,9 +28,9 @@ public class DataGateFeedHandler implements MessageHandler<DataGateFeed>, Receip
     }
 
     @Override
-    public DataGateFeedAck createAck(Receipt receipt) {
+    public DataGateFeedAck createAck(String correlationId, Receipt receipt) {
         MessageFactory factory = replicationTemplate.getMessageFactory();
         return factory.createFeedAck(replicationTemplate.getConfig(),
-            replicationTemplate.getReplicaId(), receipt);
+            replicationTemplate.getReplicaId(), correlationId, receipt);
     }
 }

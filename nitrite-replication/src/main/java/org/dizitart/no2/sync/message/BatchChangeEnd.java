@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 public class BatchChangeEnd implements DataGateMessage {
     private MessageHeader header;
-    private String uuid;
     private Long lastSynced;
     private Integer batchSize;
     private Integer debounce;

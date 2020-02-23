@@ -1,7 +1,7 @@
 package org.dizitart.no2.collection.operation;
 
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.common.LimitedIterator;
+import org.dizitart.no2.common.BoundedIterator;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.ValidationException;
 
@@ -11,12 +11,12 @@ import java.util.Iterator;
 /**
  * @author Anindya Chatterjee.
  */
-class LimitedDocumentCursor implements ReadableStream<NitriteId> {
+class BoundedDocumentCursor implements ReadableStream<NitriteId> {
     private ReadableStream<NitriteId> readableStream;
-    private int offset;
-    private int size;
+    private long offset;
+    private long size;
 
-    LimitedDocumentCursor(ReadableStream<NitriteId> readableStream, final int offset, final int size) {
+    BoundedDocumentCursor(ReadableStream<NitriteId> readableStream, final long offset, final long size) {
         if (offset < 0) {
             throw new ValidationException("offset parameter must not be negative.");
         }
@@ -33,6 +33,6 @@ class LimitedDocumentCursor implements ReadableStream<NitriteId> {
     public Iterator<NitriteId> iterator() {
         Iterator<NitriteId> iterator = readableStream == null ? Collections.emptyIterator()
             : readableStream.iterator();
-        return new LimitedIterator<>(iterator, offset, size);
+        return new BoundedIterator<>(iterator, offset, size);
     }
 }

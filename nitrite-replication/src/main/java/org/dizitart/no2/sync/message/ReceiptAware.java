@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * @author Anindya Chatterjee
  */
-public interface ReceiptAware {
+public interface ReceiptAware extends DataGateMessage {
     LastWriteWinState getFeed();
 
     default Receipt calculateReceipt() {

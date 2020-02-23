@@ -20,7 +20,7 @@ public class BatchChangeEndHandler implements MessageHandler<BatchChangeEnd> {
     public void handleMessage(BatchChangeEnd message) {
         MessageFactory factory = replicationTemplate.getMessageFactory();
         BatchEndAck batchEndAck = factory.createBatchEndAck(replicationTemplate.getConfig(),
-            replicationTemplate.getReplicaId());
+            replicationTemplate.getReplicaId(), message.getHeader().getId());
 
         MessageTemplate messageTemplate = replicationTemplate.getMessageTemplate();
         messageTemplate.sendMessage(batchEndAck);

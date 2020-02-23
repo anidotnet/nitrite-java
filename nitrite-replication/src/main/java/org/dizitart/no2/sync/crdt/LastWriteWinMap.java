@@ -43,7 +43,7 @@ public class LastWriteWinMap {
     public LastWriteWinState getChangesSince(Long since, int offset, int size) {
         LastWriteWinState state = new LastWriteWinState();
 
-        DocumentCursor cursor = collection.find(where(DOC_MODIFIED).gte(since)).limit(offset, size);
+        DocumentCursor cursor = collection.find(where(DOC_MODIFIED).gte(since)).skipLimit(offset, size);
         state.getChanges().addAll(cursor.toSet());
 
         if (offset == 0) {

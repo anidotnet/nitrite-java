@@ -7,6 +7,8 @@ import lombok.Data;
  */
 @Data
 public class MessageHeader {
+    private String id;
+    private String correlationId;
     private String collection;
     private String userName;
     private Long timestamp;

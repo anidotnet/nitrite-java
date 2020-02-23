@@ -39,7 +39,7 @@ public interface DocumentCursor extends ReadableStream<Document> {
 
     DocumentCursor sort(String field, SortOrder sortOrder, Collator collator, NullOrder nullOrder);
 
-    DocumentCursor limit(int offset, int size);
+    DocumentCursor skipLimit(long skip, long size);
 
     /**
      * Gets a lazy iterable containing all the selected keys of the result documents.
@@ -63,6 +63,14 @@ public interface DocumentCursor extends ReadableStream<Document> {
      * @since 2.1.0
      */
     ReadableStream<Document> join(DocumentCursor foreignCursor, Lookup lookup);
+
+    default DocumentCursor skip(long skip) {
+        return skipLimit(skip, size());
+    }
+
+    default DocumentCursor limit(long limit) {
+        return skipLimit(0, limit);
+    }
 
     default DocumentCursor sort(String field) {
         return sort(field, SortOrder.Ascending);

@@ -67,7 +67,7 @@ public final class FlowableDocumentCursor extends FlowableReadableStream<Documen
         Callable<DocumentCursor> sortSupplier = () -> {
             DocumentCursor cursor = ObjectHelper.requireNonNull(supplier.call(),
                 "The supplier supplied is null");
-            return cursor.limit(offset, size);
+            return cursor.skipLimit(offset, size);
         };
 
         return new FlowableDocumentCursor(sortSupplier);

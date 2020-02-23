@@ -8,13 +8,13 @@ import java.util.NoSuchElementException;
 /**
  * @author Anindya Chatterjee.
  */
-public class LimitedIterator<T> implements Iterator<T> {
+public class BoundedIterator<T> implements Iterator<T> {
     private final Iterator<? extends T> iterator;
-    private final int offset;
-    private final int size;
+    private final long offset;
+    private final long size;
     private long pos;
 
-    public LimitedIterator(final Iterator<? extends T> iterator, final int offset, final int size) {
+    public BoundedIterator(final Iterator<? extends T> iterator, final long offset, final long size) {
         if (iterator == null) {
             throw new ValidationException("iterator must not be null");
         }

@@ -90,14 +90,14 @@ class NitriteTest : BaseTest() {
                     documentOf("a" to 3),
                     documentOf("a" to 4),
                     documentOf("a" to 5))
-            var cursor = find().limit(0, 2)
+            var cursor = find().skipLimit(0, 2)
             assertEquals(cursor.size(), 2)
 
             cursor = find().sort("a", SortOrder.Descending, NullOrder.First)
             assertEquals(cursor.size(), 5)
             assertEquals(cursor.last()["a"], 1)
 
-            cursor = find().sort("a", SortOrder.Descending).limit(0, 2)
+            cursor = find().sort("a", SortOrder.Descending).skipLimit(0, 2)
             assertEquals(cursor.size(), 2)
             assertEquals(cursor.last()["a"], 4)
         }

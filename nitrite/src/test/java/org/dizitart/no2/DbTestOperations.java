@@ -192,7 +192,7 @@ public class DbTestOperations {
         assertEquals(cursor.size(), 1);
 
         collection.createIndex("birthDay", indexOptions(IndexType.Unique));
-        cursor = collection.find().sort("birthDay", SortOrder.Descending).limit(1, 2);
+        cursor = collection.find().sort("birthDay", SortOrder.Descending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
         List<Date> dateList = new ArrayList<>();
         for (Document document : cursor) {

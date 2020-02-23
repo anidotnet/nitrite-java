@@ -19,10 +19,6 @@ public class MessageTemplate implements AutoCloseable {
         this.replica = replica;
     }
 
-    private String getReplicaId() {
-        return replica.getReplicaId();
-    }
-
     public void sendMessage(DataGateMessage message) {
         if (dataGateSocket != null && dataGateSocket.isConnected()) {
             if (!dataGateSocket.sendMessage(message)) {
@@ -59,5 +55,9 @@ public class MessageTemplate implements AutoCloseable {
         if (dispatcher != null) {
             dispatcher.close();
         }
+    }
+
+    private String getReplicaId() {
+        return replica.getReplicaId();
     }
 }

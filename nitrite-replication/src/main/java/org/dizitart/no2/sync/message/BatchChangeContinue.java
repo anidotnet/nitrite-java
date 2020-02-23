@@ -7,10 +7,9 @@ import org.dizitart.no2.sync.crdt.LastWriteWinState;
  * @author Anindya Chatterjee
  */
 @Data
-public class BatchChangeContinue implements DataGateMessage, ReceiptAware {
+public class BatchChangeContinue implements ReceiptAware {
     private MessageHeader header;
     private LastWriteWinState feed;
-    private String uuid;
     private Integer batchSize;
     private Integer debounce;
 }

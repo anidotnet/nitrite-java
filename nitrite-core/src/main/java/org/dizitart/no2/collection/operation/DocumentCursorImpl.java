@@ -31,8 +31,8 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     @Override
-    public DocumentCursor limit(int offset, int size) {
-        return new DocumentCursorImpl(new LimitedDocumentCursor(readableStream, offset, size), nitriteMap);
+    public DocumentCursor skipLimit(long skip, long limit) {
+        return new DocumentCursorImpl(new BoundedDocumentCursor(readableStream, skip, limit), nitriteMap);
     }
 
     @Override

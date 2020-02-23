@@ -73,7 +73,8 @@ class ReplicaChangeListener implements CollectionEventListener {
     private void sendFeed(LastWriteWinState state) {
         if (replicationTemplate.shouldExchangeFeed() && messageTemplate != null) {
             MessageFactory factory = replicationTemplate.getMessageFactory();
-            DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(), replicationTemplate.getReplicaId(), state);
+            DataGateFeed feedMessage = factory.createFeedMessage(replicationTemplate.getConfig(),
+                replicationTemplate.getReplicaId(), state);
 
             FeedJournal journal = replicationTemplate.getFeedJournal();
             messageTemplate.sendMessage(feedMessage);

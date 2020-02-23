@@ -56,7 +56,7 @@ class ObjectCursor<T> implements Cursor<T> {
 
     @Override
     public Cursor<T> limit(int offset, int size) {
-        return new ObjectCursor<>(nitriteMapper, cursor.limit(offset, size), type);
+        return new ObjectCursor<>(nitriteMapper, cursor.skipLimit(offset, size), type);
     }
 
     @Override

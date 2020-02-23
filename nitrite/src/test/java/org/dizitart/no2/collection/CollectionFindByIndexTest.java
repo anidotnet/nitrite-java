@@ -280,7 +280,7 @@ public class CollectionFindByIndexTest extends BaseCollectionTest {
         collection.createIndex("birthDay", IndexOptions.indexOptions(IndexType.Unique));
 
         DocumentCursor cursor = collection.find().
-            sort("birthDay", SortOrder.Descending).limit(1, 2);
+            sort("birthDay", SortOrder.Descending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
         List<Date> dateList = new ArrayList<>();
         for (Document document : cursor) {
@@ -289,7 +289,7 @@ public class CollectionFindByIndexTest extends BaseCollectionTest {
         assertTrue(isSorted(dateList, false));
 
         cursor = collection.find().
-            sort("birthDay", SortOrder.Ascending).limit(1, 2);
+            sort("birthDay", SortOrder.Ascending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
         dateList = new ArrayList<>();
         for (Document document : cursor) {
@@ -298,7 +298,7 @@ public class CollectionFindByIndexTest extends BaseCollectionTest {
         assertTrue(isSorted(dateList, true));
 
         cursor = collection.find().
-            sort("firstName", SortOrder.Ascending).limit(0, 30);
+            sort("firstName", SortOrder.Ascending).skipLimit(0, 30);
         assertEquals(cursor.size(), 3);
         List<String> nameList = new ArrayList<>();
         for (Document document : cursor) {

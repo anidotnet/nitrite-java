@@ -22,6 +22,7 @@ import org.dizitart.no2.BaseCollectionTest;
 import org.dizitart.no2.common.NullOrder;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.IndexingException;
+import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.joda.time.DateTime;
@@ -125,20 +126,69 @@ public class CollectionFindTest extends BaseCollectionTest {
     }
 
     @Test
+    public void testFindWithSkipLimit() {
+        insert();
+
+        DocumentCursor cursor = collection.find().skipLimit(0, 1);
+        assertEquals(cursor.size(), 1);
+
+        cursor = collection.find().skipLimit(1, 3);
+        assertEquals(cursor.size(), 2);
+
+        cursor = collection.find().skipLimit(0, 30);
+        assertEquals(cursor.size(), 3);
+
+        cursor = collection.find().skipLimit(2, 3);
+        assertEquals(cursor.size(), 1);
+    }
+
+    @Test
+    public void testFindWithSkip() {
+        insert();
+
+        DocumentCursor cursor = collection.find().skip(0);
+        assertEquals(cursor.size(), 3);
+
+        cursor = collection.find().skip(1);
+        assertEquals(cursor.size(), 2);
+
+        cursor = collection.find().skip(30);
+        assertEquals(cursor.size(), 0);
+
+        cursor = collection.find().skip(2);
+        assertEquals(cursor.size(), 1);
+
+        boolean invalid = false;
+        try {
+            cursor = collection.find().skip(-1);
+            assertEquals(cursor.size(), 1);
+        } catch (ValidationException e) {
+            invalid = true;
+        }
+        assertTrue(invalid);
+    }
+
+    @Test
     public void testFindWithLimit() {
         insert();
 
-        DocumentCursor cursor = collection.find().limit(0, 1);
+        DocumentCursor cursor = collection.find().limit(0);
+        assertEquals(cursor.size(), 0);
+
+        cursor = collection.find().limit(1);
         assertEquals(cursor.size(), 1);
 
-        cursor = collection.find().limit(1, 3);
-        assertEquals(cursor.size(), 2);
+        boolean invalid = false;
+        try {
+            cursor = collection.find().limit(-1);
+            assertEquals(cursor.size(), 1);
+        } catch (ValidationException e) {
+            invalid = true;
+        }
+        assertTrue(invalid);
 
-        cursor = collection.find().limit(0, 30);
+        cursor = collection.find().limit(30);
         assertEquals(cursor.size(), 3);
-
-        cursor = collection.find().limit(2, 3);
-        assertEquals(cursor.size(), 1);
     }
 
     @Test
@@ -172,7 +222,7 @@ public class CollectionFindTest extends BaseCollectionTest {
         insert();
 
         DocumentCursor cursor = collection.find().
-            sort("birthDay", SortOrder.Descending).limit(1, 2);
+            sort("birthDay", SortOrder.Descending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
         List<Date> dateList = new ArrayList<>();
         for (Document document : cursor) {
@@ -181,7 +231,7 @@ public class CollectionFindTest extends BaseCollectionTest {
         assertTrue(isSorted(dateList, false));
 
         cursor = collection.find().
-            sort("birthDay", SortOrder.Ascending).limit(1, 2);
+            sort("birthDay", SortOrder.Ascending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
         dateList = new ArrayList<>();
         for (Document document : cursor) {
@@ -190,7 +240,7 @@ public class CollectionFindTest extends BaseCollectionTest {
         assertTrue(isSorted(dateList, true));
 
         cursor = collection.find().
-            sort("firstName", SortOrder.Ascending).limit(0, 30);
+            sort("firstName", SortOrder.Ascending).skipLimit(0, 30);
         assertEquals(cursor.size(), 3);
         List<String> nameList = new ArrayList<>();
         for (Document document : cursor) {
@@ -224,7 +274,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     public void testFindLimitAndSortInvalidField() {
         insert();
         DocumentCursor cursor = collection.find().
-            sort("birthDay2", SortOrder.Descending).limit(1, 2);
+            sort("birthDay2", SortOrder.Descending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
     }
 
@@ -248,7 +298,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     public void testFindWithFilterAndOption() {
         insert();
         DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
-            sort("firstName", SortOrder.Ascending).limit(1, 2);
+            sort("firstName", SortOrder.Ascending).skipLimit(1, 2);
         assertEquals(cursor.size(), 2);
     }
 
@@ -272,7 +322,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     public void testProject() {
         insert();
         DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
-            sort("firstName", SortOrder.Ascending).limit(0, 3);
+            sort("firstName", SortOrder.Ascending).skipLimit(0, 3);
         int iteration = 0;
         for (Document document : cursor) {
             switch (iteration) {
@@ -295,7 +345,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     public void testProjectWithCustomDocument() {
         insert();
         DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
-            sort("firstName", SortOrder.Ascending).limit(0, 3);
+            sort("firstName", SortOrder.Ascending).skipLimit(0, 3);
 
         Document projection = createDocument("firstName", null)
             .put("lastName", null);
