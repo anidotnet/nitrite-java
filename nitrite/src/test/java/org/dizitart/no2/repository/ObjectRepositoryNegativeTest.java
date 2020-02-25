@@ -35,8 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Anindya Chatterjee.
@@ -199,5 +198,22 @@ public class ObjectRepositoryNegativeTest {
         WithPublicField instance = repository.getById(null);
         assertEquals(object.name, instance.name);
         assertEquals(object.number, instance.number);
+    }
+
+    @Test
+    public void testExternalNitriteId() {
+        ObjectRepository<WithNitriteId> repository = db.getRepository(WithNitriteId.class);
+        WithNitriteId obj = new WithNitriteId();
+        NitriteId id = NitriteId.createId(1L);
+        obj.setIdField(id);
+        obj.setName("testExternalNitriteId");
+        WriteResult result = repository.update(obj, true);
+
+        obj = new WithNitriteId();
+        id = result.iterator().next();
+        obj.setIdField(result.iterator().next());
+        obj.setName("testExternalNitriteId");
+        result = repository.update(obj, true);
+        assertNotEquals(id.getIdValue(), result.iterator().next().getIdValue());
     }
 }

@@ -87,8 +87,7 @@ public final class NitriteId implements Comparable<NitriteId>, Serializable {
      * @return the underlying id object.
      */
     public Long getIdValue() {
-        if (idValue != null) return idValue;
-        return null;
+        return idValue;
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {
