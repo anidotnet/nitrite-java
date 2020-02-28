@@ -47,8 +47,6 @@ public class DataGateIntegrationTest {
                 .acceptAllCertificates(true)
                 .create();
             replica.connect();
-
-            Thread.sleep(5000);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
