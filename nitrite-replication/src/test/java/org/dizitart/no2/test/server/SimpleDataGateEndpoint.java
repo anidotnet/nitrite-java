@@ -92,7 +92,6 @@ public class SimpleDataGateEndpoint {
             errorMessage.setHeader(createHeader(MessageType.Error, null, null,
                 repository.getServerId(), ""));
             errorMessage.setError(ex.getMessage());
-            errorMessage.setIsFatal(isFatal(ex));
             String message = objectMapper.writeValueAsString(errorMessage);
             session.getBasicRemote().sendText(message);
         } catch (Exception e) {
@@ -151,7 +150,6 @@ public class SimpleDataGateEndpoint {
         } else {
             session.getUserProperties().put("authorized", false);
             ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setIsFatal(true);
             errorMessage.setError("Unauthorized");
             errorMessage.setHeader(createHeader(MessageType.Error,
                 connect.getHeader().getCollection(), userName,
@@ -418,10 +416,6 @@ public class SimpleDataGateEndpoint {
         messageHeader.setTimestamp(System.currentTimeMillis());
         messageHeader.setUserName(userName);
         return messageHeader;
-    }
-
-    private Boolean isFatal(Throwable ex) {
-        return ex instanceof SecurityException;
     }
 
     private boolean isValidAuth(String userName, String authToken) {
