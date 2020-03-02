@@ -173,7 +173,7 @@ public class DataGateSocket {
                 config.getTimeout().getTimeUnit())
             .writeTimeout(config.getTimeout().getTime(),
                 config.getTimeout().getTimeUnit())
-            .pingInterval(30, TimeUnit.SECONDS)
+            .pingInterval(10, TimeUnit.SECONDS)
             .retryOnConnectionFailure(false);
 
         if (config.getProxy() != null) {

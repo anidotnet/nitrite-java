@@ -2,14 +2,23 @@ package org.dizitart.no2.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.sync.Replica;
+import org.dizitart.no2.sync.event.ReplicationEventType;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
@@ -19,7 +28,21 @@ import static org.dizitart.no2.collection.Document.createDocument;
 /**
  * @author Anindya Chatterjee
  */
+@Slf4j
 public class DataGateIntegrationTest {
+    // TODO: Implement testing logic with 2 replicas
+
+    static {
+        try {
+            InputStream inputStream = new FileInputStream("/home/anindya/codebase/nitrite/nitrite-java/nitrite-replication/src/test/resources/log4j2.xml");
+            ConfigurationSource source = new ConfigurationSource(inputStream);
+            Configurator.initialize(null, source);
+        } catch (Exception ex) {
+            // Handle here
+        }
+    }
+
+
     public static void main(String[] args) {
         Path dbPath = null;
         try {
@@ -46,9 +69,25 @@ public class DataGateIntegrationTest {
                 .jwtAuth("anidotnet@gmail.com", jwt)
                 .acceptAllCertificates(true)
                 .create();
-            replica.connect();
 
-            Thread.sleep(5000);
+            replica.subscribe(event -> {
+                if (event.getEventType() == ReplicationEventType.Stopped) {
+                    System.out.println("Reconnecting");
+                    replica.connect();
+                }
+            });
+
+            replica.connect();
+            System.out.println("Connected");
+            Thread.sleep(10000);
+            System.out.println("Completed");
+
+//            while (true) {
+//                Document doc = randomDocument();
+//                System.out.println("Writing document " + doc + " to collection");
+//                collection.insert(doc);
+//                Thread.sleep(10000);
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
