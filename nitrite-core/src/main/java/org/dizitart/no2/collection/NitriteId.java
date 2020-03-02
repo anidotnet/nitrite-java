@@ -29,7 +29,9 @@ import static org.dizitart.no2.common.Constants.ID_SUFFIX;
 @EqualsAndHashCode
 public final class NitriteId implements Comparable<NitriteId>, Serializable {
     private static final long serialVersionUID = 1477462375L;
-    private static final AtomicLong counter = new AtomicLong(System.nanoTime());
+
+    // TODO: https://github.com/Predictor/javasnowflake/blob/master/IdGenerator/src/org/predictor/idgenerator/BasicEntityIdGenerator.java
+    private static final AtomicLong counter = new AtomicLong(Math.abs(System.nanoTime()));
 
     private Long idValue;
 
