@@ -16,14 +16,14 @@
   ~
   -->
 
-<Configuration status="ERROR" name="nitrite" monitorInterval="5">
+<Configuration status="DEBUG" name="nitrite" monitorInterval="5">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %p %c{1.} [%t] %m%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="ERROR">
+        <Root level="DEBUG">
             <AppenderRef ref="Console"/>
         </Root>
         <Logger name="org.dizitart" level="INFO" additivity="false">
@@ -32,7 +32,7 @@
         <Logger name="org.dizitart.no2.sync" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.dizitart.no2.test.server" level="OFF" additivity="false">
+        <Logger name="org.dizitart.no2.test" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>
