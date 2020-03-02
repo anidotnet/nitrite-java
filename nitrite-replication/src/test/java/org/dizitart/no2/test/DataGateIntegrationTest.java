@@ -82,12 +82,6 @@ public class DataGateIntegrationTest {
             Thread.sleep(10000);
             System.out.println("Completed");
 
-//            while (true) {
-//                Document doc = randomDocument();
-//                System.out.println("Writing document " + doc + " to collection");
-//                collection.insert(doc);
-//                Thread.sleep(10000);
-//            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
