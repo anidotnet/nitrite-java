@@ -211,7 +211,7 @@ public class ObjectRepositoryNegativeTest {
 
         obj = new WithNitriteId();
         id = result.iterator().next();
-        obj.setIdField(result.iterator().next());
+        obj.setIdField(id);
         obj.setName("testExternalNitriteId");
         result = repository.update(obj, true);
         assertNotEquals(id.getIdValue(), result.iterator().next().getIdValue());

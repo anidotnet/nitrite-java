@@ -544,4 +544,90 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
 
         assertNull(repo.getById(one.idField));
     }
+
+    /*
+     * Upsert Use Cases
+     *
+     * 1. Object does not exists
+     *      a. if upsert true, it will insert
+     *      b. if upsert false, nothing happens
+     * 2. Object exists
+     *      a. if upsert true, it will update, old id remains same
+     *      b. if upsert false, it will update, old id remains same
+     *
+     * */
+
+    @Test
+    public void testUpdateObjectNotExistsUpsertTrue() {
+        ObjectRepository<InternalClass> repo = db.getRepository(InternalClass.class);
+        InternalClass a = new InternalClass();
+        a.setId(1);
+        a.setName("first");
+        repo.insert(a);
+
+        a = new InternalClass();
+        a.setId(2);
+        a.setName("second");
+
+        // it will insert as new object
+        repo.update(a, true);
+        assertEquals(repo.size(), 2);
+    }
+
+    @Test
+    public void testUpdateObjectNotExistsUpsertFalse() {
+        ObjectRepository<InternalClass> repo = db.getRepository(InternalClass.class);
+        InternalClass a = new InternalClass();
+        a.setId(1);
+        a.setName("first");
+        repo.insert(a);
+
+        a = new InternalClass();
+        a.setId(2);
+        a.setName("second");
+
+        // no changes will happen to repository
+        repo.update(a, false);
+        assertEquals(repo.size(), 1);
+        assertEquals(repo.find().firstOrNull().getId(), 1);
+        assertEquals(repo.find().firstOrNull().getName(), "first");
+    }
+
+    @Test
+    public void testUpdateObjectExistsUpsertTrue() {
+        ObjectRepository<InternalClass> repo = db.getRepository(InternalClass.class);
+        InternalClass a = new InternalClass();
+        a.setId(1);
+        a.setName("first");
+        repo.insert(a);
+
+        a = new InternalClass();
+        a.setId(1);
+        a.setName("second");
+
+        // update existing object, keep id same
+        repo.update(a, true);
+        assertEquals(repo.size(), 1);
+        assertEquals(repo.find().firstOrNull().getId(), 1);
+        assertEquals(repo.find().firstOrNull().getName(), "second");
+    }
+
+    @Test
+    public void testUpdateObjectExistsUpsertFalse() {
+        ObjectRepository<InternalClass> repo = db.getRepository(InternalClass.class);
+        InternalClass a = new InternalClass();
+        a.setId(1);
+        a.setName("first");
+        repo.insert(a);
+
+        a = new InternalClass();
+        a.setId(1);
+        a.setName("second");
+
+        // update existing object, keep id same
+        repo.update(a, false);
+        assertEquals(repo.size(), 1);
+        assertEquals(repo.find().firstOrNull().getId(), 1);
+        assertEquals(repo.find().firstOrNull().getName(), "second");
+    }
 }

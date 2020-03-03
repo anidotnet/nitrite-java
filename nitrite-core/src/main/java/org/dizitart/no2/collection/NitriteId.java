@@ -7,11 +7,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.dizitart.no2.common.Constants.ID_PREFIX;
 import static org.dizitart.no2.common.Constants.ID_SUFFIX;
@@ -33,13 +28,12 @@ import static org.dizitart.no2.common.Constants.ID_SUFFIX;
 @EqualsAndHashCode
 public final class NitriteId implements Comparable<NitriteId>, Serializable {
     private static final long serialVersionUID = 1477462375L;
-    private static final long hardwareId = getSystemId();
-    private static final AtomicLong counter = new AtomicLong(0);
+    private transient static final SnowflakeIdGenerator generator = new SnowflakeIdGenerator();
 
     private Long idValue;
 
     private NitriteId() {
-        this.idValue = generateLongId();
+        this.idValue = generator.getId();
     }
 
     private NitriteId(Long value) {
@@ -101,30 +95,5 @@ public final class NitriteId implements Comparable<NitriteId>, Serializable {
 
     private void readObject(ObjectInputStream stream) throws IOException {
         idValue = stream.readLong();
-    }
-
-    private synchronized Long generateLongId() {
-        long timestamp = System.currentTimeMillis();
-        return ((timestamp - 1288834974657L) << 22L) |
-            (hardwareId << 12) |
-            counter.getAndIncrement();
-    }
-
-    private static long getSystemId() {
-        try {
-            InetAddress ip = InetAddress.getLocalHost();
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-            long id;
-            if (network == null) {
-                id = 1L;
-            } else {
-                byte[] mac = network.getHardwareAddress();
-                id = ((0x000000FF & (long) mac[mac.length - 1])
-                    | (0x0000FF00 & (((long) mac[mac.length - 2]) << 8))) >> 6;
-            }
-            return id;
-        } catch (UnknownHostException | SocketException e) {
-            throw new RuntimeException("failed to extract hardware id", e);
-        }
     }
 }

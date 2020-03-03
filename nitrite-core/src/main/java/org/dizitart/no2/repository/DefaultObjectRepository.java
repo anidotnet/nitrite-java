@@ -88,7 +88,9 @@ class DefaultObjectRepository<T> implements ObjectRepository<T> {
     public WriteResult update(Filter filter, T update, boolean insertIfAbsent) {
         notNull(update, "a null object cannot be used for update");
         Document updateDocument = operations.toDocument(update, true);
-        operations.removeNitriteId(updateDocument);
+        if (!insertIfAbsent) {
+            operations.removeNitriteId(updateDocument);
+        }
         return collection.update(asObjectFilter(filter), updateDocument, updateOptions(insertIfAbsent, true));
     }
 
