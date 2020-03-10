@@ -72,6 +72,7 @@ public class LastWriteWinMap {
                     if (docModifiedTime >= tombstoneTime) {
                         value.put(DOC_SOURCE, REPLICATOR);
                         collection.insert(value);
+                        tombstones.remove(key);
                     }
                 } else {
                     value.put(DOC_SOURCE, REPLICATOR);

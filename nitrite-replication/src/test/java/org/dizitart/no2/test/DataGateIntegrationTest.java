@@ -81,7 +81,10 @@ public class DataGateIntegrationTest {
             System.out.println("Connected");
             Thread.sleep(10000);
             System.out.println("Completed");
-
+            System.out.println("Collection Size - " + collection.size());
+            for (Document d : collection.find()) {
+                System.out.println(d);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
