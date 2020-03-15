@@ -17,7 +17,7 @@ public class ErrorHandler implements MessageHandler<ErrorMessage> {
 
     @Override
     public void handleMessage(ErrorMessage message) {
-        log.error("Received error message from server {}", message.getError());
+        log.error("Received error message from server - {}", message.getError());
         replica.stopReplication(message.getError());
     }
 }
