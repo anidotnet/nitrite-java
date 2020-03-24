@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.module.NitriteModule;
 import org.dizitart.no2.store.MVStoreConfig;
+import org.h2.mvstore.OffHeapStore;
 
 import java.io.File;
 
@@ -207,6 +208,16 @@ public abstract class NitriteBuilder {
      */
     public NitriteBuilder loadModule(NitriteModule module) {
         this.nitriteConfig.loadModule(module);
+        return this;
+    }
+
+    /**
+     * Enables off-heap storage for in-memory database.
+     *
+     * @return the {@link NitriteBuilder} instance.
+     * */
+    public NitriteBuilder enableOffHeapStorage() {
+        this.storeConfig.fileStore(new OffHeapStore());
         return this;
     }
 

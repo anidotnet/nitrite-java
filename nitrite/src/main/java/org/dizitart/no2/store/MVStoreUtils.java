@@ -156,7 +156,7 @@ class MVStoreUtils {
             builder = builder.compress();
         }
 
-        if (isNullOrEmpty(mvStoreConfig.getFilePath())) {
+        if (isNullOrEmpty(mvStoreConfig.getFilePath()) && mvStoreConfig.getFileStore() != null) {
             // for in-memory store use off-heap storage
             builder = builder.fileStore(mvStoreConfig.getFileStore());
         }
