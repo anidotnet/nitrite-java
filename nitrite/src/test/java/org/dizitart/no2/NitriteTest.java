@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
+import org.dizitart.no2.collection.UpdateOptions;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 import org.dizitart.no2.exceptions.NitriteIOException;
@@ -399,6 +400,29 @@ public class NitriteTest {
         assertEquals(repository.find(where("address").text("London")).size(), 2);
 
         db.close();
+    }
+
+    @Test
+    public void testIssue212() {
+        NitriteCollection collection = db.getCollection("testIssue212");
+        Document doc1 = createDocument("key", "key").put("second_key", "second_key").put("third_key", "third_key");
+        Document doc2 = createDocument("key", "key").put("second_key", "second_key").put("fourth_key", "fourth_key");
+        Document doc = createDocument("fifth_key", "fifth_key");
+
+        if(!collection.hasIndex("key")){
+            collection.createIndex("key", IndexOptions.indexOptions(IndexType.NonUnique));
+        }
+        if(!collection.hasIndex("second_key")){
+            collection.createIndex("second_key", IndexOptions.indexOptions(IndexType.NonUnique));
+        }
+
+        collection.insert(doc1, doc2);
+        collection.update(where("key").eq("key").and(where("second_key").eq("second_key")),
+            doc, UpdateOptions.updateOptions(true));
+
+        for (Document document : collection.find()) {
+            System.out.println(document);
+        }
     }
 
     @Data
