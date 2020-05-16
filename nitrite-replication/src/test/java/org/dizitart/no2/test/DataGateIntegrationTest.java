@@ -11,7 +11,6 @@ import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.sync.Replica;
-import org.dizitart.no2.sync.event.ReplicationEventType;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -30,7 +29,7 @@ import static org.dizitart.no2.collection.Document.createDocument;
  */
 @Slf4j
 public class DataGateIntegrationTest {
-    // TODO: Implement testing logic with 2 replicas
+    // TODO: Use https://www.testcontainers.org/ and use datagate-container for integration test
 
     static {
         try {
@@ -70,12 +69,12 @@ public class DataGateIntegrationTest {
                 .acceptAllCertificates(true)
                 .create();
 
-            replica.subscribe(event -> {
-                if (event.getEventType() == ReplicationEventType.Stopped) {
-                    System.out.println("Reconnecting");
-                    replica.connect();
-                }
-            });
+//            replica.subscribe(event -> {
+//                if (event.getEventType() == ReplicationEventType.Stopped) {
+//                    System.out.println("Reconnecting");
+//                    replica.connect();
+//                }
+//            });
 
             replica.connect();
             System.out.println("Connected");
