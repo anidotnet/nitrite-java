@@ -21,8 +21,10 @@ dependencies {
     implementation project(path: ':nitrite-core', configuration: 'default')
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "com.h2database:h2-mvstore:$h2Version"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     testAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation "uk.co.jemos.podam:podam:$podamVersion"
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.openjdk.jmh:jmh-core:$jmhVersion"

@@ -22,7 +22,9 @@ dependencies {
     implementation project(path: ':nitrite-jackson-mapper', configuration: 'default')
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.locationtech.jts:jts-core:$jtsVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation project(path: ':nitrite', configuration: 'default')
     testImplementation project(path: ':nitrite-jackson-mapper', configuration: 'default')
     testImplementation "junit:junit:$junitVersion"

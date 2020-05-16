@@ -22,8 +22,10 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     testImplementation project(path: ':nitrite', configuration: 'default')
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.locationtech.jts:jts-core:$jtsVersion"
     testImplementation "org.awaitility:awaitility:$awaitilityVersion"

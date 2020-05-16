@@ -34,7 +34,9 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.objenesis:objenesis:$objenesisVersion"
     implementation "org.jasypt:jasypt:$jasyptVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation "junit:junit:$junitVersion"
 }
 

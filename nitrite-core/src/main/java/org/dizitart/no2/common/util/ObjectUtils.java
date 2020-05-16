@@ -48,9 +48,9 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 @UtilityClass
 @Slf4j
 public class ObjectUtils {
-    private final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER_TYPE;
-    private final Objenesis stdObjenesis = new ObjenesisStd(true);
-    private final Objenesis serializerObjenesis = new ObjenesisSerializer(true);
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER_TYPE;
+    private static final Objenesis stdObjenesis = new ObjenesisStd(true);
+    private static final Objenesis serializerObjenesis = new ObjenesisSerializer(true);
 
     static {
         Map<Class<?>, Class<?>> primToWrap = new LinkedHashMap<>();
@@ -72,7 +72,7 @@ public class ObjectUtils {
      * @param collectionName the collection name
      * @return `true` if it is a valid object store name; `false` otherwise.
      */
-    public boolean isRepository(String collectionName) {
+    public static boolean isRepository(String collectionName) {
         try {
             if (isNullOrEmpty(collectionName)) return false;
             Class.forName(collectionName);
@@ -88,7 +88,7 @@ public class ObjectUtils {
      * @param collectionName the collection name
      * @return `true` if it is a valid object store name; `false` otherwise.
      */
-    public boolean isKeyedRepository(String collectionName) {
+    public static boolean isKeyedRepository(String collectionName) {
         try {
             if (isNullOrEmpty(collectionName)) return false;
             if (!collectionName.contains(KEY_OBJ_SEPARATOR)) return false;
@@ -111,7 +111,7 @@ public class ObjectUtils {
      * @param collectionName name of the collection
      * @return the key
      */
-    public String getKeyName(String collectionName) {
+    public static String getKeyName(String collectionName) {
         if (collectionName.contains(KEY_OBJ_SEPARATOR)) {
             String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
             return split[1];
@@ -125,7 +125,7 @@ public class ObjectUtils {
      * @param collectionName name of the collection
      * @return the type name
      */
-    public String getKeyedRepositoryType(String collectionName) {
+    public static String getKeyedRepositoryType(String collectionName) {
         if (collectionName.contains(KEY_OBJ_SEPARATOR)) {
             String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
             return split[0];
@@ -141,7 +141,7 @@ public class ObjectUtils {
      * @return `true` if two objects are equal.
      */
     @SuppressWarnings("rawtypes")
-    public boolean deepEquals(Object o1, Object o2) {
+    public static boolean deepEquals(Object o1, Object o2) {
         if (o1 == null && o2 == null) {
             return true;
         } else if (o1 == null || o2 == null) {
@@ -197,7 +197,7 @@ public class ObjectUtils {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T> T newInstance(Class<T> type, boolean createSkeleton) {
+    public static <T> T newInstance(Class<T> type, boolean createSkeleton) {
         try {
             if (type.isPrimitive() || type.isArray() || type == String.class) {
                 return defaultValue(type);
@@ -235,7 +235,7 @@ public class ObjectUtils {
         }
     }
 
-    public boolean isValueType(Class<?> retType) {
+    public static boolean isValueType(Class<?> retType) {
         if (retType.isPrimitive() && retType != void.class) return true;
         if (Number.class.isAssignableFrom(retType)) return true;
         if (Boolean.class == retType) return true;
@@ -245,7 +245,7 @@ public class ObjectUtils {
         return Enum.class.isAssignableFrom(retType);
     }
 
-    public boolean isCompatibleTypes(Class<?> type1, Class<?> type2) {
+    public static boolean isCompatibleTypes(Class<?> type1, Class<?> type2) {
         if (type1.equals(type2)) return true;
         if (type1.isAssignableFrom(type2)) return true;
         if (type1.isPrimitive()) {
@@ -258,7 +258,7 @@ public class ObjectUtils {
         return false;
     }
 
-    public Object[] convertToObjectArray(Object array) {
+    public static Object[] convertToObjectArray(Object array) {
         Class ofArray = array.getClass().getComponentType();
         if (ofArray.isPrimitive()) {
             List<Object> ar = new ArrayList<>();
@@ -272,7 +272,7 @@ public class ObjectUtils {
         }
     }
 
-    public <T extends Comparable<? super T>> int compare(T c1, T c2) {
+    public static <T extends Comparable<? super T>> int compare(T c1, T c2) {
         if (c1 == c2) {
             return 0;
         } else if (c1 == null) {
@@ -289,7 +289,7 @@ public class ObjectUtils {
         return (wrapped == null) ? type : wrapped;
     }
 
-    private <T> ObjectInstantiator<T> getInstantiatorOf(Class<T> type) {
+    private static <T> ObjectInstantiator<T> getInstantiatorOf(Class<T> type) {
         if (Serializable.class.isAssignableFrom(type)) {
             return serializerObjenesis.getInstantiatorOf(type);
         } else {
@@ -297,21 +297,21 @@ public class ObjectUtils {
         }
     }
 
-    private <P, F> boolean isSkeletonRequired(Class<P> enclosingType, Class<F> fieldType) {
+    private static <P, F> boolean isSkeletonRequired(Class<P> enclosingType, Class<F> fieldType) {
         String fieldTypePackage = getPackageName(fieldType);
         String enclosingTypePackage = getPackageName(enclosingType);
 
         return isCompatible(enclosingTypePackage, fieldTypePackage);
     }
 
-    private boolean isCompatible(String enclosingTypePackage, String fieldTypePackage) {
+    private static boolean isCompatible(String enclosingTypePackage, String fieldTypePackage) {
         if (enclosingTypePackage.contains(fieldTypePackage) && fieldTypePackage.contains(".")) return true;
         int lastDot = fieldTypePackage.lastIndexOf('.');
         if (lastDot == -1) return false;
         return isCompatible(enclosingTypePackage, fieldTypePackage.substring(0, lastDot));
     }
 
-    private <T> String getPackageName(Class<T> clazz) {
+    private static <T> String getPackageName(Class<T> clazz) {
         String fqName = clazz.getName();
         int lastDot = fqName.lastIndexOf('.');
         if (lastDot == -1) return "";
@@ -319,7 +319,7 @@ public class ObjectUtils {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T defaultValue(Class<T> type) {
+    private static <T> T defaultValue(Class<T> type) {
         if (type.isPrimitive()) {
             switch (type.getName()) {
                 case "boolean":

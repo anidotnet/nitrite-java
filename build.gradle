@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import io.franzbecker.gradle.lombok.task.DelombokTask
-
 buildscript {
     repositories {
         jcenter()
@@ -26,7 +24,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.franzbecker:gradle-lombok:$lombokPluginVersion"
+        classpath "io.freefair.gradle:lombok-plugin:$lombokPluginVersion"
         classpath "org.asciidoctor:asciidoctor-gradle-plugin:$asciidoctorPluginVersion"
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:$errorPronePluginVersion"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:$nexusStagingPlugin"
@@ -41,16 +39,11 @@ apply plugin: 'net.ltgt.errorprone'
 apply plugin: 'io.codearte.nexus-staging'
 
 subprojects {
-    apply plugin: 'io.franzbecker.gradle-lombok'
+    apply plugin: 'io.freefair.lombok'
     apply plugin: 'com.adarshr.test-logger'
 
     group = 'org.dizitart'
     version = "$nitriteVersion"
-
-    lombok {
-        version = "$lombokVersion"
-        sha256 = ""
-    }
 
     testlogger {
         theme 'mocha'
@@ -61,10 +54,6 @@ subprojects {
         mavenCentral()
         mavenLocal()
     }
-
-    task delombok(type: DelombokTask) {
-        args "src/main/java", "-d", "build/generated-src/delombok/java"
-    }
 }
 
 task clean(type: Delete) {
@@ -72,7 +61,7 @@ task clean(type: Delete) {
 }
 
 configurations.errorprone {
-    resolutionStrategy.force 'com.google.errorprone:error_prone_core:$errorProneVersion'
+    resolutionStrategy.force "com.google.errorprone:error_prone_core:$errorProneVersion"
 }
 
 nexusStaging {

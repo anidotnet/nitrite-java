@@ -21,8 +21,10 @@ dependencies {
     implementation project(path: ':nitrite-core', configuration: 'default')
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
     testImplementation project(':nitrite')
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation "junit:junit:$junitVersion"
     testImplementation "uk.co.jemos.podam:podam:$podamVersion"
 }

@@ -18,7 +18,9 @@ dependencies {
     implementation project(path: ':nitrite-core', configuration: 'default')
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     implementation "commons-codec:commons-codec:$commonsCodecVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation project(path: ':nitrite', configuration: 'default')
     testImplementation "junit:junit:$junitVersion"
 }
