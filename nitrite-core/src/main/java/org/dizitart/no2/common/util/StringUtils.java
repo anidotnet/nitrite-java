@@ -23,8 +23,8 @@ import lombok.experimental.UtilityClass;
 /**
  * A utility class for {@link String}.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 @UtilityClass
 public class StringUtils {
@@ -52,13 +52,12 @@ public class StringUtils {
      * Returns a new String composed of copies of the `strings`
      * joined together with a copy of the specified `separator`.
      *
-     * @param separator  the delimiter that separates each element
-     * @param strings the elements to join together.
-     *
+     * @param separator the delimiter that separates each element
+     * @param strings   the elements to join together.
      * @return a new {@code String} that is composed of the `strings`
      * separated by the `separator`
      * @since 4.0.0
-     * */
+     */
     public static String join(String separator, String[] strings) {
         StringBuilder sb = new StringBuilder();
         int end = 0;

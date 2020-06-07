@@ -105,7 +105,10 @@ public class MapperTest {
 
         Department department = new Department();
         department.setName("Dept");
-        department.setEmployeeList(new ArrayList<MappableEmployee>() {{ add(boss); add(emp1); }});
+        department.setEmployeeList(new ArrayList<MappableEmployee>() {{
+            add(boss);
+            add(emp1);
+        }});
 
         long start = System.currentTimeMillis();
         Document document = mappableMapper.convert(department, Document.class);
@@ -136,7 +139,10 @@ public class MapperTest {
 
         MappableDepartment department = new MappableDepartment();
         department.setName("Dept");
-        department.setEmployeeList(new ArrayList<MappableEmployee>() {{ add(boss); add(emp1); }});
+        department.setEmployeeList(new ArrayList<MappableEmployee>() {{
+            add(boss);
+            add(emp1);
+        }});
 
         long start = System.currentTimeMillis();
         Document document = mappableMapper.convert(department, Document.class);

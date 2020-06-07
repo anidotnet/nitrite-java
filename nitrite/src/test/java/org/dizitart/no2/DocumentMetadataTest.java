@@ -25,7 +25,8 @@ import org.junit.Test;
 
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.filters.FluentFilter.where;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Anindya Chatterjee.

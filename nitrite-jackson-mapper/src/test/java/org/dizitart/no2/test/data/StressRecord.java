@@ -24,7 +24,8 @@ import lombok.Setter;
 /**
  * @author Anindya Chatterjee.
  */
-@Getter @Setter
+@Getter
+@Setter
 public class StressRecord {
     private String firstName;
     private boolean processed;

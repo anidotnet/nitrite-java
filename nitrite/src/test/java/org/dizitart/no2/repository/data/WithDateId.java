@@ -30,7 +30,8 @@ import java.util.Date;
 /**
  * @author Anindya Chatterjee
  */
-@Getter @Setter
+@Getter
+@Setter
 @EqualsAndHashCode
 public class WithDateId implements Mappable {
     private Date id;

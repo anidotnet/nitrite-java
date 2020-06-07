@@ -4,15 +4,20 @@ package org.dizitart.no2.store;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.dizitart.no2.exceptions.InvalidOperationException;
+import org.dizitart.no2.store.events.StoreEventListener;
 import org.h2.mvstore.FileStore;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Anindya Chatterjee
  */
 @Getter
 public class MVStoreConfig implements StoreConfig {
+    @Getter(AccessLevel.PACKAGE)
+    private final Set<StoreEventListener> eventListeners;
     private String filePath;
     private int autoCommitBufferSize;
     private boolean readOnly;
@@ -20,17 +25,18 @@ public class MVStoreConfig implements StoreConfig {
     private boolean autoCommit = true;
     private boolean autoCompact = true;
     private FileStore fileStore;
-
     @Getter(AccessLevel.NONE)
     private boolean configured = false;
 
-    private MVStoreConfig() {}
+    private MVStoreConfig() {
+        eventListeners = new HashSet<>();
+    }
 
     /**
      * Creates a mew {@link MVStoreConfig} instance.
      *
      * @return a new {@link MVStoreConfig} instance.
-     * */
+     */
     public static MVStoreConfig create() {
         return new MVStoreConfig();
     }
@@ -40,15 +46,13 @@ public class MVStoreConfig implements StoreConfig {
      * the builder will create an in-memory database.
      *
      * @param path the name of the file store.
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig filePath(String path) {
+    public void filePath(String path) {
         if (configured) {
             throw new InvalidOperationException("cannot change the path after database" +
                 " initialization");
         }
         this.filePath = path;
-        return this;
     }
 
     /**
@@ -56,9 +60,8 @@ public class MVStoreConfig implements StoreConfig {
      * the builder will create an in-memory database.
      *
      * @param file the name of the file store.
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig filePath(File file) {
+    public void filePath(File file) {
         if (configured) {
             throw new InvalidOperationException("cannot change the file path after database" +
                 " initialization");
@@ -68,7 +71,6 @@ public class MVStoreConfig implements StoreConfig {
         } else {
             this.filePath = file.getPath();
         }
-        return this;
     }
 
     /**
@@ -76,116 +78,105 @@ public class MVStoreConfig implements StoreConfig {
      * the builder will create an in-memory database.
      *
      * @param fileStore the {@link FileStore} instance.
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig fileStore(FileStore fileStore) {
+    public void fileStore(FileStore fileStore) {
         if (configured) {
             throw new InvalidOperationException("cannot change the file store after database" +
                 " initialization");
         }
         this.fileStore = fileStore;
-        return this;
     }
 
     /**
      * Sets the size of the write buffer, in KB disk space (for file-based
      * stores). Unless auto-commit is disabled, changes are automatically
      * saved if there are more than this amount of changes.
-     *
+     * <p>
      * When the values is set to 0 or lower, it will assume the default value
      * - 1024 KB.
-     *
+     * <p>
      * [icon="{@docRoot}/note.png"]
      * NOTE: If auto commit is disabled by {@link MVStoreConfig#disableAutoCommit()},
      * then buffer size has not effect.
      *
      * @param size the buffer size in KB
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig autoCommitBufferSize(int size) {
+    public void autoCommitBufferSize(int size) {
         if (configured) {
             throw new InvalidOperationException("cannot change buffer size after database" +
                 " initialization");
         }
         this.autoCommitBufferSize = size;
-        return this;
     }
 
     /**
      * Opens the file in read-only mode. In this case, a shared lock will be
      * acquired to ensure the file is not concurrently opened in write mode.
-     *
+     * <p>
      * If this option is not used, the file is locked exclusively.
-     *
+     * <p>
      * [icon="{@docRoot}/note.png"]
      * NOTE: A file store may only be opened once in every JVM (no matter
      * whether it is opened in read-only or read-write mode), because each
      * file may be locked only once in a process.
-     *
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig readOnly() {
+    public void readOnly() {
         if (configured) {
             throw new InvalidOperationException("cannot change readonly property after database" +
                 " initialization");
         }
         this.readOnly = true;
-        return this;
     }
 
     /**
      * Compresses data before writing using the LZF algorithm. This will save
      * about 50% of the disk space, but will slow down read and write
      * operations slightly.
-     *
+     * <p>
      * [icon="{@docRoot}/note.png"]
      * NOTE: This setting only affects writes; it is not necessary to enable
      * compression when reading, even if compression was enabled when
      * writing.
-     *
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig compressed() {
+    public void compressed() {
         if (configured) {
             throw new InvalidOperationException("cannot change compression property after database" +
                 " initialization");
         }
         this.compressed = true;
-        return this;
     }
 
     /**
      * Disables auto commit. If disabled, unsaved changes will not be written
      * into disk until {@link org.dizitart.no2.Nitrite#commit()} is called.
-     *
+     * <p>
      * By default auto commit is enabled.
-     *
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig disableAutoCommit() {
+    public void disableAutoCommit() {
         if (configured) {
             throw new InvalidOperationException("cannot change the auto commit property after database" +
                 " initialization");
         }
         this.autoCommit = false;
-        return this;
     }
 
     /**
      * Disables auto compact before close. If disabled, compaction will not
      * be performed. Disabling would increase close performance.
-     *
+     * <p>
      * By default auto compact is enabled.
-     *
-     * @return the {@link MVStoreConfig} instance.
      */
-    public MVStoreConfig disableAutoCompact() {
+    public void disableAutoCompact() {
         if (configured) {
             throw new InvalidOperationException("cannot change auto compact property after database" +
                 " initialization");
         }
         this.autoCompact = false;
-        return this;
+    }
+
+    @Override
+    public void addStoreEventListener(StoreEventListener listener) {
+        eventListeners.add(listener);
     }
 
     void configured() {

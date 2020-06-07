@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addUser() {
-        User user = new User("user "+System.currentTimeMillis(), "");
+        User user = new User("user " + System.currentTimeMillis(), "");
         repository.insert(user);
     }
 

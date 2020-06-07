@@ -21,8 +21,8 @@ package org.dizitart.no2.exceptions;
 /**
  * Exception thrown while handling with nitrite database index.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public class IndexingException extends NitriteException {
     /**

@@ -271,4 +271,44 @@ public class ObjectRepositoryTest {
         assertEquals(repository.getAttributes(), attributes);
     }
 
+    @Test
+    public void testKeyedRepository() {
+        // an object repository of employees who are managers
+        ObjectRepository<Employee> managerRepo = db.getRepository("managers", Employee.class);
+
+        // an object repository of all employee
+        ObjectRepository<Employee> employeeRepo = db.getRepository(Employee.class);
+
+        // and object repository of employees who are developers
+        ObjectRepository<Employee> developerRepo = db.getRepository("developers", Employee.class);
+
+        Employee manager = new Employee();
+        manager.setEmpId(1L);
+        manager.setAddress("abcd");
+        manager.setJoinDate(new Date());
+
+        Employee developer = new Employee();
+        developer.setEmpId(2L);
+        developer.setAddress("xyz");
+        developer.setJoinDate(new Date());
+
+        managerRepo.insert(manager);
+        employeeRepo.insert(manager, developer);
+        developerRepo.insert(developer);
+
+        assertTrue(db.hasRepository(Employee.class));
+        assertTrue(db.hasRepository(Employee.class, "managers"));
+        assertTrue(db.hasRepository(Employee.class, "developers"));
+
+        assertEquals(db.listRepositories().size(), 1);
+        assertEquals(db.listKeyedRepository().size(), 2);
+
+        assertEquals(employeeRepo.find(where("address").eq("abcd")).size(), 1);
+        assertEquals(employeeRepo.find(where("address").eq("xyz")).size(), 1);
+        assertEquals(managerRepo.find(where("address").eq("xyz")).size(), 0);
+        assertEquals(managerRepo.find(where("address").eq("abcd")).size(), 1);
+        assertEquals(developerRepo.find(where("address").eq("xyz")).size(), 1);
+        assertEquals(developerRepo.find(where("address").eq("abcd")).size(), 0);
+    }
+
 }

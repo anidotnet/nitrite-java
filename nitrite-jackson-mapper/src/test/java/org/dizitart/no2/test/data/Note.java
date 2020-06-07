@@ -21,7 +21,6 @@ package org.dizitart.no2.test.data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.dizitart.no2.index.annotations.Id;
 
 import java.io.Serializable;
 
@@ -30,6 +29,10 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode
 public class Note implements Serializable {
-    @Getter @Setter private Long noteId;
-    @Getter @Setter private String text;
+    @Getter
+    @Setter
+    private Long noteId;
+    @Getter
+    @Setter
+    private String text;
 }

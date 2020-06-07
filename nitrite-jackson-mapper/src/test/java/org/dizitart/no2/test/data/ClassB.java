@@ -26,8 +26,12 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 class ClassB implements Comparable<ClassB> {
-    @Getter @Setter private int number;
-    @Getter @Setter private String text;
+    @Getter
+    @Setter
+    private int number;
+    @Getter
+    @Setter
+    private String text;
 
     static ClassB create(int seed) {
         ClassB classB = new ClassB();

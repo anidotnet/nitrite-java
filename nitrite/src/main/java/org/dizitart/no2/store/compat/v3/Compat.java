@@ -7,9 +7,18 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Nitrite v3 compatible classes used in data migration.
+ *
  * @author Anindya Chatterjee
+ * @since 4.0.0
  */
 class Compat {
+    enum IndexType {
+        Unique,
+        NonUnique,
+        Fulltext
+    }
+
     @Data
     static class UserCredential implements Serializable {
         private byte[] passwordHash;
@@ -47,11 +56,5 @@ class Compat {
     @Data
     static class NitriteId implements Serializable {
         private Long idValue;
-    }
-
-    enum IndexType {
-        Unique,
-        NonUnique,
-        Fulltext
     }
 }

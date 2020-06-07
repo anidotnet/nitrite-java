@@ -9,9 +9,9 @@ import org.dizitart.no2.repository.Cursor;
  * Represents lookup parameters in join operation of two collections.
  *
  * @author Anindya Chatterjee.
- * @since 2.1.0
  * @see DocumentCursor#join(DocumentCursor, Lookup)
  * @see Cursor#join(Cursor, Lookup, Class)
+ * @since 2.1.0
  */
 public class Lookup {
 
@@ -20,7 +20,7 @@ public class Lookup {
      *
      * @param localField field of the input record.
      * @returns field of the input record.
-     * */
+     */
     @Getter
     @Setter
     private String localField;
@@ -30,8 +30,9 @@ public class Lookup {
      *
      * @param foreignField field of the foreign record.
      * @returns field of the foreign record.
-     * */
-    @Getter @Setter
+     */
+    @Getter
+    @Setter
     private String foreignField;
 
     /**
@@ -39,7 +40,8 @@ public class Lookup {
      *
      * @param targetField field of the joined record.
      * @returns field of the joined record.
-     * */
-    @Getter @Setter
+     */
+    @Getter
+    @Setter
     private String targetField;
 }

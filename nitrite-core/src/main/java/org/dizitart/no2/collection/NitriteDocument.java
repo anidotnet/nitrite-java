@@ -14,9 +14,8 @@ import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.*;
 
-import static org.dizitart.no2.collection.NitriteId.createId;
-import static org.dizitart.no2.collection.NitriteId.newId;
-import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.collection.NitriteId.*;
+import static org.dizitart.no2.common.Constants.DOC_ID;
 import static org.dizitart.no2.common.util.Iterables.listOf;
 import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
@@ -63,13 +62,13 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
 
     @Override
     public NitriteId getId() {
-        Long id;
+        String id;
         try {
             if (!containsKey(DOC_ID)) {
                 id = newId().getIdValue();
                 super.put(DOC_ID, id);
             } else {
-                id = (Long) get(DOC_ID);
+                id = (String) get(DOC_ID);
             }
             return createId(id);
         } catch (ClassCastException cce) {
@@ -229,7 +228,7 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
                 } else if (value.getClass().isArray()) {
                     List<Object> list = Arrays.asList(convertToObjectArray(value));
                     items.addAll(list);
-                } else{
+                } else {
                     items.add(value);
                 }
             }
@@ -252,10 +251,6 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    private boolean validId(Object value) {
-        return value instanceof Long;
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {

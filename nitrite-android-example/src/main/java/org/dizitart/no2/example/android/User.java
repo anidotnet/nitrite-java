@@ -29,12 +29,13 @@ public class User implements Mappable {
     private String email;
 
     // needed for deserialization
-    public User(){}
+    public User() {
+    }
 
     public User(String username, String email) {
         this.username = username;
         this.email = email;
-        this.id = ""+ System.currentTimeMillis();
+        this.id = "" + System.currentTimeMillis();
     }
 
     public String getId() {

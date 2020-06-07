@@ -37,7 +37,7 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
  * Provides functionality to secure nitrite database using username and password.
- *
+ * <p>
  * It does not store password in plain text format instead it stores password hash
  * and salt.
  *
@@ -121,7 +121,7 @@ class Security {
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Error while hashing password", e);
             throw new SecurityException("error while hashing a password: "
-                            + e.getMessage());
+                + e.getMessage());
         } finally {
             spec.clearPassword();
         }

@@ -8,8 +8,8 @@ import org.dizitart.no2.filters.Filter;
 /**
  * Settings to control update operation in {@link NitriteCollection}.
  *
- * @see NitriteCollection#update(Filter, Document, UpdateOptions)
  * @author Anindya Chatterjee
+ * @see NitriteCollection#update(Filter, Document, UpdateOptions)
  * @since 1.0
  */
 @ToString
@@ -20,10 +20,10 @@ public class UpdateOptions {
      * does not find any existing document to update.
      *
      * @param insertIfAbsent a value indicating, if a new document to insert in case the
-     *               filter fails to find a document to update.
+     * filter fails to find a document to update.
      * @return `true` if a new document to insert; otherwise, `false`.
      * @see NitriteCollection#update(Filter, Document, UpdateOptions)
-     * */
+     */
     @Getter
     @Setter
     private boolean insertIfAbsent;
@@ -33,8 +33,9 @@ public class UpdateOptions {
      *
      * @param justOne a value indicating if only one document to update or all.
      * @return `true` if only one document to update; otherwise, `false`.
-     * */
-    @Getter @Setter
+     */
+    @Getter
+    @Setter
     private boolean justOnce;
 
     /**
@@ -52,8 +53,8 @@ public class UpdateOptions {
     /**
      * Creates a new {@link UpdateOptions}.
      *
-     * @param insertIfAbsent   the insertIfAbsent flag
-     * @param justOnce the justOnce flag
+     * @param insertIfAbsent the insertIfAbsent flag
+     * @param justOnce       the justOnce flag
      * @return the {@link UpdateOptions}.
      */
     public static UpdateOptions updateOptions(boolean insertIfAbsent, boolean justOnce) {

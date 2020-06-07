@@ -14,6 +14,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Receipt {
-    private Set<Long> added = new HashSet<>();
-    private Set<Long> removed = new HashSet<>();
+    private Set<String> added = new HashSet<>();
+    private Set<String> removed = new HashSet<>();
 }

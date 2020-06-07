@@ -25,26 +25,24 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies multiple indexed fields for a class.
- * 
+ * <p>
  * [[app-listing]]
  * [source,java]
  * .Example of Indices annotation
  * --
  *
+ * @author Anindya Chatterjee.
  * @Indices({
- *      @Index(value = "joinDate", type = IndexType.NonUnique),
- *      @Index(value = "address", type = IndexType.Fulltext)
+ * @Index(value = "joinDate", type = IndexType.NonUnique),
+ * @Index(value = "address", type = IndexType.Fulltext)
  * })
  * public class Employee implements Serializable {
- *
- *      @Id private long empId;
- *      private Date joinDate;
- *      private String address;
+ * @Id private long empId;
+ * private Date joinDate;
+ * private String address;
  * }
- *
+ * <p>
  * --
- *
- * @author Anindya Chatterjee.
  * @see Index
  * @since 1.0
  */

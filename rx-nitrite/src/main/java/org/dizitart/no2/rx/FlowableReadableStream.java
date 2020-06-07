@@ -14,20 +14,20 @@ public abstract class FlowableReadableStream<T> extends FlowableIterable<T> {
 
     private final Callable<? extends ReadableStream<T>> supplier;
 
-    static <R> FlowableReadableStream<R> create(Callable<? extends ReadableStream<R>> supplier) {
-        return new FlowableReadableStream<R>(supplier) {
-        };
-    }
-
     FlowableReadableStream(Callable<? extends ReadableStream<T>> supplier) {
         super(supplier);
         this.supplier = supplier;
     }
 
+    static <R> FlowableReadableStream<R> create(Callable<? extends ReadableStream<R>> supplier) {
+        return new FlowableReadableStream<R>(supplier) {
+        };
+    }
+
     public Single<Long> size() {
         return Single.fromCallable(() -> {
             ReadableStream<T> recordIterable = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
             return recordIterable.size();
         });
     }

@@ -30,13 +30,13 @@ import static org.dizitart.no2.common.util.Iterables.listOf;
 /**
  * Class that registers capability of serializing {@code Geometry} objects with the Jackson core.
  *
- * @since 4.0.0
  * @author Anindya Chatterjee
+ * @since 4.0.0
  */
 public class GeometryModule implements JacksonModule {
     /**
      * The constant GEOMETRY_ID
-     * */
+     */
     public static final String GEOMETRY_ID = "geometry:";
 
     @Override

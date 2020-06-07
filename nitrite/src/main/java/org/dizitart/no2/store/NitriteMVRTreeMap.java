@@ -22,7 +22,7 @@ class NitriteMVRTreeMap<Key extends BoundingBox, Value>
     @Override
     public void add(Key key, NitriteId nitriteId) {
         if (nitriteId != null && nitriteId.getIdValue() != null) {
-            SpatialKey spatialKey = getKey(key, nitriteId.getIdValue());
+            SpatialKey spatialKey = getKey(key, Long.parseLong(nitriteId.getIdValue()));
             mvMap.add(spatialKey, key);
         }
     }
@@ -30,7 +30,7 @@ class NitriteMVRTreeMap<Key extends BoundingBox, Value>
     @Override
     public void remove(Key key, NitriteId nitriteId) {
         if (nitriteId != null && nitriteId.getIdValue() != null) {
-            SpatialKey spatialKey = getKey(key, nitriteId.getIdValue());
+            SpatialKey spatialKey = getKey(key, Long.parseLong(nitriteId.getIdValue()));
             mvMap.remove(spatialKey);
         }
     }
@@ -48,7 +48,7 @@ class NitriteMVRTreeMap<Key extends BoundingBox, Value>
             @Override
             public NitriteId next() {
                 SpatialKey next = treeCursor.next();
-                return NitriteId.createId(next.getId());
+                return NitriteId.createId(Long.toString(next.getId()));
             }
         });
     }
@@ -66,7 +66,7 @@ class NitriteMVRTreeMap<Key extends BoundingBox, Value>
             @Override
             public NitriteId next() {
                 SpatialKey next = treeCursor.next();
-                return NitriteId.createId(next.getId());
+                return NitriteId.createId(Long.toString(next.getId()));
             }
         });
     }

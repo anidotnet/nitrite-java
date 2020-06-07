@@ -40,12 +40,15 @@ public class IterablesTest {
 
     @Test
     public void testToArray() {
-        final List<String> list = new ArrayList<String>(){{
+        final List<String> list = new ArrayList<String>() {{
             add("a");
             add("b");
         }};
-        assertArrayEquals(toArray(new ArrayList<String>() {{add("a"); add("b"); }}),
-                new String[] {"a", "b"});
-        assertArrayEquals(toArray(list), new String[] {"a", "b"});
+        assertArrayEquals(toArray(new ArrayList<String>() {{
+                add("a");
+                add("b");
+            }}),
+            new String[]{"a", "b"});
+        assertArrayEquals(toArray(list), new String[]{"a", "b"});
     }
 }

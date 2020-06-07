@@ -15,8 +15,8 @@ import java.util.NoSuchElementException;
  * @author Anindya Chatterjee.
  */
 class FilteredReadableStream implements ReadableStream<NitriteId> {
-    private ReadableStream<KeyValuePair<NitriteId, Document>> readableStream;
-    private Filter filter;
+    private final ReadableStream<KeyValuePair<NitriteId, Document>> readableStream;
+    private final Filter filter;
 
     FilteredReadableStream(ReadableStream<KeyValuePair<NitriteId, Document>> readableStream, Filter filter) {
         this.readableStream = readableStream;
@@ -31,8 +31,8 @@ class FilteredReadableStream implements ReadableStream<NitriteId> {
     }
 
     static class FilteredIterator implements Iterator<NitriteId> {
-        private Iterator<KeyValuePair<NitriteId, Document>> iterator;
-        private Filter filter;
+        private final Iterator<KeyValuePair<NitriteId, Document>> iterator;
+        private final Filter filter;
         private NitriteId nextId;
         private boolean nextIdSet = false;
 

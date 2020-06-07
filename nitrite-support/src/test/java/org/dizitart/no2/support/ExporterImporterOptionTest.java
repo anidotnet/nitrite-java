@@ -41,7 +41,7 @@ public class ExporterImporterOptionTest extends BaseExternalTest {
     @Test
     public void testImportExportSingle() {
         schemaFile = System.getProperty("java.io.tmpdir") + File.separator
-                + "nitrite" + File.separator + "single-schema.json";
+            + "nitrite" + File.separator + "single-schema.json";
 
         Random random = new Random();
         for (int i = 0; i < 5; i++) {
@@ -70,11 +70,11 @@ public class ExporterImporterOptionTest extends BaseExternalTest {
         NitriteCollection destFirstColl = destDb.getCollection("first");
 
         assertEquals(filter(sourceFirstColl.find().toList()),
-                filter(destFirstColl.find().toList()));
+            filter(destFirstColl.find().toList()));
         assertEquals(sourceEmpRepo.find().toList(),
-                destEmpRepo.find().toList());
+            destEmpRepo.find().toList());
         assertEquals(sourceKeyedEmpRepo.find().toList(),
-                destKeyedEmpRepo.find().toList());
+            destKeyedEmpRepo.find().toList());
 
         assertEquals(sourceEmpRepo.listIndices(), destEmpRepo.listIndices());
         assertEquals(sourceKeyedEmpRepo.listIndices(), destKeyedEmpRepo.listIndices());
@@ -84,9 +84,9 @@ public class ExporterImporterOptionTest extends BaseExternalTest {
         NitriteCollection destSecondColl = destDb.getCollection("second");
 
         assertEquals(filter(destSecondColl.find().toList()),
-                new ArrayList<Document>());
+            new ArrayList<Document>());
         assertEquals(destCompRepo.find().toList(),
-                new ArrayList<Company>());
+            new ArrayList<Company>());
 
         assertEquals(destCompRepo.listIndices(), sourceCompRepo.listIndices());
         assertEquals(destSecondColl.listIndices(), new LinkedHashSet<IndexEntry>());

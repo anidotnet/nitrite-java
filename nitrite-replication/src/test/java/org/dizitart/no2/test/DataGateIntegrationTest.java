@@ -182,6 +182,7 @@ public class DataGateIntegrationTest {
                                                    String authType) throws
                         CertificateException {
                     }
+
                     @Override
                     public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                         return new java.security.cert.X509Certificate[]{};

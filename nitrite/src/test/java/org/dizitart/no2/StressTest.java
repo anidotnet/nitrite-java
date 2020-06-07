@@ -22,8 +22,8 @@ import lombok.Data;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteCollection;
-import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.filters.Filter;
+import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Index;
 import org.dizitart.no2.index.annotations.Indices;
@@ -59,9 +59,9 @@ public class StressTest {
     @Before
     public void before() {
         db = NitriteBuilder.get()
-                .compressed()
-                .filePath(fileName)
-                .openOrCreate();
+            .compressed()
+            .filePath(fileName)
+            .openOrCreate();
         collection = db.getCollection("test");
         System.out.println(fileName);
     }
@@ -76,7 +76,7 @@ public class StressTest {
         AtomicLong counter = new AtomicLong(System.currentTimeMillis());
         PodamFactory factory = new PodamFactoryImpl();
 
-        long start= System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         for (int i = 0; i < 100000; i++) {
             Document doc = Document.createDocument();
             doc.put("number", random.nextDouble());
@@ -93,13 +93,13 @@ public class StressTest {
             db.commit();
         }
 
-        start= System.currentTimeMillis();
+        start = System.currentTimeMillis();
         DocumentCursor cursor = collection.find();
         System.out.println("Size ->" + cursor.size());
         System.out.println("Records size calculated in " + ((System.currentTimeMillis() - start) / (1000)) + " seconds");
 
         int i = 0;
-        start= System.currentTimeMillis();
+        start = System.currentTimeMillis();
         for (Document element : cursor) {
             assertNotNull(element);
             i++;
@@ -211,9 +211,9 @@ public class StressTest {
     }
 
     @Indices({
-            @Index(value = "firstName", type = IndexType.NonUnique),
-            @Index(value = "age", type = IndexType.NonUnique),
-            @Index(value = "text", type = IndexType.Fulltext),
+        @Index(value = "firstName", type = IndexType.NonUnique),
+        @Index(value = "age", type = IndexType.NonUnique),
+        @Index(value = "text", type = IndexType.Fulltext),
     })
     private static class PerfTestIndexed extends PerfTest {
     }

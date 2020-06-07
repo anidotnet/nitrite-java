@@ -26,10 +26,10 @@ import java.util.Set;
 /**
  * A stop-word based string tokenizer.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
  * @see TextIndexer
  * @see EnglishTextTokenizer
+ * @since 1.0
  */
 public interface TextTokenizer {
 
@@ -37,7 +37,7 @@ public interface TextTokenizer {
      * Gets the language for the tokenizer.
      *
      * @return the language for this tokenizer.
-     * */
+     */
     Languages getLanguage();
 
     /**

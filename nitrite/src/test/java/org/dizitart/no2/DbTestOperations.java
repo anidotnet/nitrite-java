@@ -34,10 +34,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.dizitart.no2.collection.Document.createDocument;
-import static org.dizitart.no2.index.IndexOptions.indexOptions;
+import static org.dizitart.no2.common.util.TestUtil.isSorted;
 import static org.dizitart.no2.filters.Filter.ALL;
 import static org.dizitart.no2.filters.FluentFilter.where;
-import static org.dizitart.no2.common.util.TestUtil.isSorted;
+import static org.dizitart.no2.index.IndexOptions.indexOptions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -46,6 +46,15 @@ import static org.junit.Assert.assertTrue;
  */
 public class DbTestOperations {
     private final String fileName = getRandomTempDbFile();
+
+    public static String getRandomTempDbFile() {
+        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
+        File file = new File(dataDir);
+        if (!file.exists()) {
+            assertTrue(file.mkdirs());
+        }
+        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
+    }
 
     void createDb() {
         Nitrite db = NitriteBuilder.get()
@@ -90,21 +99,21 @@ public class DbTestOperations {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
 
         Document doc1 = createDocument("firstName", "fn1")
-                .put("lastName", "ln1")
-                .put("birthDay", simpleDateFormat.parse("2012-07-01T16:02:48.440Z"))
-                .put("data", new byte[]{1, 2, 3})
-                .put("body", "a quick brown fox jump over the lazy dog");
+            .put("lastName", "ln1")
+            .put("birthDay", simpleDateFormat.parse("2012-07-01T16:02:48.440Z"))
+            .put("data", new byte[]{1, 2, 3})
+            .put("body", "a quick brown fox jump over the lazy dog");
         Document doc2 = createDocument("firstName", "fn2")
-                .put("lastName", "ln2")
-                .put("birthDay", simpleDateFormat.parse("2010-06-12T16:02:48.440Z"))
-                .put("data", new byte[]{3, 4, 3})
-                .put("body", "quick hello world from nitrite");
+            .put("lastName", "ln2")
+            .put("birthDay", simpleDateFormat.parse("2010-06-12T16:02:48.440Z"))
+            .put("data", new byte[]{3, 4, 3})
+            .put("body", "quick hello world from nitrite");
         Document doc3 = createDocument("firstName", "fn3")
-                .put("lastName", "ln2")
-                .put("birthDay", simpleDateFormat.parse("2014-04-17T16:02:48.440Z"))
-                .put("data", new byte[]{9, 4, 8})
-                .put("body", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-                        "Sed nunc mi, mattis ullamcorper dignissim vitae, condimentum non lorem.");
+            .put("lastName", "ln2")
+            .put("birthDay", simpleDateFormat.parse("2014-04-17T16:02:48.440Z"))
+            .put("data", new byte[]{9, 4, 8})
+            .put("body", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+                "Sed nunc mi, mattis ullamcorper dignissim vitae, condimentum non lorem.");
 
         Nitrite db;
         NitriteCollection collection;
@@ -174,8 +183,8 @@ public class DbTestOperations {
         assertEquals(cursor.size(), 1);
 
         cursor = collection.find(where("birthDay").lte(new Date())
-                .or(where("firstName").eq("fn12"))
-                .and(where("lastName").eq("ln1"))
+            .or(where("firstName").eq("fn12"))
+            .and(where("lastName").eq("ln1"))
             .not());
         assertEquals(cursor.size(), 2);
 
@@ -214,14 +223,5 @@ public class DbTestOperations {
 
     void deleteDb() throws IOException {
         Files.delete(Paths.get(fileName));
-    }
-
-    public static String getRandomTempDbFile() {
-        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
-        File file = new File(dataDir);
-        if (!file.exists()) {
-            assertTrue(file.mkdirs());
-        }
-        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
 }

@@ -40,9 +40,8 @@ import java.util.List;
  * @author Anindya Chatterjee
  */
 public class NitriteStressTest {
-    private PodamFactory podamFactory = new PodamFactoryImpl();
-
     private static final int TEST_SET_COUNT = 15000;
+    private PodamFactory podamFactory = new PodamFactoryImpl();
     private Nitrite database;
     private ObjectRepository<TestDto> testRepository;
 
@@ -78,44 +77,44 @@ public class NitriteStressTest {
     public static class TestDto implements Mappable {
 
         @XmlElement(
-                name = "StudentNumber",
-                required = true
+            name = "StudentNumber",
+            required = true
         )
         @Id
         protected String studentNumber;
 
         @XmlElement(
-                name = "LastName",
-                required = true
+            name = "LastName",
+            required = true
         )
         protected String lastName;
 
         @XmlElement(
-                name = "Prefixes"
+            name = "Prefixes"
         )
         protected String prefixes;
 
         @XmlElement(
-                name = "Initials",
-                required = true
+            name = "Initials",
+            required = true
         )
         protected String initials;
 
         @XmlElement(
-                name = "FirstNames"
+            name = "FirstNames"
         )
         protected String firstNames;
         @XmlElement(
-                name = "Nickname"
+            name = "Nickname"
         )
         protected String nickName;
 
         @XmlElement(
-                name = "BirthDate",
-                required = true
+            name = "BirthDate",
+            required = true
         )
         @XmlSchemaType(
-                name = "date"
+            name = "date"
         )
         protected String birthDate;
 

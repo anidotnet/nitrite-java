@@ -21,8 +21,8 @@ package org.dizitart.no2;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.InvalidIdException;
-import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.ValidationException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,6 +43,7 @@ public class DocumentTest {
 
     @Before
     public void setUp() {
+        NitriteConfig.create().fieldSeparator(".");
         doc = parse("{" +
             "  score: 1034," +
             "  location: {  " +
@@ -57,6 +58,11 @@ public class DocumentTest {
             "  category: ['food', 'produce', 'grocery'], " +
             "  objArray: [{ value: 1}, {value: 2}]" +
             "}");
+    }
+
+    @After
+    public void tearDown() {
+        NitriteConfig.create().fieldSeparator(".");
     }
 
     @Test
@@ -137,7 +143,7 @@ public class DocumentTest {
         assertNull(doc.get("test"));
     }
 
-    @Test(expected = InvalidOperationException.class)
+    @Test(expected = InvalidIdException.class)
     public void testPut() {
         doc.put(DOC_ID, "id");
     }
@@ -244,7 +250,7 @@ public class DocumentTest {
 
     @Test
     public void testSerializability() throws IOException, ClassNotFoundException {
-        try(ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
                 oos.writeObject(doc);
                 byte[] data = bos.toByteArray();

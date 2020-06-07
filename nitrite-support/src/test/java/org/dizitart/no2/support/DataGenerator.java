@@ -46,7 +46,7 @@ public class DataGenerator {
         Map<String, List<Employee>> employeeRecord = new HashMap<>();
         for (String department : departments) {
             employeeRecord.put(department,
-                    generateEmployeeRecords(company, random.nextInt(20)));
+                generateEmployeeRecords(company, random.nextInt(20)));
         }
         company.setEmployeeRecord(employeeRecord);
         return company;
@@ -78,7 +78,7 @@ public class DataGenerator {
 
     private static Date randomDate() {
         return new Date(-946771200000L +
-                (Math.abs(random.nextLong()) % (70L * 365 * 24 * 60 * 60 * 1000)));
+            (Math.abs(random.nextLong()) % (70L * 365 * 24 * 60 * 60 * 1000)));
     }
 
     public static Note randomNote() {

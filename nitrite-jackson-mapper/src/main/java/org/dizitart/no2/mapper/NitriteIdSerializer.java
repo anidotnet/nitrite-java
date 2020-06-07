@@ -37,7 +37,7 @@ class NitriteIdSerializer extends StdScalarSerializer<NitriteId> {
     @Override
     public void serialize(NitriteId value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         if (value.getIdValue() != null) {
-            gen.writeNumber(value.getIdValue());
+            gen.writeString(value.getIdValue());
         }
     }
 }

@@ -10,6 +10,14 @@ import java.util.Set;
  * @author Anindya Chatterjee.
  */
 public interface ReadableStream<T> extends Iterable<T> {
+    static <T> ReadableStream<T> fromIterable(Iterable<T> iterable) {
+        return iterable::iterator;
+    }
+
+    static <T> ReadableStream<T> fromIterator(Iterator<T> iterator) {
+        return () -> iterator;
+    }
+
     default long size() {
         return Iterables.size(this);
     }
@@ -34,13 +42,5 @@ public interface ReadableStream<T> extends Iterable<T> {
      */
     default T firstOrNull() {
         return Iterables.firstOrNull(this);
-    }
-
-    static <T> ReadableStream<T> fromIterable(Iterable<T> iterable) {
-        return iterable::iterator;
-    }
-
-    static <T> ReadableStream<T> fromIterator(Iterator<T> iterator) {
-        return () -> iterator;
     }
 }

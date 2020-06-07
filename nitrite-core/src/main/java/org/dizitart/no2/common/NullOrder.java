@@ -3,8 +3,8 @@ package org.dizitart.no2.common;
 /**
  * An enum to specify where to place `null` values during sort.
  *
- * @since 3.1.0
  * @author Anindya Chatterjee
+ * @since 3.1.0
  */
 public enum NullOrder {
     /**

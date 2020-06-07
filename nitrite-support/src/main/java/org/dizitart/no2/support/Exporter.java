@@ -35,12 +35,12 @@ import java.io.*;
  * Nitrite database export utility. It exports data to
  * a json file. Contents of a Nitrite database can be exported
  * using this tool.
- *
+ * <p>
  * [[app-listing]]
  * include::/src/docs/asciidoc/tools/data-format.adoc[]
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public class Exporter {
     private Nitrite db;
@@ -53,7 +53,7 @@ public class Exporter {
     /**
      * Creates a new {@link Exporter} instance.
      *
-     * @param db         the db
+     * @param db the db
      * @return the exporter instance
      */
     public static Exporter of(Nitrite db) {
@@ -107,7 +107,7 @@ public class Exporter {
      * Exports data to a {@link File}.
      *
      * @param file the file
-     * @throws NitriteIOException  if there is any low-level I/O error.
+     * @throws NitriteIOException if there is any low-level I/O error.
      */
     public void exportTo(File file) {
         try {

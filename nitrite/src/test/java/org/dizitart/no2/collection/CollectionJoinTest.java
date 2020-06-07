@@ -40,23 +40,23 @@ public class CollectionJoinTest extends BaseCollectionTest {
 
     @Before
     @Override
-    public void setUp()  {
+    public void setUp() {
         try {
             super.setUp();
             foreignCollection = db.getCollection("foreign");
             foreignCollection.remove(ALL);
 
             Document fdoc1 = createDocument("fName", "fn1")
-                    .put("address", "ABCD Street")
-                    .put("telephone", "123456789");
+                .put("address", "ABCD Street")
+                .put("telephone", "123456789");
 
             Document fdoc2 = createDocument("fName", "fn2")
-                    .put("address", "XYZ Street")
-                    .put("telephone", "000000000");
+                .put("address", "XYZ Street")
+                .put("telephone", "000000000");
 
             Document fdoc3 = createDocument("fName", "fn2")
-                    .put("address", "Some other Street")
-                    .put("telephone", "7893141321");
+                .put("address", "Some other Street")
+                .put("telephone", "7893141321");
 
             foreignCollection.insert(fdoc1, fdoc2, fdoc3);
         } catch (Throwable t) {

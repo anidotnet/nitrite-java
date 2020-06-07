@@ -23,27 +23,25 @@ import org.dizitart.no2.repository.ObjectRepository;
  * An interface when implemented makes an object be
  * able to listen to any changes in a {@link NitriteCollection}
  * or {@link ObjectRepository}.
- *
+ * <p>
  * [[app-listing]]
  * [source,java]
  * .Example
  * --
+ * <p>
+ * // observe any change to the collection
+ * collection.subscribe(new EventListener() {
  *
- *  // observe any change to the collection
- *  collection.subscribe(new EventListener() {
- *
- *      @Override
- *      public void onEvent(EventInfo<Document> eventInfo) {
- *          System.out.println("Action - " + eventInfo.getEventType());
- *
- *          System.out.println("Affected document - " + eventInfo.getItem());
- *      }
- *  });
- *
- * --
- *
- * @since 4.0
  * @author Anindya Chatterjee.
+ * @Override public void onEvent(EventInfo<Document> eventInfo) {
+ * System.out.println("Action - " + eventInfo.getEventType());
+ * <p>
+ * System.out.println("Affected document - " + eventInfo.getItem());
+ * }
+ * });
+ * <p>
+ * --
+ * @since 4.0
  */
 public interface CollectionEventListener {
 

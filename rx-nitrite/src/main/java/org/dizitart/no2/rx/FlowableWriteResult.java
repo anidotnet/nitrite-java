@@ -21,7 +21,7 @@ public final class FlowableWriteResult extends FlowableIterable<NitriteId> {
     Single<Integer> getAffectedCount() {
         return Single.fromCallable(() -> {
             WriteResult wrapped = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
             return wrapped.getAffectedCount();
         });
     }

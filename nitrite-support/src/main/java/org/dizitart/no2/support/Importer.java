@@ -33,12 +33,12 @@ import static org.dizitart.no2.support.Exporter.createObjectMapper;
  * Nitrite database import utility. It imports data from
  * a json file. Contents of a Nitrite database can be imported
  * using this tool.
- *
+ * <p>
  * [[app-listing]]
  * include::/src/docs/asciidoc/tools/data-format.adoc[]
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public class Importer {
     private Nitrite db;
@@ -77,10 +77,10 @@ public class Importer {
      * Imports data from a file.
      *
      * @param file the file
-     * @throws NitriteIOException  if there is any low-level I/O error.
+     * @throws NitriteIOException if there is any low-level I/O error.
      */
     public void importFrom(File file) {
-        try(FileInputStream stream = new FileInputStream(file)) {
+        try (FileInputStream stream = new FileInputStream(file)) {
             importFrom(stream);
         } catch (IOException ioe) {
             throw new NitriteIOException("I/O error while reading content from file " + file, ioe);

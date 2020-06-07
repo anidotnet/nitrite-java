@@ -21,8 +21,8 @@ package org.dizitart.no2.exceptions;
 /**
  * Represents a generic database I/O error.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 public class NitriteIOException extends NitriteException {
     /**

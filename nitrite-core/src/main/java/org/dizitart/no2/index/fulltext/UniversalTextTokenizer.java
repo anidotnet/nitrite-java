@@ -28,8 +28,8 @@ import static org.dizitart.no2.common.util.Iterables.arrayContains;
 /**
  * A {@link TextTokenizer} implementation for various languages.
  *
- * @see Languages
  * @author Anindya Chatterjee
+ * @see Languages
  * @since 2.1.0
  */
 public class UniversalTextTokenizer extends BaseTextTokenizer {

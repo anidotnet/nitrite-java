@@ -21,9 +21,9 @@ package org.dizitart.no2.test;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
+import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.test.data.ClassA;
 import org.dizitart.no2.test.data.ClassC;
-import org.dizitart.no2.repository.Cursor;
 import org.junit.Test;
 
 import static org.dizitart.no2.filters.FluentFilter.where;
@@ -53,7 +53,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
         System.out.println("Total Size - " + cursor.size());
 
         Iterable<ClassA> findRecord = cursor.project(ClassA.class);
-        for(ClassA classA : findRecord) {
+        for (ClassA classA : findRecord) {
             System.out.println(classA);
         }
 
@@ -64,7 +64,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
         System.out.println("Total Size - " + cursor.size());
 
         findRecord = cursor.project(ClassA.class);
-        for(ClassA classA : findRecord) {
+        for (ClassA classA : findRecord) {
             System.out.println(classA);
         }
 
@@ -74,7 +74,7 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
         System.out.println("Total Size - " + cursor.size());
 
         Iterable<ClassC> findRecordC = cursor.project(ClassC.class);
-        for(ClassC classC : findRecordC) {
+        for (ClassC classC : findRecordC) {
             System.out.println(classC);
         }
     }

@@ -30,8 +30,8 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 /**
  * A validation utility class.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 @UtilityClass
 public class ValidationUtils {
@@ -76,7 +76,7 @@ public class ValidationUtils {
      *
      * @param array   the array to check for `null` object
      * @param message the message
-     * */
+     */
     public static <T> void containsNull(T[] array, String message) {
         for (T element : array) {
             if (element == null) {

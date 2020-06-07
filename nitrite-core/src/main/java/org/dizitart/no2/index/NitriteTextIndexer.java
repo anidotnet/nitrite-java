@@ -24,7 +24,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.*;
  */
 @SuppressWarnings("rawtypes")
 public class NitriteTextIndexer implements TextIndexer {
-    private TextTokenizer textTokenizer;
+    private final TextTokenizer textTokenizer;
     private IndexCatalog indexCatalog;
     private NitriteStore nitriteStore;
 
@@ -90,6 +90,7 @@ public class NitriteTextIndexer implements TextIndexer {
 
     @Override
     public void updateIndex(NitriteMap<NitriteId, Document> collection, NitriteId nitriteId, String field, Object newValue, Object oldValue) {
+        removeIndex(collection, nitriteId, field, oldValue);
         createOrUpdate(collection, nitriteId, field, newValue);
     }
 
@@ -147,7 +148,7 @@ public class NitriteTextIndexer implements TextIndexer {
     private Set<String> decompose(Object fieldValue) throws IOException {
         Set<String> result = new HashSet<>();
         if (fieldValue == null) {
-             result.add(null);
+            result.add(null);
         } else if (fieldValue instanceof String) {
             result.add((String) fieldValue);
         } else if (fieldValue instanceof Iterable) {

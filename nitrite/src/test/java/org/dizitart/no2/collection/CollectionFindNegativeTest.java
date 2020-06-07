@@ -81,10 +81,10 @@ public class CollectionFindNegativeTest extends BaseCollectionTest {
     public void testInvalidProjection() {
         insert();
         DocumentCursor cursor = collection.find(where("birthDay").lte(new Date())).
-                sort("firstName", SortOrder.Ascending).skipLimit(0, 3);
+            sort("firstName", SortOrder.Ascending).skipLimit(0, 3);
 
         Document projection = createDocument("firstName", null)
-                .put("lastName", "ln2");
+            .put("lastName", "ln2");
 
         cursor.project(projection);
     }

@@ -27,44 +27,44 @@ import java.util.Set;
 /**
  * Sesotho stop words
  *
- * @since 2.1.0
  * @author Anindya Chatterjee
+ * @since 2.1.0
  */
 public class Sesotho implements Language {
     @Override
     public Set<String> stopWords() {
         return new HashSet<>(Arrays.asList(
-                "a",
-                "ba",
-                "bane",
-                "bona",
-                "e",
-                "ea",
-                "eaba",
-                "empa",
-                "ena",
-                "ha",
-                "hae",
-                "hape",
-                "ho",
-                "hore",
-                "ka",
-                "ke",
-                "la",
-                "le",
-                "li",
-                "me",
-                "mo",
-                "moo",
-                "ne",
-                "o",
-                "oa",
-                "re",
-                "sa",
-                "se",
-                "tloha",
-                "tsa",
-                "tse"
+            "a",
+            "ba",
+            "bane",
+            "bona",
+            "e",
+            "ea",
+            "eaba",
+            "empa",
+            "ena",
+            "ha",
+            "hae",
+            "hape",
+            "ho",
+            "hore",
+            "ka",
+            "ke",
+            "la",
+            "le",
+            "li",
+            "me",
+            "mo",
+            "moo",
+            "ne",
+            "o",
+            "oa",
+            "re",
+            "sa",
+            "se",
+            "tloha",
+            "tsa",
+            "tse"
         ));
     }
 }

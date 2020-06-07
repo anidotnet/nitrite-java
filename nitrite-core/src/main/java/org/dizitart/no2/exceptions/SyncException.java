@@ -21,8 +21,8 @@ package org.dizitart.no2.exceptions;
 /**
  * Exception thrown when a problem encountered during replication.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 public class SyncException extends NitriteException {
 

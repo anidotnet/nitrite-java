@@ -27,7 +27,8 @@ import java.util.Date;
 /**
  * @author Anindya Chatterjee
  */
-@Getter @Setter
+@Getter
+@Setter
 @EqualsAndHashCode
 public class WithDateId {
     private Date id;

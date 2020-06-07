@@ -12,12 +12,12 @@ import org.dizitart.no2.sync.event.ReplicationEventType;
 public final class Replica implements AutoCloseable {
     private ReplicationTemplate replicationTemplate;
 
-    public static ReplicaBuilder builder() {
-        return new ReplicaBuilder();
-    }
-
     Replica(Config config) {
         this.replicationTemplate = new ReplicationTemplate(config);
+    }
+
+    public static ReplicaBuilder builder() {
+        return new ReplicaBuilder();
     }
 
     public void connect() {

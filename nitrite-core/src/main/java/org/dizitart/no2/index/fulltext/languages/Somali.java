@@ -27,43 +27,43 @@ import java.util.Set;
 /**
  * Somali stop words
  *
- * @since 2.1.0
  * @author Anindya Chatterjee
+ * @since 2.1.0
  */
 public class Somali implements Language {
     @Override
     public Set<String> stopWords() {
         return new HashSet<>(Arrays.asList(
-                "aad",
-                "albaabkii",
-                "atabo",
-                "ay",
-                "ayaa",
-                "ayee",
-                "ayuu",
-                "dhan",
-                "hadana",
-                "in",
-                "inuu",
-                "isku",
-                "jiray",
-                "jirtay",
-                "ka",
-                "kale",
-                "kasoo",
-                "ku",
-                "kuu",
-                "lakin",
-                "markii",
-                "oo",
-                "si",
-                "soo",
-                "uga",
-                "ugu",
-                "uu",
-                "waa",
-                "waxa",
-                "waxuu"
+            "aad",
+            "albaabkii",
+            "atabo",
+            "ay",
+            "ayaa",
+            "ayee",
+            "ayuu",
+            "dhan",
+            "hadana",
+            "in",
+            "inuu",
+            "isku",
+            "jiray",
+            "jirtay",
+            "ka",
+            "kale",
+            "kasoo",
+            "ku",
+            "kuu",
+            "lakin",
+            "markii",
+            "oo",
+            "si",
+            "soo",
+            "uga",
+            "ugu",
+            "uu",
+            "waa",
+            "waxa",
+            "waxuu"
         ));
     }
 }

@@ -26,9 +26,15 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ClassC {
-    @Getter @Setter private long id;
-    @Getter @Setter private double digit;
-    @Getter @Setter private ClassA parent;
+    @Getter
+    @Setter
+    private long id;
+    @Getter
+    @Setter
+    private double digit;
+    @Getter
+    @Setter
+    private ClassA parent;
 
     public static ClassC create(int seed) {
         ClassC classC = new ClassC();

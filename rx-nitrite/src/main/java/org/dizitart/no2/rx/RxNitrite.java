@@ -53,8 +53,8 @@ public class RxNitrite {
         return Single.fromCallable(() -> nitrite.hasRepository(type));
     }
 
-    public <T> Single<Boolean> hasRepository(String key, Class<T> type) {
-        return Single.fromCallable(() -> nitrite.hasRepository(key, type));
+    public <T> Single<Boolean> hasRepository(Class<T> type, String key) {
+        return Single.fromCallable(() -> nitrite.hasRepository(type, key));
     }
 
     public Single<Boolean> hasUnsavedChanges() {

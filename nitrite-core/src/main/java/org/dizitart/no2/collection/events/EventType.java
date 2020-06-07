@@ -19,8 +19,8 @@ package org.dizitart.no2.collection.events;
 /**
  * Represents different types of collection events.
  *
- * @since 4.0
  * @author Anindya Chatterjee.
+ * @since 4.0
  */
 public enum EventType {
     /**
@@ -40,11 +40,11 @@ public enum EventType {
 
     /**
      * Indexing start event.
-     * */
+     */
     IndexStart,
 
     /**
      * Indexing end event.
-     * */
+     */
     IndexEnd
 }

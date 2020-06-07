@@ -71,6 +71,23 @@ public class SpatialIndexTest {
     private SpatialData object1, object2, object3;
     private Document doc1, doc2, doc3;
 
+    public static void main(String[] args) {
+        JFrame f = new JFrame();
+        f.getContentPane().add(new Paint());
+        f.setSize(700, 700);
+        f.setVisible(true);
+        f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
+
+    public static String getRandomTempDbFile() {
+        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
+        File file = new File(dataDir);
+        if (!file.exists()) {
+            assertTrue(file.mkdirs());
+        }
+        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
+    }
+
     @Before
     public void before() throws ParseException {
         db = NitriteBuilder.get()
@@ -270,6 +287,14 @@ public class SpatialIndexTest {
         collection.update(update);
     }
 
+    private Document trimMeta(Document document) {
+        document.remove(DOC_ID);
+        document.remove(DOC_REVISION);
+        document.remove(DOC_MODIFIED);
+        document.remove(DOC_SOURCE);
+        return document;
+    }
+
     public static class Paint extends JPanel {
 
         public void paint(Graphics g) {
@@ -313,30 +338,5 @@ public class SpatialIndexTest {
                 e.printStackTrace();
             }
         }
-    }
-
-    public static void main(String[] args) {
-        JFrame f = new JFrame();
-        f.getContentPane().add(new Paint());
-        f.setSize(700, 700);
-        f.setVisible(true);
-        f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    }
-
-    public static String getRandomTempDbFile() {
-        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
-        File file = new File(dataDir);
-        if (!file.exists()) {
-            assertTrue(file.mkdirs());
-        }
-        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
-    }
-
-    private Document trimMeta(Document document) {
-        document.remove(DOC_ID);
-        document.remove(DOC_REVISION);
-        document.remove(DOC_MODIFIED);
-        document.remove(DOC_SOURCE);
-        return document;
     }
 }

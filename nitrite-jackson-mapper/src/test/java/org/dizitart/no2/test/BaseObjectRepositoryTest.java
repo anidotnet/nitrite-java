@@ -41,50 +41,53 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(value = Parameterized.class)
 public abstract class BaseObjectRepositoryTest {
-    private String fileName = getRandomTempDbFile();
+    @Parameterized.Parameter
+    public boolean inMemory = false;
+    @Parameterized.Parameter(value = 1)
+    public boolean isProtected = false;
+    @Parameterized.Parameter(value = 2)
+    public boolean isCompressed = false;
+    @Parameterized.Parameter(value = 3)
+    public boolean isAutoCommit = false;
+    @Parameterized.Parameter(value = 4)
+    public boolean isAutoCompact = false;
     protected Nitrite db;
     ObjectRepository<Company> companyRepository;
     ObjectRepository<Employee> employeeRepository;
-
     ObjectRepository<ClassA> aObjectRepository;
     ObjectRepository<ClassC> cObjectRepository;
-
-    @Parameterized.Parameter
-    public boolean inMemory = false;
-
-    @Parameterized.Parameter(value = 1)
-    public boolean isProtected = false;
-
-    @Parameterized.Parameter(value = 2)
-    public boolean isCompressed = false;
-
-    @Parameterized.Parameter(value = 3)
-    public boolean isAutoCommit = false;
-
-    @Parameterized.Parameter(value = 4)
-    public boolean isAutoCompact = false;
+    private String fileName = getRandomTempDbFile();
 
     @Parameterized.Parameters(name = "InMemory = {0}, Protected = {1}, " +
-            "Compressed = {2}, AutoCommit = {3}, AutoCompact = {4}")
+        "Compressed = {2}, AutoCommit = {3}, AutoCompact = {4}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {false, false, false, false, false},
-                {false, false, false, true, false},
-                {false, false, true, false, false},
-                {false, false, true, true, false},
-                {false, true, false, false, false},
-                {false, true, false, true, false},
-                {false, true, true, false, false},
-                {false, true, true, true, true},
-                {true, false, false, false, true},
-                {true, false, false, true, true},
-                {true, false, true, false, true},
-                {true, false, true, true, true},
-                {true, true, false, false, true},
-                {true, true, false, true, true},
-                {true, true, true, false, true},
-                {true, true, true, true, true},
+        return Arrays.asList(new Object[][]{
+            {false, false, false, false, false},
+            {false, false, false, true, false},
+            {false, false, true, false, false},
+            {false, false, true, true, false},
+            {false, true, false, false, false},
+            {false, true, false, true, false},
+            {false, true, true, false, false},
+            {false, true, true, true, true},
+            {true, false, false, false, true},
+            {true, false, false, true, true},
+            {true, false, true, false, true},
+            {true, false, true, true, true},
+            {true, true, false, false, true},
+            {true, true, false, true, true},
+            {true, true, true, false, true},
+            {true, true, true, true, true},
         });
+    }
+
+    public static String getRandomTempDbFile() {
+        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
+        File file = new File(dataDir);
+        if (!file.exists()) {
+            assertTrue(file.mkdirs());
+        }
+        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
 
     @Before
@@ -163,14 +166,5 @@ public abstract class BaseObjectRepositoryTest {
         if (!inMemory) {
             Files.delete(Paths.get(fileName));
         }
-    }
-
-    public static String getRandomTempDbFile() {
-        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
-        File file = new File(dataDir);
-        if (!file.exists()) {
-            assertTrue(file.mkdirs());
-        }
-        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
 }

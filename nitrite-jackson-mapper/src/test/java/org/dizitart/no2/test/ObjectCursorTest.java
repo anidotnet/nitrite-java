@@ -19,8 +19,8 @@
 package org.dizitart.no2.test;
 
 import org.dizitart.no2.exceptions.ValidationException;
-import org.dizitart.no2.test.data.Employee;
 import org.dizitart.no2.repository.Cursor;
+import org.dizitart.no2.test.data.Employee;
 import org.junit.Test;
 
 import java.util.AbstractCollection;

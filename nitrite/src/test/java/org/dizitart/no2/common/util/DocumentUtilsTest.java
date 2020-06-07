@@ -54,8 +54,8 @@ public class DocumentUtilsTest {
                 .put("address", createDocument("line1", "40")
                     .put("line2", "ABC Street")
                     .put("house", new String[]{"1", "2", "3"})))
-            .put("category", new String[] {"food", "produce", "grocery"})
-            .put("objArray", new Document[] { createDocument("value", 1), createDocument("value", 2)});
+            .put("category", new String[]{"food", "produce", "grocery"})
+            .put("objArray", new Document[]{createDocument("value", 1), createDocument("value", 2)});
         doc.getId();
         Filter filter = createUniqueFilter(doc);
         assertNotNull(filter);

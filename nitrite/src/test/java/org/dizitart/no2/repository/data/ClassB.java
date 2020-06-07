@@ -29,8 +29,12 @@ import org.dizitart.no2.mapper.NitriteMapper;
 @EqualsAndHashCode
 @ToString
 class ClassB implements Comparable<ClassB>, Mappable {
-    @Getter @Setter private int number;
-    @Getter @Setter private String text;
+    @Getter
+    @Setter
+    private int number;
+    @Getter
+    @Setter
+    private String text;
 
     static ClassB create(int seed) {
         ClassB classB = new ClassB();

@@ -32,9 +32,8 @@ import org.dizitart.no2.store.NitriteStore;
 import org.locationtech.jts.geom.Geometry;
 
 /**
- *
- * @since 4.0.0
  * @author Anindya Chatterjee
+ * @since 4.0.0
  */
 public class SpatialIndexer implements Indexer {
     public static final String SpatialIndex = "Spatial";
@@ -42,7 +41,7 @@ public class SpatialIndexer implements Indexer {
     private NitriteMapper nitriteMapper;
     private NitriteStore nitriteStore;
 
-    public ReadableStream<NitriteId> findWithin(String collectionName, String field, Geometry geometry){
+    public ReadableStream<NitriteId> findWithin(String collectionName, String field, Geometry geometry) {
         NitriteRTree<BoundingBox, Geometry> indexMap = getIndexMap(collectionName, field);
         BoundingBox boundingBox = new NitriteBoundingBox(geometry);
         return indexMap.findContainedKeys(boundingBox);

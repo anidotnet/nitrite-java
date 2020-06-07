@@ -47,24 +47,24 @@ public class NumberUtilsTest {
 
     @Parameterized.Parameters(name = "compare({0}, {1}) = {2}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {1, 1.0f, 0},
-                {1.0f, 1, 0},
-                {1, 1.00000000000001d, -1},
-                {1.00000000000001d, 1, 1},
-                {1, 1.00001f, -1},
-                {1.00001f, 1, 1},
-                {Double.NaN, Float.NaN, 0},
-                {BigDecimal.ONE, 1, 0},
-                {1, BigDecimal.ONE, 0},
-                {BigInteger.ONE, BigDecimal.ONE, 0},
-                {BigInteger.ONE, 1, 0},
-                {0, BigInteger.ZERO, 0},
-                {Integer.MAX_VALUE, Integer.MAX_VALUE, 0},
-                {Double.MAX_VALUE, Float.MAX_VALUE, 1},
-                {Double.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, 0},
-                {Double.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, -1},
-                {Double.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, 0},
+        return Arrays.asList(new Object[][]{
+            {1, 1.0f, 0},
+            {1.0f, 1, 0},
+            {1, 1.00000000000001d, -1},
+            {1.00000000000001d, 1, 1},
+            {1, 1.00001f, -1},
+            {1.00001f, 1, 1},
+            {Double.NaN, Float.NaN, 0},
+            {BigDecimal.ONE, 1, 0},
+            {1, BigDecimal.ONE, 0},
+            {BigInteger.ONE, BigDecimal.ONE, 0},
+            {BigInteger.ONE, 1, 0},
+            {0, BigInteger.ZERO, 0},
+            {Integer.MAX_VALUE, Integer.MAX_VALUE, 0},
+            {Double.MAX_VALUE, Float.MAX_VALUE, 1},
+            {Double.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, 0},
+            {Double.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, -1},
+            {Double.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, 0},
         });
     }
 

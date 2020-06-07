@@ -35,28 +35,28 @@ public class ProjectionTest extends BaseObjectRepositoryTest {
     @Test
     public void testHasMore() {
         ReadableStream<SubEmployee> iterable = employeeRepository.find().limit(0, 5)
-                .project(SubEmployee.class);
+            .project(SubEmployee.class);
         assertFalse(iterable.isEmpty());
     }
 
     @Test
     public void testSize() {
         ReadableStream<SubEmployee> iterable = employeeRepository.find().limit(0, 5)
-                .project(SubEmployee.class);
+            .project(SubEmployee.class);
         assertEquals(iterable.size(), 5);
     }
 
     @Test
     public void testToString() {
         ReadableStream<SubEmployee> iterable = employeeRepository.find().limit(0, 5)
-                .project(SubEmployee.class);
+            .project(SubEmployee.class);
         assertNotNull(iterable.toString());
     }
 
     @Test(expected = InvalidOperationException.class)
     public void testRemove() {
         ReadableStream<SubEmployee> iterable = employeeRepository.find().limit(0, 5)
-                .project(SubEmployee.class);
+            .project(SubEmployee.class);
         Iterator<SubEmployee> iterator = iterable.iterator();
         if (iterator.hasNext()) {
             iterator.next();

@@ -25,7 +25,8 @@ import org.dizitart.no2.index.annotations.Id;
 /**
  * @author Anindya Chatterjee.
  */
-@Getter @Setter
+@Getter
+@Setter
 public class WithObjectId {
     @Id
     private WithOutId withOutId;

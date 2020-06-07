@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.module.NitriteModule;
 import org.dizitart.no2.store.MVStoreConfig;
+import org.dizitart.no2.store.events.StoreEventListener;
 import org.h2.mvstore.OffHeapStore;
 
 import java.io.File;
@@ -51,7 +52,8 @@ public abstract class NitriteBuilder {
     private NitriteConfig nitriteConfig;
     private MVStoreConfig storeConfig;
 
-    private NitriteBuilder() {}
+    private NitriteBuilder() {
+    }
 
     /**
      * Creates a new {@link NitriteBuilder} instance.
@@ -59,7 +61,8 @@ public abstract class NitriteBuilder {
      * @return the {@link NitriteBuilder} instance.
      */
     public static NitriteBuilder get() {
-        NitriteBuilder builder = new NitriteBuilder() {};
+        NitriteBuilder builder = new NitriteBuilder() {
+        };
         builder.nitriteConfig = NitriteConfig.create();
         builder.nitriteConfig.loadModule(new MVStoreModule());
 
@@ -189,18 +192,6 @@ public abstract class NitriteBuilder {
     }
 
     /**
-     * Sets the thread pool shutdown timeout in seconds. Default value
-     * is 5s.
-     *
-     * @param timeout the timeout
-     * @return the {@link NitriteBuilder} instance.
-     */
-    public NitriteBuilder poolShutdownTimeout(int timeout) {
-        this.nitriteConfig.poolShutdownTimeout(timeout);
-        return this;
-    }
-
-    /**
      * Loads {@link NitriteModule} instance.
      *
      * @param module the {@link NitriteModule} instance.
@@ -215,9 +206,19 @@ public abstract class NitriteBuilder {
      * Enables off-heap storage for in-memory database.
      *
      * @return the {@link NitriteBuilder} instance.
-     * */
+     */
     public NitriteBuilder enableOffHeapStorage() {
         this.storeConfig.fileStore(new OffHeapStore());
+        return this;
+    }
+
+    /**
+     * Adds a {@link StoreEventListener} instance and subscribe it to store event.
+     *
+     * @return the {@link NitriteBuilder} instance.
+     */
+    public NitriteBuilder addStoreEventListener(StoreEventListener listener) {
+        this.storeConfig.addStoreEventListener(listener);
         return this;
     }
 
@@ -233,12 +234,6 @@ public abstract class NitriteBuilder {
      * If the database is corrupted somehow then at the time of opening, it will
      * try to repair it using the last known good version. If still it fails to
      * recover, then it will throw a {@link org.dizitart.no2.exceptions.NitriteIOException}.
-     * <p>
-     * It also adds a JVM shutdown hook to the database instance. If JVM exists
-     * before closing the database properly by calling {@link Nitrite#close()},
-     * then the shutdown hook will try to close the database as soon as possible
-     * by discarding any unsaved changes to avoid database corruption.
-     * <p>
      * --
      *
      * @return the nitrite database instance.
@@ -268,12 +263,6 @@ public abstract class NitriteBuilder {
      * If the database is corrupted somehow then at the time of opening, it will
      * try to repair it using the last known good version. If still it fails to
      * recover, then it will throw a {@link org.dizitart.no2.exceptions.NitriteIOException}.
-     * <p>
-     * It also adds a JVM shutdown hook to the database instance. If JVM exists
-     * before closing the database properly by calling {@link Nitrite#close()},
-     * then the shutdown hook will try to close the database as soon as possible
-     * by discarding any unsaved changes to avoid database corruption.
-     * <p>
      * --
      *
      * @param username the username
@@ -287,6 +276,6 @@ public abstract class NitriteBuilder {
     public Nitrite openOrCreate(String username, String password) {
         this.nitriteConfig.storeConfig(storeConfig);
         this.nitriteConfig.autoConfigure();
-        return Nitrite.openOrCreate(username, password, nitriteConfig);
+        return Nitrite.openOrCreate(nitriteConfig, username, password);
     }
 }

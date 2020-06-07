@@ -12,9 +12,16 @@ import java.util.Random;
 /**
  * Generate unique IDs using the Twitter Snowflake algorithm (see https://github.com/twitter/snowflake). Snowflake IDs
  * are 64 bit positive longs composed of:
- * - 41 bits time stamp
- * - 10 bits machine id
- * - 12 bits sequence number
+ *
+ * <ul>
+ *     <li>41 bits time stamp</li>
+ *     <li>10 bits machine id</li>
+ *     <li>12 bits sequence number</li>
+ *     <li>1 unused sign bit, always set to 0</li>
+ * </ul>
+ * <p>
+ * Original code can be found here - https://github.com/apache/marmotta/blob/master/libraries/kiwi/kiwi-triplestore/src/main/java/org/apache/marmotta/kiwi/generator/SnowflakeIDGenerator.java
+ * </p>
  *
  * @author Sebastian Schaffert (sschaffert@apache.org)
  * @since 4.0

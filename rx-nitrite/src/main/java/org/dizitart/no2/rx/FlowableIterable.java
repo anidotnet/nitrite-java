@@ -26,7 +26,7 @@ public abstract class FlowableIterable<T> extends Flowable<T> {
         Iterator<T> it;
         try {
             Iterable<T> iterable = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
             it = iterable.iterator();
         } catch (Throwable e) {
             Exceptions.throwIfFatal(e);

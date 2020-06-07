@@ -18,34 +18,22 @@ import org.dizitart.no2.store.StoreConfig;
  * @since 4.0.0
  */
 public abstract class NitriteConfig {
-    private boolean configured = false;
-
     /**
      * Gets the embedded field separator character. Default value
      * is `.` unless set explicitly.
      *
      * @returns the embedded field separator character.
-     * */
+     */
     @Getter
     private static String fieldSeparator = ".";
-
     @Getter(AccessLevel.PACKAGE)
     private final PluginManager pluginManager;
-
-    /**
-     * Gets the thread pool shutdown timeout in seconds. Default value
-     * is 5s unless set explicitly.
-     *
-     * @returns the thread pool shutdown timeout in seconds.
-     * */
-    @Getter
-    private Integer poolShutdownTimeout = 5;
-
+    private boolean configured = false;
     /**
      * Gets the {@link NitriteStore} configuration.
      *
      * @returns the {@link NitriteStore} configuration.
-     * */
+     */
     @Getter
     private StoreConfig storeConfig;
 
@@ -59,7 +47,8 @@ public abstract class NitriteConfig {
      * @return the {@link NitriteConfig} instance.
      */
     public static NitriteConfig create() {
-        return new NitriteConfig(){};
+        return new NitriteConfig() {
+        };
     }
 
     /**
@@ -75,22 +64,6 @@ public abstract class NitriteConfig {
                 " initialization");
         }
         NitriteConfig.fieldSeparator = separator;
-        return this;
-    }
-
-    /**
-     * Sets the thread pool shutdown timeout in seconds. Default value
-     * is 5s.
-     *
-     * @param timeout the timeout
-     * @return the {@link NitriteConfig} instance.
-     */
-    public NitriteConfig poolShutdownTimeout(int timeout) {
-        if (configured) {
-            throw new InvalidOperationException("cannot change pool shutdown timeout after database" +
-                " initialization");
-        }
-        this.poolShutdownTimeout = timeout;
         return this;
     }
 

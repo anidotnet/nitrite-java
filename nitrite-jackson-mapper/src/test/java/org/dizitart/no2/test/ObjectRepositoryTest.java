@@ -48,9 +48,9 @@ public class ObjectRepositoryTest {
     @Before
     public void setUp() {
         db = NitriteBuilder.get()
-                .loadModule(new JacksonMapperModule())
-                .filePath(dbPath)
-                .openOrCreate();
+            .loadModule(new JacksonMapperModule())
+            .filePath(dbPath)
+            .openOrCreate();
     }
 
     @After

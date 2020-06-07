@@ -43,6 +43,15 @@ public class ReplicaTest {
     private ExecutorService executorService;
     private Repository repository;
 
+    public static String getRandomTempDbFile() {
+        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
+        File file = new File(dataDir);
+        if (!file.exists()) {
+            assertTrue(file.mkdirs());
+        }
+        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
+    }
+
     @Before
     public void setUp() throws Exception {
         server = new SimpleDataGateServer(9090);
@@ -623,15 +632,6 @@ public class ReplicaTest {
 
         await().atMost(5, SECONDS).until(() -> c2.size() == 0
             && lastWriteWinMap.getTombstones().size() == 0);
-    }
-
-    public static String getRandomTempDbFile() {
-        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
-        File file = new File(dataDir);
-        if (!file.exists()) {
-            assertTrue(file.mkdirs());
-        }
-        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
 
     @SneakyThrows

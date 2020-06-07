@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
+import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 import static org.dizitart.no2.module.NitriteModule.module;
 import static org.junit.Assert.*;
@@ -156,7 +157,7 @@ public class NitriteBuilderTest {
         Nitrite db = builder.openOrCreate();
 
         NitriteCollection collection = db.getCollection("test");
-        collection.insert(Document.createDocument("id1", "value"));
+        collection.insert(createDocument("id1", "value"));
 
         ObjectRepository<TestObject> repository = db.getRepository(TestObject.class);
         repository.insert(new TestObject("test", 1L));
@@ -181,9 +182,9 @@ public class NitriteBuilderTest {
         db = builder.openOrCreate();
         assertTrue(db.hasCollection("test"));
         assertTrue(db.hasRepository(TestObject.class));
-        assertTrue(db.hasRepository("key", TestObject.class));
+        assertTrue(db.hasRepository(TestObject.class, "key"));
         assertFalse(db.hasRepository(TestObject2.class));
-        assertTrue(db.hasRepository("key", TestObject2.class));
+        assertTrue(db.hasRepository(TestObject2.class, "key"));
     }
 
 
@@ -232,8 +233,8 @@ public class NitriteBuilderTest {
     @Test(expected = InvalidOperationException.class)
     public void testDbInMemoryReadonly() {
         Nitrite fakeDb = NitriteBuilder.get()
-                .readOnly()
-                .openOrCreate();
+            .readOnly()
+            .openOrCreate();
         assertNull(fakeDb);
     }
 
@@ -244,66 +245,33 @@ public class NitriteBuilderTest {
         assertNull(db);
     }
 
+    @Test
+    public void testFieldSeparator() {
+        Nitrite db = NitriteBuilder.get()
+            .filePath(filePath)
+            .fieldSeparator("::")
+            .openOrCreate();
+
+        Document document = createDocument("firstName", "John")
+            .put("colorCodes", new Document[]{createDocument("color", "Red"), createDocument("color", "Green")})
+            .put("address", createDocument("street", "ABCD Road"));
+
+        String street = document.get("address::street", String.class);
+        assertEquals("ABCD Road", street);
+
+        // use default separator, it should return null
+        street = document.get("address.street", String.class);
+        assertNull(street);
+
+        assertEquals(document.get("colorCodes::1::color"), "Green");
+    }
+
     @Test(expected = NitriteIOException.class)
     public void testInvalidPath() {
         Nitrite db = NitriteBuilder.get()
-                .filePath("http://www.localhost.com")
-                .openOrCreate("test", "test");
+            .filePath("http://www.localhost.com")
+            .openOrCreate("test", "test");
         assertNull(db);
-    }
-
-    @Index(value = "longValue")
-    private class TestObject implements Mappable {
-        private String stringValue;
-        private Long longValue;
-
-        public TestObject() {}
-
-        public TestObject(String stringValue, Long longValue) {
-            this.longValue = longValue;
-            this.stringValue = stringValue;
-        }
-
-        @Override
-        public Document write(NitriteMapper mapper) {
-            return Document.createDocument("stringValue", stringValue)
-                .put("longValue",longValue);
-        }
-
-        @Override
-        public void read(NitriteMapper mapper, Document document) {
-            if (document != null) {
-                this.stringValue = document.get("stringValue", String.class);
-                this.longValue = document.get("longValue", Long.class);
-            }
-        }
-    }
-
-    @Index(value = "longValue")
-    private class TestObject2 implements Mappable {
-        private String stringValue;
-        private Long longValue;
-
-        public TestObject2() {}
-
-        public TestObject2(String stringValue, Long longValue) {
-            this.longValue = longValue;
-            this.stringValue = stringValue;
-        }
-
-        @Override
-        public Document write(NitriteMapper mapper) {
-            return Document.createDocument("stringValue", stringValue)
-                .put("longValue",longValue);
-        }
-
-        @Override
-        public void read(NitriteMapper mapper, Document document) {
-            if (document != null) {
-                this.stringValue = document.get("stringValue", String.class);
-                this.longValue = document.get("longValue", Long.class);
-            }
-        }
     }
 
     private static class CustomIndexer implements Indexer {
@@ -359,6 +327,62 @@ public class NitriteBuilderTest {
         @Override
         public void initialize(NitriteConfig nitriteConfig) {
 
+        }
+    }
+
+    @Index(value = "longValue")
+    private class TestObject implements Mappable {
+        private String stringValue;
+        private Long longValue;
+
+        public TestObject() {
+        }
+
+        public TestObject(String stringValue, Long longValue) {
+            this.longValue = longValue;
+            this.stringValue = stringValue;
+        }
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return createDocument("stringValue", stringValue)
+                .put("longValue", longValue);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            if (document != null) {
+                this.stringValue = document.get("stringValue", String.class);
+                this.longValue = document.get("longValue", Long.class);
+            }
+        }
+    }
+
+    @Index(value = "longValue")
+    private class TestObject2 implements Mappable {
+        private String stringValue;
+        private Long longValue;
+
+        public TestObject2() {
+        }
+
+        public TestObject2(String stringValue, Long longValue) {
+            this.longValue = longValue;
+            this.stringValue = stringValue;
+        }
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return createDocument("stringValue", stringValue)
+                .put("longValue", longValue);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            if (document != null) {
+                this.stringValue = document.get("stringValue", String.class);
+                this.longValue = document.get("longValue", Long.class);
+            }
         }
     }
 }

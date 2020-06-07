@@ -24,6 +24,7 @@ import org.dizitart.no2.NitriteConfig
 import org.dizitart.no2.module.NitriteModule
 import org.dizitart.no2.module.NitriteModule.module
 import org.dizitart.no2.spatial.SpatialIndexer
+import org.dizitart.no2.store.events.StoreEventListener
 import java.io.File
 
 /**
@@ -34,6 +35,7 @@ import java.io.File
  */
 class Builder internal constructor() {
     private val modules = mutableSetOf<NitriteModule>()
+    private val listeners = mutableSetOf<StoreEventListener>()
 
     /**
      * Path for the file based store.
@@ -89,6 +91,11 @@ class Builder internal constructor() {
     var poolShutdownTimeout = 5
 
     /**
+     * Enables off-heap storage for in-memory database.
+     */
+    var offHeapStorage = false;
+
+    /**
      * Specifies the separator character for embedded field.
      * Default value is `.`
      *
@@ -102,7 +109,14 @@ class Builder internal constructor() {
         modules.add(module)
     }
 
-    internal fun createNitriteBuilder() : NitriteBuilder {
+    /**
+     * Adds a [StoreEventListener] instance and subscribe it to store event.
+     * */
+    fun addStoreEventListener(listener: StoreEventListener) {
+        listeners.add(listener)
+    }
+
+    internal fun createNitriteBuilder(): NitriteBuilder {
         val builder = NitriteBuilder.get()
         if (file != null) {
             builder.filePath(file)
@@ -120,13 +134,16 @@ class Builder internal constructor() {
         if (compress) builder.compressed()
         if (!autoCommit) builder.disableAutoCommit()
         if (!autoCompact) builder.disableAutoCompact()
+        if (offHeapStorage) builder.enableOffHeapStorage()
+
+        listeners.forEach { builder.addStoreEventListener(it) }
 
         return builder
     }
 
     private fun loadDefaultPlugins(builder: NitriteBuilder) {
-        val mapperFound = modules.any { module -> module.plugins().any { it is KNO2JacksonMapper }}
-        val spatialIndexerFound = modules.any { module -> module.plugins().any { it is SpatialIndexer }}
+        val mapperFound = modules.any { module -> module.plugins().any { it is KNO2JacksonMapper } }
+        val spatialIndexerFound = modules.any { module -> module.plugins().any { it is SpatialIndexer } }
 
         if (!mapperFound && spatialIndexerFound) {
             builder.loadModule(module(KNO2JacksonMapper()))
@@ -149,7 +166,7 @@ class Builder internal constructor() {
  * @return the nitrite database instance.
  */
 fun nitrite(userId: String? = null, password: String? = null,
-            op: (Builder.() -> Unit)? = null) : Nitrite {
+            op: (Builder.() -> Unit)? = null): Nitrite {
     val builder = Builder()
     op?.invoke(builder)
     val nitriteBuilder = builder.createNitriteBuilder()

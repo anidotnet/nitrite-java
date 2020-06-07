@@ -27,42 +27,42 @@ import java.util.Set;
 /**
  * Zulu stop words
  *
- * @since 2.1.0
  * @author Anindya Chatterjee
+ * @since 2.1.0
  */
 public class Zulu implements Language {
     @Override
     public Set<String> stopWords() {
         return new HashSet<>(Arrays.asList(
-                "futhi",
-                "kahle",
-                "kakhulu",
-                "kanye",
-                "khona",
-                "kodwa",
-                "kungani",
-                "kusho",
-                "la",
-                "lakhe",
-                "lapho",
-                "mina",
-                "ngesikhathi",
-                "nje",
-                "phansi",
-                "phezulu",
-                "u",
-                "ukuba",
-                "ukuthi",
-                "ukuze",
-                "uma",
-                "wahamba",
-                "wakhe",
-                "wami",
-                "wase",
-                "wathi",
-                "yakhe",
-                "zakhe",
-                "zonke"
+            "futhi",
+            "kahle",
+            "kakhulu",
+            "kanye",
+            "khona",
+            "kodwa",
+            "kungani",
+            "kusho",
+            "la",
+            "lakhe",
+            "lapho",
+            "mina",
+            "ngesikhathi",
+            "nje",
+            "phansi",
+            "phezulu",
+            "u",
+            "ukuba",
+            "ukuthi",
+            "ukuze",
+            "uma",
+            "wahamba",
+            "wakhe",
+            "wami",
+            "wase",
+            "wathi",
+            "yakhe",
+            "zakhe",
+            "zonke"
         ));
     }
 }

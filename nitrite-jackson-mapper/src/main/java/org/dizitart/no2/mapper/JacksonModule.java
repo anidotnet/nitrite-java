@@ -9,5 +9,6 @@ import java.util.List;
  */
 public interface JacksonModule {
     List<Class<?>> getDataTypes();
+
     Module getModule();
 }

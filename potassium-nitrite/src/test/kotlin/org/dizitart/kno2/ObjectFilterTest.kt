@@ -129,7 +129,7 @@ class ObjectFilterTest : BaseTest() {
     fun testElemMatch() {
         db?.getRepository<TestData> {
             insert(TestData(1, "red", list = listOf(ListData("a", 1), ListData("b", 2))),
-                    TestData(2, "yellow", list = listOf(ListData("a", 9), ListData("b", 10))))
+                TestData(2, "yellow", list = listOf(ListData("a", 9), ListData("b", 10))))
 
             var cursor = find(TestData::list elemMatch (ListData::score eq 4))
             assertEquals(cursor.size(), 0)
@@ -213,11 +213,11 @@ class ObjectFilterTest : BaseTest() {
         val latch = CountDownLatch(100)
 
         repository.update(SimpleObject(
-                uuid,
-                true
+            uuid,
+            true
         ), true)
 
-        for(i in 0..100) {
+        for (i in 0..100) {
             executor.submit {
                 val simpleObject = try {
                     repository.find(SimpleObject::id.name eq uuid).first()
@@ -228,7 +228,7 @@ class ObjectFilterTest : BaseTest() {
                 }
 
                 repository.update(simpleObject.copy(
-                        value = !simpleObject.value
+                    value = !simpleObject.value
                 ))
 
                 executor.submit {
@@ -316,7 +316,7 @@ class ObjectFilterTest : BaseTest() {
             insert(object1, object2, object3)
 
             val cursor = find(SpatialData::geometry.near(coordinate, 20.0))
-            assertEquals(cursor.size().toLong(), 1)
+            assertEquals(cursor.size(), 1)
             assertEquals(cursor.toList(), listOf(object1))
         }
     }
@@ -328,8 +328,8 @@ data class TestData(@Id val id: Int, val text: String, val list: List<ListData> 
 class ListData(val name: String, val score: Int)
 
 data class SimpleObject(
-        @Id val id: UUID,
-        val value: Boolean
+    @Id val id: UUID,
+    val value: Boolean
 )
 
 @Index(value = "geometry", type = SpatialIndexer.SpatialIndex)

@@ -27,7 +27,8 @@ import org.dizitart.no2.repository.data.ClassC;
 import org.junit.Test;
 
 import static org.dizitart.no2.filters.FluentFilter.where;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Anindya Chatterjee.
@@ -46,34 +47,34 @@ public class UnAnnotatedObjectTest extends BaseObjectRepositoryTest {
         aObjectRepository.createIndex("b.number", indexOptions);
 
         cursor = aObjectRepository.find(where("b.number").eq(160).not()).
-                sort("b.number", SortOrder.Ascending).limit(0, 10);
+            sort("b.number", SortOrder.Ascending).limit(0, 10);
 
         System.out.println("Available - " + !cursor.isEmpty());
         System.out.println("Total Size - " + cursor.size());
 
         Iterable<ClassA> findRecord = cursor.project(ClassA.class);
-        for(ClassA classA : findRecord) {
+        for (ClassA classA : findRecord) {
             System.out.println(classA);
         }
 
         cursor = aObjectRepository.find(where("b.number").eq(160).not()).
-                sort("b.number", SortOrder.Descending).limit(2, 7);
+            sort("b.number", SortOrder.Descending).limit(2, 7);
 
         System.out.println("Available - " + !cursor.isEmpty());
         System.out.println("Total Size - " + cursor.size());
 
         findRecord = cursor.project(ClassA.class);
-        for(ClassA classA : findRecord) {
+        for (ClassA classA : findRecord) {
             System.out.println(classA);
         }
 
         cursor = cObjectRepository.find(where("id").gt(900)).
-                sort("id", SortOrder.Descending).limit(2, 7);
+            sort("id", SortOrder.Descending).limit(2, 7);
         System.out.println("Available - " + !cursor.isEmpty());
         System.out.println("Total Size - " + cursor.size());
 
         Iterable<ClassC> findRecordC = cursor.project(ClassC.class);
-        for(ClassC classC : findRecordC) {
+        for (ClassC classC : findRecordC) {
             System.out.println(classC);
         }
     }

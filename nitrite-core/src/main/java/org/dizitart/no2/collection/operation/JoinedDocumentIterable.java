@@ -79,7 +79,7 @@ class JoinedDocumentIterable implements ReadableStream<Document> {
             if (localObject == null) return localDocument;
             Set<Document> target = new HashSet<>();
 
-            for (Document foreignDocument: foreignCursor) {
+            for (Document foreignDocument : foreignCursor) {
                 Object foreignObject = foreignDocument.get(lookup.getForeignField());
                 if (foreignObject != null) {
                     if (deepEquals(foreignObject, localObject)) {

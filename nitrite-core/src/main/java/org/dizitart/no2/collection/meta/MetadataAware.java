@@ -12,13 +12,13 @@ public interface MetadataAware {
      * Returns the meta data attributes of an object.
      *
      * @return the meta data attributes.
-     * */
+     */
     Attributes getAttributes();
 
     /**
      * Sets new meta data attributes.
      *
      * @param attributes new meta data attributes.
-     * */
+     */
     void setAttributes(Attributes attributes);
 }

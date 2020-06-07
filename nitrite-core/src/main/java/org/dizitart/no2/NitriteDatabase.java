@@ -9,7 +9,6 @@ import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.repository.RepositoryFactory;
 import org.dizitart.no2.store.NitriteStore;
-import org.dizitart.no2.store.events.StoreEventListener;
 
 import java.util.*;
 
@@ -51,20 +50,22 @@ class NitriteDatabase implements Nitrite {
     @Override
     public <T> ObjectRepository<T> getRepository(String key, Class<T> type) {
         checkOpened();
-        String name = findRepositoryName(key, type);
+        String name = findRepositoryName(type, key);
         return getRepositoryByName(name, type);
     }
 
     @Override
     public Set<String> listCollectionNames() {
+        checkOpened();
         return new LinkedHashSet<>(store.getCollectionNames());
     }
 
     @Override
     public Set<String> listRepositories() {
+        checkOpened();
         Set<String> resultSet = new LinkedHashSet<>();
-        Set<String> repository = store.getRepositoryRegistry().keySet();
-        for (String name : repository) {
+        Set<String> repositories = store.getRepositoryRegistry().keySet();
+        for (String name : repositories) {
             if (!isKeyedRepository(name)) {
                 resultSet.add(name);
             }
@@ -74,9 +75,10 @@ class NitriteDatabase implements Nitrite {
 
     @Override
     public Map<String, Set<String>> listKeyedRepository() {
+        checkOpened();
         Map<String, Set<String>> resultMap = new HashMap<>();
-        Set<String> repository = store.getRepositoryRegistry().keySet();
-        for (String name : repository) {
+        Set<String> repositories = store.getRepositoryRegistry().keySet();
+        for (String name : repositories) {
             if (isKeyedRepository(name)) {
                 String key = getKeyName(name);
                 String type = getKeyedRepositoryType(name);
@@ -96,6 +98,7 @@ class NitriteDatabase implements Nitrite {
 
     @Override
     public boolean hasUnsavedChanges() {
+        checkOpened();
         return store != null && store.hasUnsavedChanges();
     }
 
@@ -105,8 +108,8 @@ class NitriteDatabase implements Nitrite {
     }
 
     @Override
-    public void addEventListener(StoreEventListener listener) {
-        store.subscribe(listener);
+    public NitriteStore getStore() {
+        return store;
     }
 
     @Override
@@ -144,6 +147,7 @@ class NitriteDatabase implements Nitrite {
     }
 
     private <T> ObjectRepository<T> getRepositoryByName(String name, Class<T> type) {
+        checkOpened();
         return RepositoryFactory.getRepository(type, name, nitriteConfig);
     }
 
@@ -163,6 +167,7 @@ class NitriteDatabase implements Nitrite {
     }
 
     private void closeCollections() {
+        checkOpened();
         Set<String> collections = store.getCollectionNames();
         if (collections != null) {
             for (String name : collections) {
@@ -183,12 +188,6 @@ class NitriteDatabase implements Nitrite {
                 }
             }
             repositories.clear();
-        }
-    }
-
-    private void checkOpened() {
-        if (store == null || store.isClosed()) {
-            throw new NitriteIOException("store is closed");
         }
     }
 }

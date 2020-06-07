@@ -34,17 +34,17 @@ public class NitriteBuilderNegativeTest {
         String filePath = getRandomTempDbFile();
 
         Nitrite db = NitriteBuilder.get()
-                .readOnly()
-                .filePath(filePath)
-                .openOrCreate();
+            .readOnly()
+            .filePath(filePath)
+            .openOrCreate();
         db.close();
     }
 
     @Test(expected = InvalidOperationException.class)
     public void testCreateReadonlyInMemoryDatabase() {
         Nitrite db = NitriteBuilder.get()
-                .readOnly()
-                .openOrCreate();
+            .readOnly()
+            .openOrCreate();
         db.close();
     }
 
@@ -53,19 +53,19 @@ public class NitriteBuilderNegativeTest {
         String filePath = getRandomTempDbFile();
 
         NitriteBuilder.get()
-                .filePath(filePath)
-                .openOrCreate();
+            .filePath(filePath)
+            .openOrCreate();
 
         NitriteBuilder.get()
-                .filePath(filePath)
-                .openOrCreate();
+            .filePath(filePath)
+            .openOrCreate();
     }
 
     @Test(expected = NitriteIOException.class)
     public void testInvalidDirectory() {
         String filePath = "/ytgr/hfurh/frij.db";
         NitriteBuilder.get()
-                .filePath(filePath)
-                .openOrCreate();
+            .filePath(filePath)
+            .openOrCreate();
     }
 }

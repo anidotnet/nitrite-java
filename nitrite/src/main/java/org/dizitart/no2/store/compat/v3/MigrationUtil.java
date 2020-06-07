@@ -18,9 +18,17 @@ import static org.dizitart.no2.common.Constants.STORE_INFO;
 import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
 
 /**
+ * An utility class to migrate the.
+ *
  * @author Anindya Chatterjee
  */
 public class MigrationUtil {
+    /**
+     * Migrate.
+     *
+     * @param newStore the new store
+     * @param oldStore the old store
+     */
     @SuppressWarnings({"rawtypes"})
     public static void migrate(MVStore newStore, MVStore oldStore) {
         try {
@@ -165,7 +173,7 @@ public class MigrationUtil {
     }
 
     private static NitriteId nitriteId(Compat.NitriteId value) {
-        return NitriteId.createId(value.getIdValue());
+        return NitriteId.createId(Long.toString(value.getIdValue()));
     }
 
     private static UserCredential credential(Compat.UserCredential value) {

@@ -25,8 +25,8 @@ import java.util.Set;
 /**
  * A {@link TextTokenizer} implementation for the English languages.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 public class EnglishTextTokenizer extends BaseTextTokenizer {
     private Language language;

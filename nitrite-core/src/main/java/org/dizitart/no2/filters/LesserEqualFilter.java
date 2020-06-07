@@ -47,8 +47,8 @@ class LesserEqualFilter extends ComparisonFilter {
 
         if (getField().equalsIgnoreCase(DOC_ID)) {
             NitriteId nitriteId = null;
-            if (comparable instanceof Long) {
-                nitriteId = NitriteId.createId((Long) comparable);
+            if (comparable instanceof String) {
+                nitriteId = NitriteId.createId((String) comparable);
             }
 
             if (nitriteId != null) {

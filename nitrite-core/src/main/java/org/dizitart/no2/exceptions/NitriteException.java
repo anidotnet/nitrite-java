@@ -23,8 +23,8 @@ import lombok.Getter;
 /**
  * Represents a generic nitrite database runtime error.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 @Getter
 public class NitriteException extends RuntimeException {
@@ -42,7 +42,7 @@ public class NitriteException extends RuntimeException {
      * Instantiates a new Nitrite exception.
      *
      * @param errorMessage the error message
-     * @param cause   the cause
+     * @param cause        the cause
      */
     public NitriteException(String errorMessage, Throwable cause) {
         super(errorMessage, cause);

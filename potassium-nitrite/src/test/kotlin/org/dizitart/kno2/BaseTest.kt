@@ -30,7 +30,7 @@ import java.util.*
  */
 fun getRandomTempDbFile(): String {
     val dataDir = System.getProperty("java.io.tmpdir") +
-            File.separator + "nitrite" + File.separator + "data"
+        File.separator + "nitrite" + File.separator + "data"
     val file = File(dataDir)
     if (!file.exists()) {
         Assert.assertTrue(file.mkdirs())

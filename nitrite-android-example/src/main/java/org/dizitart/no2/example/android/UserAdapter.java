@@ -29,9 +29,9 @@ import java.util.List;
  * @author Anindya Chatterjee.
  */
 public class UserAdapter extends BaseAdapter {
-    private List<User> users;
     LayoutInflater mInflator;
     Context mContext;
+    private List<User> users;
 
     public UserAdapter(Context context) {
         mContext = context;

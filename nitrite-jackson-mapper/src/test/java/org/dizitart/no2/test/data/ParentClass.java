@@ -32,7 +32,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Indices(
-        @Index(value = "date")
+    @Index(value = "date")
 )
 public class ParentClass extends SuperDuperClass {
     @Id

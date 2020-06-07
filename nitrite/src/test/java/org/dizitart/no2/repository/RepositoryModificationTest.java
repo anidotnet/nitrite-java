@@ -157,19 +157,19 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         prepareUpdateWithOptions(joiningDate);
 
         SimpleDateFormat simpleDateFormat
-                = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
+            = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
         Date newJoiningDate = simpleDateFormat.parse("2012-07-01T16:02:48.440Z");
 
         Document updated1 = createDocument();
         updated1.put("joinDate", newJoiningDate);
 
         WriteResult writeResult
-                = employeeRepository.update(where("empId").eq( 12L), updated1, false);
+            = employeeRepository.update(where("empId").eq(12L), updated1, false);
         assertEquals(writeResult.getAffectedCount(), 1);
 
         Cursor<Employee> result = employeeRepository.find(where("joinDate").eq(joiningDate));
         assertEquals(result.size(), 1);
-        result = employeeRepository.find(where("joinDate").eq( newJoiningDate));
+        result = employeeRepository.find(where("joinDate").eq(newJoiningDate));
         assertEquals(result.size(), 1);
 
         employeeRepository.remove(Filter.ALL);
@@ -208,7 +208,7 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         employee.setEmployeeNote(empNote1);
 
         WriteResult writeResult
-                = employeeRepository.update(where("empId").eq(12), employee, true);
+            = employeeRepository.update(where("empId").eq(12), employee, true);
         assertEquals(writeResult.getAffectedCount(), 1);
 
         result = employeeRepository.find(where("joinDate").eq(joiningDate));
@@ -233,7 +233,7 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         employee.setEmployeeNote(empNote1);
 
         WriteResult writeResult
-                = employeeRepository.update(where("empId").eq(12), employee, false);
+            = employeeRepository.update(where("empId").eq(12), employee, false);
         assertEquals(writeResult.getAffectedCount(), 0);
 
         result = employeeRepository.find(where("joinDate").eq(joiningDate));
@@ -290,7 +290,7 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         update.put("address", "new address");
 
         WriteResult writeResult
-                = employeeRepository.update(where("empId").eq(employee.getEmpId()), update, false);
+            = employeeRepository.update(where("empId").eq(employee.getEmpId()), update, false);
         assertEquals(writeResult.getAffectedCount(), 1);
 
         Employee byId = employeeRepository.getById(employee.getEmpId());
@@ -325,7 +325,7 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         update.setAddress("new address");
 
         WriteResult writeResult
-                = employeeRepository.update(where("joinDate").eq(now), update, false);
+            = employeeRepository.update(where("joinDate").eq(now), update, false);
         assertEquals(writeResult.getAffectedCount(), 0);
     }
 
@@ -508,7 +508,7 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         note.setText("some note text");
 
         Document document = createDocument("address", "some address")
-                .put("employeeNote", note);
+            .put("employeeNote", note);
 
         WriteResult result = employeeRepository.update(Filter.ALL, document);
         assertEquals(result.getAffectedCount(), 10);

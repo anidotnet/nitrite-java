@@ -27,12 +27,12 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
  */
 @Slf4j
 public class NitriteMVStore implements NitriteStore {
+    private final NitriteEventBus<EventInfo, StoreEventListener> eventBus;
+    private final Set<String> collectionRegistry;
+    private final Map<String, Class<?>> repositoryRegistry;
     private MVStore mvStore;
     private MVStoreConfig mvStoreConfig;
     private NitriteConfig nitriteConfig;
-    private NitriteEventBus<EventInfo, StoreEventListener> eventBus;
-    private Set<String> collectionRegistry;
-    private Map<String, Class<?>> repositoryRegistry;
 
     public NitriteMVStore() {
         this.collectionRegistry = new HashSet<>();
@@ -47,6 +47,8 @@ public class NitriteMVStore implements NitriteStore {
         this.mvStore = MVStoreUtils.openOrCreate(username, password, mvStoreConfig);
         populateCollections();
         populateRepositories();
+        initEventBus();
+        alert(StoreEvents.Opened);
     }
 
     @Override
@@ -72,11 +74,6 @@ public class NitriteMVStore implements NitriteStore {
     @Override
     public boolean isReadOnly() {
         return mvStore.isReadOnly();
-    }
-
-    @Override
-    public void compact() {
-        mvStore.compactMoveChunks();
     }
 
     @Override
@@ -128,7 +125,7 @@ public class NitriteMVStore implements NitriteStore {
             }
         }
 
-        MVMap mvMap = mvStore.openMap(name);
+        MVMap<?, ?> mvMap = mvStore.openMap(name);
         mvStore.removeMap(mvMap);
     }
 
@@ -162,6 +159,10 @@ public class NitriteMVStore implements NitriteStore {
     @Override
     public void initialize(NitriteConfig nitriteConfig) {
         this.nitriteConfig = nitriteConfig;
+    }
+
+    public void compact() {
+        mvStore.compactMoveChunks();
     }
 
     private void alert(StoreEvents eventType) {
@@ -212,6 +213,14 @@ public class NitriteMVStore implements NitriteStore {
             }
         } catch (ClassNotFoundException e) {
             log.error("Could not find the class " + name);
+        }
+    }
+
+    private void initEventBus() {
+        if (mvStoreConfig.getEventListeners() != null) {
+            for (StoreEventListener eventListener : mvStoreConfig.getEventListeners()) {
+                eventBus.register(eventListener);
+            }
         }
     }
 }

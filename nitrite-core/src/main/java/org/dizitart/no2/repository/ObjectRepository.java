@@ -4,8 +4,8 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.events.CollectionEventListener;
-import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.collection.events.EventAware;
+import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.common.PersistentCollection;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.util.Iterables;
@@ -46,9 +46,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  *
  * @param <T> the type of the object to store.
  * @author Anindya Chatterjee.
- *
- * @Override
- * public void onChange(ChangeInfo changeInfo) {
+ * @Override public void onChange(ChangeInfo changeInfo) {
  * // your logic based on action
  * }
  * });
@@ -287,8 +285,8 @@ public interface ObjectRepository<T> extends PersistentCollection<T> {
      *
      * @param id the id value
      * @return the unique object associated with the id.
-     * @throws ValidationException if `id` is `null`.
-     * @throws InvalidIdException if the id value is `null`, or the type is not compatible.
+     * @throws ValidationException      if `id` is `null`.
+     * @throws InvalidIdException       if the id value is `null`, or the type is not compatible.
      * @throws NotIdentifiableException if the object has no field marked with {@link Id}.
      */
     <I> T getById(I id);

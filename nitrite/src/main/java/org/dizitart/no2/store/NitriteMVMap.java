@@ -85,7 +85,7 @@ class NitriteMVMap<Key, Value> implements NitriteMap<Key, Value> {
     @Override
     public ReadableStream<KeyValuePair<Key, Value>> entries() {
         return () -> new Iterator<KeyValuePair<Key, Value>>() {
-            Iterator<Map.Entry<Key, Value>> entryIterator = mvMap.entrySet().iterator();
+            final Iterator<Map.Entry<Key, Value>> entryIterator = mvMap.entrySet().iterator();
 
             @Override
             public boolean hasNext() {

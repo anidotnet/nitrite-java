@@ -52,7 +52,7 @@ class EqualsFilter extends IndexAwareFilter {
         Object value = getValue();
 
         if (getField().equalsIgnoreCase(DOC_ID)) {
-            if (value instanceof Long) {
+            if (value instanceof String) {
                 return Objects.equals(element.getKey().getIdValue(), getValue());
             }
         } else {

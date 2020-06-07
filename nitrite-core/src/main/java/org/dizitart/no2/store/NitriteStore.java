@@ -12,8 +12,8 @@ import java.util.Set;
 /**
  * Represents a persistent storage for Nitrite database.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public interface NitriteStore extends NitritePlugin, AutoCloseable {
 
@@ -53,11 +53,6 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      * @return `true` if the store is opened in readonly mode.; `false` otherwise.
      */
     boolean isReadOnly();
-
-    /**
-     * Compacts the store by moving all chunks next to each other.
-     */
-    void compact();
 
     /**
      * Commits the changes. For persistent stores, it also writes
@@ -106,8 +101,8 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      * automatically create if it does not yet exist. If a RTree with this
      * name is already open, this RTree is returned.
      *
-     * @param <Key>   the key type
-     * @param <Value> the value type
+     * @param <Key>     the key type
+     * @param <Value>   the value type
      * @param rTreeName the RTree name
      * @return the map.
      */
@@ -124,20 +119,20 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      * Adds a {@link StoreEventListener} to listen to all store events.
      *
      * @param listener the listener instances.
-     * */
+     */
     void subscribe(StoreEventListener listener);
 
     /**
      * Removes a {@link StoreEventListener} to unsubscribe from all store events.
      *
      * @param listener the listener instances.
-     * */
+     */
     void unsubscribe(StoreEventListener listener);
 
     /**
      * Returns information about the underlying data store.
      *
      * @return a {@link StoreInfo} object containing information about the store.
-     * */
+     */
     StoreInfo getStoreInfo();
 }

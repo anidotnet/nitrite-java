@@ -85,7 +85,7 @@ public class ReplicaNegativeTest {
     }
 
     /*
-    * 1. Server close and again restarted
-    * 2. Connectivity check with with atomic counter
-    * */
+     * 1. Server close and again restarted
+     * 2. Connectivity check with with atomic counter
+     * */
 }

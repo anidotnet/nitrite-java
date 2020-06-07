@@ -27,8 +27,8 @@ import java.math.BigInteger;
 /**
  * A utility class for {@link Number}s.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 @UtilityClass
 public class NumberUtils {
@@ -42,7 +42,7 @@ public class NumberUtils {
      * than `0` if `x` is numerically greater than `y`.
      */
     public static int compare(Number x, Number y) {
-        if(isSpecial(x) || isSpecial(y))
+        if (isSpecial(x) || isSpecial(y))
             return Double.compare(x.doubleValue(), y.doubleValue());
         else
             return toBigDecimal(x).compareTo(toBigDecimal(y));
@@ -50,28 +50,28 @@ public class NumberUtils {
 
     private static boolean isSpecial(Number number) {
         boolean specialDouble = number instanceof Double
-                && (Double.isNaN((Double) number) || Double.isInfinite((Double) number));
+            && (Double.isNaN((Double) number) || Double.isInfinite((Double) number));
         boolean specialFloat = number instanceof Float
-                && (Float.isNaN((Float) number) || Float.isInfinite((Float) number));
+            && (Float.isNaN((Float) number) || Float.isInfinite((Float) number));
         return specialDouble || specialFloat;
     }
 
     private static BigDecimal toBigDecimal(Number number) {
-        if(number instanceof BigDecimal)
+        if (number instanceof BigDecimal)
             return (BigDecimal) number;
-        if(number instanceof BigInteger)
+        if (number instanceof BigInteger)
             return new BigDecimal((BigInteger) number);
-        if(number instanceof Byte || number instanceof Short
-                || number instanceof Integer || number instanceof Long)
+        if (number instanceof Byte || number instanceof Short
+            || number instanceof Integer || number instanceof Long)
             return new BigDecimal(number.longValue());
-        if(number instanceof Float || number instanceof Double)
+        if (number instanceof Float || number instanceof Double)
             return new BigDecimal(number.doubleValue());
 
         try {
             return new BigDecimal(number.toString());
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             throw new ValidationException("the given number (\"" + number + "\" of class "
-                    + number.getClass().getName() + ") does not have a parsable string representation", e);
+                + number.getClass().getName() + ") does not have a parsable string representation", e);
         }
     }
 }

@@ -26,25 +26,24 @@ public interface Cursor<T> extends ReadableStream<T> {
     /**
      * Projects the result of one type into an {@link Iterable} of other type.
      *
-     * @param <P>               the type of the target objects.
-     * @param projectionType    the projection type.
+     * @param <P>            the type of the target objects.
+     * @param projectionType the projection type.
      * @return `Iterable` of projected objects.
      */
     <P> ReadableStream<P> project(Class<P> projectionType);
 
     /**
      * Performs a left outer join with a foreign cursor with the specified lookup parameters.
-     *
+     * <p>
      * It performs an equality match on the localString to the foreignString from the objects of the foreign cursor.
      * If an input object does not contain the localString, the join treats the field as having a value of `null`
      * for matching purposes.
      *
-     * @param <Foreign> the type of the foreign object.
-     * @param <Joined> the type of the joined object.
+     * @param <Foreign>     the type of the foreign object.
+     * @param <Joined>      the type of the joined object.
      * @param foreignCursor the foreign cursor for the join.
-     * @param lookup the lookup parameter for the join operation.
-     * @param type the type of the joined record.
-     *
+     * @param lookup        the lookup parameter for the join operation.
+     * @param type          the type of the joined record.
      * @return a lazy iterable of joined objects.
      * @since 2.1.0
      */

@@ -28,35 +28,35 @@ public class NitriteIdTest {
 
     @Test
     public void testLimit() {
-        NitriteId one = NitriteId.createId(Long.MAX_VALUE);
-        NitriteId two = NitriteId.createId(Long.MIN_VALUE);
+        NitriteId one = NitriteId.createId(Long.toString(Long.MAX_VALUE));
+        NitriteId two = NitriteId.createId(Long.toString(Long.MIN_VALUE));
         assertEquals(one.compareTo(two), 1);
     }
 
     @Test
     public void testHashEquals() {
-        NitriteId one = NitriteId.createId(1L);
-        NitriteId two = NitriteId.createId(1L);
+        NitriteId one = NitriteId.createId("1");
+        NitriteId two = NitriteId.createId("1");
 
-        assertTrue(one.equals(two));
+        assertEquals(one, two);
         assertEquals(one.hashCode(), two.hashCode());
 
-        NitriteId third = NitriteId.createId(2L);
-        assertFalse(one.equals(third));
+        NitriteId third = NitriteId.createId("2");
+        assertNotEquals(one, third);
         assertNotEquals(one.hashCode(), third.hashCode());
     }
 
     @Test
     public void testCompare() {
-        NitriteId one = NitriteId.createId(1L);
-        NitriteId two = NitriteId.createId(2L);
-        NitriteId three = NitriteId.createId(3L);
+        NitriteId one = NitriteId.createId("1");
+        NitriteId two = NitriteId.createId("2");
+        NitriteId three = NitriteId.createId("3");
 
         assertEquals(one.compareTo(two), -1);
         assertEquals(three.compareTo(one), 1);
 
-        one = NitriteId.createId(10L);
-        two = NitriteId.createId(20L);
+        one = NitriteId.createId("10");
+        two = NitriteId.createId("20");
         assertEquals(one.compareTo(two), -1);
 
         one = NitriteId.newId();

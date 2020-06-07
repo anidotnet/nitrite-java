@@ -15,8 +15,8 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * Represents a nitrite database index.
  *
  * @author Anindya Chatterjee
- * @since 1.0
  * @see NitriteCollection#createIndex(String, IndexOptions)
+ * @since 1.0
  */
 @ToString
 @EqualsAndHashCode
@@ -29,7 +29,7 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
      *
      * @return the type of the index.
      * @see IndexType
-     * */
+     */
     @Getter
     private String indexType;
 
@@ -37,7 +37,7 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
      * Gets the target field for the index.
      *
      * @return the target field.
-     * */
+     */
     @Getter
     private String field;
 
@@ -45,7 +45,7 @@ public class IndexEntry implements Comparable<IndexEntry>, Serializable {
      * Gets the collection name.
      *
      * @return the collection name.
-     * */
+     */
     @Getter
     private String collectionName;
 

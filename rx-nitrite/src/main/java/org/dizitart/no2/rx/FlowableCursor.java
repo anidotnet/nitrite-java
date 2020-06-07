@@ -75,7 +75,7 @@ public final class FlowableCursor<T> extends FlowableReadableStream<T> {
     public <P> FlowableReadableStream<P> project(Class<P> projectionType) {
         Callable<ReadableStream<P>> projectionSupplier = () -> {
             Cursor<T> cursor = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
             return cursor.project(projectionType);
         };
 
@@ -86,10 +86,10 @@ public final class FlowableCursor<T> extends FlowableReadableStream<T> {
                                                                  Class<Joined> type) {
         Callable<ReadableStream<Joined>> joinSupplier = () -> {
             Cursor<T> cursor = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
 
             Cursor<Foreign> foreign = ObjectHelper.requireNonNull(foreignCursor.supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
 
             return cursor.join(foreign, lookup, type);
         };

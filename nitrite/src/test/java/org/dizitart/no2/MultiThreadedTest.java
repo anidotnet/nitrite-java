@@ -48,32 +48,29 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(Parameterized.class)
 public class MultiThreadedTest {
+    private static final String fileName = getRandomTempDbFile();
+    @Parameterized.Parameter
+    public boolean inMemory = false;
     private NitriteCollection collection;
     private int threadCount = 20;
+    private final CountDownLatch latch = new CountDownLatch(threadCount);
     private int iterationCount = 100;
-    private static final String fileName = getRandomTempDbFile();
     private Random generator = new Random();
     private AtomicInteger docCounter = new AtomicInteger(0);
     private ExecutorService executor = ThreadPoolManager.getThreadPool(threadCount, "MultiThreadedTest");
 
-    private final CountDownLatch latch = new CountDownLatch(threadCount);
-
-    @Parameterized.Parameter
-    public boolean inMemory = false;
-
-
     @Parameterized.Parameters(name = "InMemory = {0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {false},
-                {true}
+        return Arrays.asList(new Object[][]{
+            {false},
+            {true}
         });
     }
 
     @Test
     public void testOperations() throws InterruptedException {
         NitriteBuilder builder = NitriteBuilder.get()
-                .compressed();
+            .compressed();
 
         if (!inMemory) {
             builder.filePath(fileName);
@@ -94,8 +91,8 @@ public class MultiThreadedTest {
                         collection.insert(document);
 
                         if (j == iterationCount / 2
-                                && !collection.hasIndex("text")
-                                && !collection.hasIndex("date")) {
+                            && !collection.hasIndex("text")
+                            && !collection.hasIndex("date")) {
                             collection.createIndex("text", IndexOptions.indexOptions(IndexType.Fulltext));
                             collection.createIndex("date", IndexOptions.indexOptions(IndexType.NonUnique));
                         }
@@ -113,7 +110,7 @@ public class MultiThreadedTest {
                         assertTrue(collection.hasIndex("unixTime"));
                     } catch (Throwable e) {
                         System.out.println("Exception at thread " +
-                                Thread.currentThread().getName() + " with iteration " + j);
+                            Thread.currentThread().getName() + " with iteration " + j);
                         e.printStackTrace();
                     }
                 }

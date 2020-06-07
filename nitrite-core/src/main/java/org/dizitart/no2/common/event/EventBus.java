@@ -45,7 +45,7 @@ public interface EventBus<EventInfo, EventListener> extends AutoCloseable {
      * Posts an event to the event bus. All registered
      * event listeners for this event will receive the `eventInfo`
      * for further processing.
-     * 
+     * <p>
      * Event processing is asynchronous.
      *
      * @param eventInfo the event related information

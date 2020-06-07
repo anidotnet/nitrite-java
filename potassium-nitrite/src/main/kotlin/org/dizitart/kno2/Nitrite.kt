@@ -83,5 +83,4 @@ inline fun <reified T : Any> Nitrite.getRepository(key: String, noinline op: (Ob
  * @param [async] if set to [true] then the index would be created asynchronously; otherwise synchronously.
  * @return a new [IndexOptions]
  */
-fun option(indexType: String = IndexType.Unique, async: Boolean = false) : IndexOptions
-    = IndexOptions.indexOptions(indexType, async)
+fun option(indexType: String = IndexType.Unique, async: Boolean = false): IndexOptions = IndexOptions.indexOptions(indexType, async)

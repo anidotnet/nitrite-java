@@ -66,7 +66,7 @@ class DocumentTest : BaseTest() {
 
     @Test
     fun documentInsert() {
-        db= nitrite()
+        db = nitrite()
         val doc = documentOf("a" to 1)
         db?.getCollection("test") {
             insert(doc)

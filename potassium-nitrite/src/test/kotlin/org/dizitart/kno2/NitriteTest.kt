@@ -18,9 +18,11 @@
 
 package org.dizitart.kno2
 
+import org.dizitart.kno2.filters.text
 import org.dizitart.no2.common.NullOrder
 import org.dizitart.no2.common.SortOrder
 import org.dizitart.no2.exceptions.UniqueConstraintException
+import org.dizitart.no2.index.IndexOptions
 import org.dizitart.no2.index.IndexType
 import org.dizitart.no2.index.annotations.Id
 import org.dizitart.no2.index.annotations.Index
@@ -86,10 +88,10 @@ class NitriteTest : BaseTest() {
     fun testFindOption() {
         db?.getCollection("test") {
             insert(documentOf("a" to 1),
-                    documentOf("a" to 2),
-                    documentOf("a" to 3),
-                    documentOf("a" to 4),
-                    documentOf("a" to 5))
+                documentOf("a" to 2),
+                documentOf("a" to 3),
+                documentOf("a" to 4),
+                documentOf("a" to 5))
             var cursor = find().skipLimit(0, 2)
             assertEquals(cursor.size(), 2)
 
@@ -130,10 +132,10 @@ class NitriteTest : BaseTest() {
         val uuid = UUID.randomUUID()
         val executor = Executors.newFixedThreadPool(10)
         val latch = CountDownLatch(200)
-        for(i in 0..100) {
+        for (i in 0..100) {
             val item = CaObject(uuid, "1234")
             executor.submit {
-                try{
+                try {
                     repository.update(item, true)
                 } catch (e: UniqueConstraintException) {
                     fail("Synchronization failed on update")
@@ -142,7 +144,7 @@ class NitriteTest : BaseTest() {
                 }
             }
             executor.submit {
-                try{
+                try {
                     repository.insert(item)
                 } finally {
                     latch.countDown()
@@ -161,6 +163,26 @@ class NitriteTest : BaseTest() {
         repository.insert(ClassWithLocalDateTime("test", LocalDateTime.now()))
         assertNotNull(repository.find())
     }
+
+    @Test
+    fun testIssue222() {
+        val first = NestedObjects("value1", "1", listOf(TempObject("name-1", 42, LevelUnder("street", 12))))
+        val repository = db?.getRepository<NestedObjects>()!!
+        repository.insert(first)
+
+        repository.createIndex("ob1", IndexOptions.indexOptions(IndexType.Fulltext));
+        var found = repository.find("ob1" text "value1")
+        assertFalse(found.isEmpty)
+
+        first.ob1 = "value2"
+        repository.update(first)
+
+        found = repository.find("ob1" text "value2")
+        assertFalse(found.isEmpty)
+
+        found = repository.find("ob1" text "value1")
+        assertTrue(found.isEmpty)
+    }
 }
 
 interface MyInterface {
@@ -168,34 +190,38 @@ interface MyInterface {
 }
 
 @Indices(value = [(Index(value = "name", type = IndexType.NonUnique))])
-abstract class SomeAbsClass (
-        @Id override val id: UUID = UUID.randomUUID(),
-        open val name: String = "abcd"
+abstract class SomeAbsClass(
+    @Id override val id: UUID = UUID.randomUUID(),
+    open val name: String = "abcd"
 ) : MyInterface {
     abstract val checked: Boolean
 }
 
 @InheritIndices
 class MyClass(
-        override val id: UUID,
-        override val name: String,
-        override val checked: Boolean) : SomeAbsClass(id, name)
+    override val id: UUID,
+    override val name: String,
+    override val checked: Boolean) : SomeAbsClass(id, name)
 
 @InheritIndices
 class MyClass2(
-        override val id: UUID,
-        override val name: String,
-        override val checked: Boolean,
-        val importance: Int
+    override val id: UUID,
+    override val name: String,
+    override val checked: Boolean,
+    val importance: Int
 ) : SomeAbsClass(id, name)
 
 data class CaObject(
-        @Id val localId: UUID,
-        val name: String
+    @Id val localId: UUID,
+    val name: String
 )
 
 @Indices(value = [(Index(value = "time", type = IndexType.Unique))])
-data class ClassWithLocalDateTime (
-        val name: String,
-        val time: LocalDateTime
+data class ClassWithLocalDateTime(
+    val name: String,
+    val time: LocalDateTime
 )
+
+data class NestedObjects(var ob1: String, @Id val id: String, val list: List<TempObject>)
+data class TempObject(val name: String, val aga: Int, val add: LevelUnder)
+data class LevelUnder(val street: String, val number: Int)

@@ -1,6 +1,5 @@
 package org.dizitart.no2.collection.operation;
 
-import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
@@ -22,9 +21,9 @@ import java.util.List;
  * @author Anindya Chatterjee
  */
 class ReadOperations {
-    private String collectionName;
-    private NitriteConfig nitriteConfig;
-    private NitriteMap<NitriteId, Document> nitriteMap;
+    private final String collectionName;
+    private final NitriteConfig nitriteConfig;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
 
     ReadOperations(String collectionName,
                    NitriteConfig nitriteConfig,

@@ -29,9 +29,15 @@ import org.dizitart.no2.mapper.NitriteMapper;
 @EqualsAndHashCode
 @ToString
 public class ClassC implements Mappable {
-    @Getter @Setter private long id;
-    @Getter @Setter private double digit;
-    @Getter @Setter private ClassA parent;
+    @Getter
+    @Setter
+    private long id;
+    @Getter
+    @Setter
+    private double digit;
+    @Getter
+    @Setter
+    private ClassA parent;
 
     public static ClassC create(int seed) {
         ClassC classC = new ClassC();

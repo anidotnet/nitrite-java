@@ -51,18 +51,27 @@ public abstract class BaseExternalTest {
     private String sourceDbFile;
     private String destDbFile;
 
+    public static String getRandomTempDbFile() {
+        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
+        File file = new File(dataDir);
+        if (!file.exists()) {
+            assertTrue(file.mkdirs());
+        }
+        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
+    }
+
     @Before
     public void setUp() {
         sourceDbFile = getRandomTempDbFile();
         destDbFile = getRandomTempDbFile();
 
         sourceDb = NitriteBuilder.get()
-                .filePath(sourceDbFile)
-                .openOrCreate();
+            .filePath(sourceDbFile)
+            .openOrCreate();
 
         destDb = NitriteBuilder.get()
-                .filePath(destDbFile)
-                .openOrCreate();
+            .filePath(destDbFile)
+            .openOrCreate();
 
         sourceEmpRepo = sourceDb.getRepository(Employee.class);
         sourceKeyedEmpRepo = sourceDb.getRepository("key", Employee.class);
@@ -88,20 +97,11 @@ public abstract class BaseExternalTest {
     }
 
     protected List<Document> filter(List<Document> documents) {
-        for(Document document : documents) {
+        for (Document document : documents) {
             document.remove(DOC_REVISION);
             document.remove(DOC_MODIFIED);
             document.remove(DOC_SOURCE);
         }
         return documents;
-    }
-
-    public static String getRandomTempDbFile() {
-        String dataDir = System.getProperty("java.io.tmpdir") + File.separator + "nitrite" + File.separator + "data";
-        File file = new File(dataDir);
-        if (!file.exists()) {
-            assertTrue(file.mkdirs());
-        }
-        return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
     }
 }

@@ -32,8 +32,12 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode
 public class Note implements Serializable, Mappable {
-    @Getter @Setter private Long noteId;
-    @Getter @Setter private String text;
+    @Getter
+    @Setter
+    private Long noteId;
+    @Getter
+    @Setter
+    private String text;
 
     @Override
     public Document write(NitriteMapper mapper) {

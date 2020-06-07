@@ -40,7 +40,7 @@ public class MappableDepartment implements Mappable {
 
         document.put("name", getName());
         List<Document> employees = new ArrayList<>();
-        for (MappableEmployee employee: getEmployeeList()) {
+        for (MappableEmployee employee : getEmployeeList()) {
             employees.add(employee.write(mapper));
         }
         document.put("employeeList", employees);
@@ -62,7 +62,7 @@ public class MappableDepartment implements Mappable {
     }
 
     private List<MappableEmployee> getEmployeeList() {
-        if (employeeList == null){
+        if (employeeList == null) {
             employeeList = new ArrayList<>();
         }
         return employeeList;

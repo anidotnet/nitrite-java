@@ -48,7 +48,7 @@ public interface JournalAware {
 
         if (receipt != null) {
             if (receipt.getAdded() != null) {
-                for (Long id : receipt.getAdded()) {
+                for (String id : receipt.getAdded()) {
                     Document document = collection.getById(NitriteId.createId(id));
                     if (document != null) {
                         state.getChanges().add(document);
@@ -57,7 +57,7 @@ public interface JournalAware {
             }
 
             if (receipt.getRemoved() != null) {
-                for (Long id : receipt.getRemoved()) {
+                for (String id : receipt.getRemoved()) {
                     Long timestamp = crdt.getTombstones().get(NitriteId.createId(id));
                     if (timestamp != null) {
                         state.getTombstones().put(id, timestamp);

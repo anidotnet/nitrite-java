@@ -26,11 +26,11 @@ import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
+import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.test.data.Company;
 import org.dizitart.no2.test.data.DataGenerator;
 import org.dizitart.no2.test.data.Employee;
 import org.dizitart.no2.test.data.Note;
-import org.dizitart.no2.repository.Cursor;
 import org.junit.Test;
 
 import java.text.ParseException;
@@ -165,12 +165,12 @@ public class RepositoryModificationTest extends BaseObjectRepositoryTest {
         updated1.put("joinDate", newJoiningDate);
 
         WriteResult writeResult
-            = employeeRepository.update(where("empId").eq( 12L), updated1, false);
+            = employeeRepository.update(where("empId").eq(12L), updated1, false);
         assertEquals(writeResult.getAffectedCount(), 1);
 
         Cursor<Employee> result = employeeRepository.find(where("joinDate").eq(joiningDate));
         assertEquals(result.size(), 1);
-        result = employeeRepository.find(where("joinDate").eq( newJoiningDate));
+        result = employeeRepository.find(where("joinDate").eq(newJoiningDate));
         assertEquals(result.size(), 1);
 
         employeeRepository.remove(Filter.ALL);

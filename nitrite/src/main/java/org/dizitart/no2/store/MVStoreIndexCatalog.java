@@ -97,7 +97,7 @@ class MVStoreIndexCatalog implements IndexCatalog {
     }
 
     private String getIndexMapName(IndexEntry index) {
-        return  INDEX_PREFIX +
+        return INDEX_PREFIX +
             INTERNAL_NAME_SEPARATOR +
             index.getCollectionName() +
             INTERNAL_NAME_SEPARATOR +

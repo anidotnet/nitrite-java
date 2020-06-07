@@ -14,28 +14,6 @@ public class Company {
     private Long id;
     private CompanyId companyId;
 
-    @Data
-    public static class CompanyId implements Comparable<CompanyId>, Serializable {
-        private Long idValue;
-
-        public CompanyId(long value) {
-            this.idValue = value;
-        }
-
-        @Override
-        public int compareTo(CompanyId other) {
-            return idValue.compareTo(other.idValue);
-        }
-
-        public static TypeConverter<CompanyId> getConverter() {
-            return new TypeConverter<>(
-                CompanyId.class,
-                (source, mapper) -> Document.createDocument("idValue", source.idValue),
-                (source, mapper) -> new CompanyId(source.get("idValue", Long.class))
-            );
-        }
-    }
-
     public static TypeConverter<Company> getConverter() {
         return new TypeConverter<>(
             Company.class,
@@ -50,5 +28,27 @@ public class Company {
                 return company;
             }
         );
+    }
+
+    @Data
+    public static class CompanyId implements Comparable<CompanyId>, Serializable {
+        private Long idValue;
+
+        public CompanyId(long value) {
+            this.idValue = value;
+        }
+
+        public static TypeConverter<CompanyId> getConverter() {
+            return new TypeConverter<>(
+                CompanyId.class,
+                (source, mapper) -> Document.createDocument("idValue", source.idValue),
+                (source, mapper) -> new CompanyId(source.get("idValue", Long.class))
+            );
+        }
+
+        @Override
+        public int compareTo(CompanyId other) {
+            return idValue.compareTo(other.idValue);
+        }
     }
 }

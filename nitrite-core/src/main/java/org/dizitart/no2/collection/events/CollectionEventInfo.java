@@ -23,8 +23,8 @@ import lombok.NoArgsConstructor;
 /**
  * Represents a collection event data.
  *
- * @since 4.0
  * @author Anindya Chatterjee
+ * @since 4.0
  */
 @Data
 @NoArgsConstructor
@@ -35,7 +35,7 @@ public class CollectionEventInfo<T> {
      *
      * @param item the item that changed.
      * @returns the item.
-     * */
+     */
     private T item;
 
     /**
@@ -43,7 +43,7 @@ public class CollectionEventInfo<T> {
      *
      * @param changeType the type of the change.
      * @returns the type of the change.
-     * */
+     */
     private EventType eventType;
 
     /**
@@ -51,7 +51,7 @@ public class CollectionEventInfo<T> {
      *
      * @param changeTimestamp the unix timestamp of the change.
      * @returns the unix timestamp of the change.
-     * */
+     */
     private long timestamp;
 
     /**
@@ -60,7 +60,7 @@ public class CollectionEventInfo<T> {
      * @param originator name of originator of the event.
      * @returns name of the originator.
      * @since 4.0.0
-     * */
+     */
     private String originator;
 
     public CollectionEventInfo(EventType eventType) {

@@ -1,7 +1,7 @@
 package org.dizitart.no2.collection;
 
-import org.dizitart.no2.collection.events.EventAware;
 import org.dizitart.no2.collection.events.CollectionEventListener;
+import org.dizitart.no2.collection.events.EventAware;
 import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.common.PersistentCollection;
 import org.dizitart.no2.common.WriteResult;

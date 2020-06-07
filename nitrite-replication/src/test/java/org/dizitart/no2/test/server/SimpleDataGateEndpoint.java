@@ -25,7 +25,7 @@ import java.util.*;
  */
 @Slf4j
 @Data
-@ServerEndpoint(value="/datagate/{user}/{collection}")
+@ServerEndpoint(value = "/datagate/{user}/{collection}")
 public class SimpleDataGateEndpoint {
     private ObjectMapper objectMapper;
     private Repository repository;

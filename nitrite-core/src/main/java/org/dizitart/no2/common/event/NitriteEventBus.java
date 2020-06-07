@@ -22,7 +22,7 @@ import org.dizitart.no2.common.concurrent.ThreadPoolManager;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -36,14 +36,14 @@ import java.util.concurrent.ExecutorService;
 public abstract class NitriteEventBus<EventInfo, EventListener>
     implements EventBus<EventInfo, EventListener>, AutoCloseable {
 
-    private Set<EventListener> listeners;
+    private final Set<EventListener> listeners;
     private ExecutorService eventExecutor;
 
     /**
      * Instantiates a new Nitrite event bus.
      */
     public NitriteEventBus() {
-        this.listeners = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        this.listeners = Collections.newSetFromMap(new WeakHashMap<>());
     }
 
     @Override

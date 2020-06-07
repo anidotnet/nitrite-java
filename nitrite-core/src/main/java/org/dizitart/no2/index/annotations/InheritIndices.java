@@ -24,8 +24,8 @@ import java.lang.annotation.*;
  * Indicates that a class should consider all index related
  * annotations - `@Id`, `@Index`, `@Indices` from its superclass.
  *
- * @since 2.1.0
  * @author Anindya Chatterjee
+ * @since 2.1.0
  */
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)

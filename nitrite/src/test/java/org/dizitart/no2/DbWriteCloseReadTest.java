@@ -29,8 +29,8 @@ import static org.junit.Assert.fail;
  * @author Anindya Chatterjee.
  */
 public class DbWriteCloseReadTest {
-    private volatile boolean writeCompleted = false;
     private final DbTestOperations operations = new DbTestOperations();
+    private volatile boolean writeCompleted = false;
 
     @Test
     public void testWriteCloseRead() throws Exception {

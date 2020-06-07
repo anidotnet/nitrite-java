@@ -40,7 +40,7 @@ import java.util.Map;
 @ToString
 @EqualsAndHashCode
 @Indices({
-        @Index(value = "companyName")
+    @Index(value = "companyName")
 })
 public class Company implements Serializable, Mappable {
     @Id

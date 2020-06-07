@@ -108,11 +108,11 @@ public class RepositoryOperationsTest {
         assertEquals(operations.getFieldsUpto(A.class, null).size(), 5);
 
         assertEquals(operations.getFieldsUpto(ClassWithAnnotatedFields.class,
-                Object.class).size(), 5);
+            Object.class).size(), 5);
         assertEquals(operations.getFieldsUpto(ClassWithAnnotatedFields.class,
-                null).size(), 5);
+            null).size(), 5);
         assertEquals(operations.getFieldsUpto(ClassWithAnnotatedFields.class,
-                ClassWithNoAnnotatedFields.class).size(), 3);
+            ClassWithNoAnnotatedFields.class).size(), 3);
     }
 
     @Test(expected = NotIdentifiableException.class)
@@ -204,14 +204,17 @@ public class RepositoryOperationsTest {
         assertFalse(indices.isEmpty());
     }
 
+    @Index(value = "value")
+    private interface Interface {
+        String getValue();
+    }
+
     private static class ClassWithAnnotatedFields extends ClassWithNoAnnotatedFields {
-        private String stringValue;
-
-        @Deprecated
-        private String anotherValue;
-
         @Deprecated
         Long longValue;
+        private String stringValue;
+        @Deprecated
+        private String anotherValue;
 
         @Deprecated
         public ClassWithAnnotatedFields() {
@@ -330,6 +333,22 @@ public class RepositoryOperationsTest {
         }
     }
 
+    @InheritIndices
+    private static class TestInterface implements Interface, Mappable {
+        @Getter
+        private String value;
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return createDocument().put("value", value);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            value = document.get("value", String.class);
+        }
+    }
+
     @Index(value = "longValue")
     @Index(value = "decimal")
     private class TestObjectWithIndex implements Mappable {
@@ -374,27 +393,6 @@ public class RepositoryOperationsTest {
         public void read(NitriteMapper mapper, Document document) {
             stringValue = document.get("stringValue", String.class);
             longValue = document.get("longValue", Long.class);
-        }
-    }
-
-    @Index(value = "value")
-    private interface Interface {
-        String getValue();
-    }
-
-    @InheritIndices
-    private static class TestInterface implements Interface, Mappable {
-        @Getter
-        private String value;
-
-        @Override
-        public Document write(NitriteMapper mapper) {
-            return createDocument().put("value", value);
-        }
-
-        @Override
-        public void read(NitriteMapper mapper, Document document) {
-            value = document.get("value", String.class);
         }
     }
 }

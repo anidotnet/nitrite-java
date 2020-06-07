@@ -35,7 +35,7 @@ import java.util.UUID;
  */
 @Data
 @Indices({
-        @Index(value = "name", type = IndexType.Fulltext)
+    @Index(value = "name", type = IndexType.Fulltext)
 })
 public class PersonEntity implements Mappable {
     @Id

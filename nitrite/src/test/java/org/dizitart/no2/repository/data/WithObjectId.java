@@ -28,7 +28,8 @@ import org.dizitart.no2.mapper.NitriteMapper;
 /**
  * @author Anindya Chatterjee.
  */
-@Getter @Setter
+@Getter
+@Setter
 public class WithObjectId implements Mappable {
     @Id
     private WithOutId withOutId;

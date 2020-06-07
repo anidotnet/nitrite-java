@@ -14,8 +14,8 @@ public interface ReceiptAware extends DataGateMessage {
     LastWriteWinState getFeed();
 
     default Receipt calculateReceipt() {
-        Set<Long> added = new HashSet<>();
-        Set<Long> removed = new HashSet<>();
+        Set<String> added = new HashSet<>();
+        Set<String> removed = new HashSet<>();
 
         if (getFeed() != null) {
             if (getFeed().getChanges() != null) {
@@ -25,7 +25,7 @@ public interface ReceiptAware extends DataGateMessage {
             }
 
             if (getFeed().getTombstones() != null) {
-                for (Map.Entry<Long, Long> entry : getFeed().getTombstones().entrySet()) {
+                for (Map.Entry<String, Long> entry : getFeed().getTombstones().entrySet()) {
                     removed.add(entry.getKey());
                 }
             }

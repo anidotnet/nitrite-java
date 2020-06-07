@@ -41,9 +41,9 @@ class BackportJavaTimeTest {
     private val dbPath = getRandomTempDbFile()
 
     @Index(value = "time", type = IndexType.NonUnique)
-    data class TestData (
-            @Id val id: String = UUID.randomUUID().toString(),
-            val time: LocalDateTime
+    data class TestData(
+        @Id val id: String = UUID.randomUUID().toString(),
+        val time: LocalDateTime
     )
 
     class ThreeTenAbpModule : JacksonModule {

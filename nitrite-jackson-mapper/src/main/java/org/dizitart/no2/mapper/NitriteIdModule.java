@@ -29,8 +29,8 @@ import static org.dizitart.no2.common.util.Iterables.listOf;
 /**
  * Class that registers capability of serializing {@code NitriteId} with the Jackson core.
  *
- * @since 1.0.0
  * @author Anindya Chatterjee
+ * @since 1.0.0
  */
 public class NitriteIdModule implements JacksonModule {
 

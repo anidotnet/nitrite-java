@@ -1,6 +1,7 @@
 package org.dizitart.no2.store;
 
 import org.dizitart.no2.common.util.StringUtils;
+import org.dizitart.no2.store.events.StoreEventListener;
 
 /**
  * Represents a {@link NitriteStore} configuration.
@@ -22,6 +23,11 @@ public interface StoreConfig {
      * @return `true`, if readonly store; otherwise `false`.
      */
     boolean isReadOnly();
+
+    /**
+     * Adds a {@link StoreEventListener} instance and subscribe it to store event.
+     */
+    void addStoreEventListener(StoreEventListener listener);
 
     /**
      * Indicates if the {@link NitriteStore} is an in-memory store.

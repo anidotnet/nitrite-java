@@ -19,7 +19,7 @@
 /**
  * Various utility classes for database operations.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 package org.dizitart.no2.common.util;

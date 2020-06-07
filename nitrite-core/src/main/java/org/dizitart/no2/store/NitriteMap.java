@@ -10,8 +10,8 @@ import org.dizitart.no2.common.ReadableStream;
  *
  * @param <Key>   the type of key
  * @param <Value> the type of value
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 public interface NitriteMap<Key, Value> extends MetadataAware {
     /**
@@ -145,11 +145,11 @@ public interface NitriteMap<Key, Value> extends MetadataAware {
      * Indicates whether the map is empty.
      *
      * @return `true` if the map is empty; `false` otherwise.
-     * */
+     */
     boolean isEmpty();
 
     /**
      * Deletes the map from the store.
-     * */
+     */
     void drop();
 }

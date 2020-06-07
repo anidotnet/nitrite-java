@@ -23,8 +23,8 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  * @author Anindya Chatterjee
  */
 class DefaultObjectRepository<T> implements ObjectRepository<T> {
-    private NitriteCollection collection;
-    private Class<T> type;
+    private final NitriteCollection collection;
+    private final Class<T> type;
     private NitriteMapper nitriteMapper;
     private RepositoryOperations operations;
 

@@ -251,7 +251,7 @@ class ElementMatchFilter extends NitriteFilter {
     }
 
     private boolean matchRegex(Object item, Filter filter) {
-        String value = (String)((RegexFilter) filter).getValue();
+        String value = (String) ((RegexFilter) filter).getValue();
         if (item instanceof String) {
             Pattern pattern = Pattern.compile(value);
             Matcher matcher = pattern.matcher((String) item);

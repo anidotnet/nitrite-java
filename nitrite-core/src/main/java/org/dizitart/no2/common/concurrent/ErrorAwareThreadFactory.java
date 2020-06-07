@@ -24,8 +24,8 @@ import java.util.concurrent.ThreadFactory;
  * A {@link ThreadFactory} implementation which creates
  * {@link Thread} which is aware of any uncaught exception.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 @Slf4j
 public abstract class ErrorAwareThreadFactory implements ThreadFactory {

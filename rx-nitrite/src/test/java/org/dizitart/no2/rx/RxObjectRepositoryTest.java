@@ -150,7 +150,7 @@ public class RxObjectRepositoryTest extends RxBaseTest {
         final PodamFactory factory = new PodamFactoryImpl();
         ExecutorService pool = ThreadPoolManager.getThreadPool(2, "RxObjectRepositoryTest");
         final CountDownLatch latch = new CountDownLatch(10000);
-        String[] names = new String[] {"Iron Man", "Captain America", "Thor", "Hulk", "Black Widow", "Black Panther"};
+        String[] names = new String[]{"Iron Man", "Captain America", "Thor", "Hulk", "Black Widow", "Black Panther"};
 
         AtomicInteger count = new AtomicInteger(0);
         for (int i = 0; i < 10000; i++) {

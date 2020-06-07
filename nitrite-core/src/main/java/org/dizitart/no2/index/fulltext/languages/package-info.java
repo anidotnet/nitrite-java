@@ -19,7 +19,7 @@
 /**
  * Various language support full text engine.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 package org.dizitart.no2.index.fulltext.languages;

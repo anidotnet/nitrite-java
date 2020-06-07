@@ -8,6 +8,15 @@ import java.util.Set;
  * @author Anindya Chatterjee
  */
 public interface NitriteModule {
+    static NitriteModule module(NitritePlugin... plugins) {
+        return new NitriteModule() {
+            @Override
+            public Set<NitritePlugin> plugins() {
+                return setOf(plugins);
+            }
+        };
+    }
+
     Set<NitritePlugin> plugins();
 
     @SuppressWarnings("unchecked")
@@ -17,14 +26,5 @@ public interface NitriteModule {
             set.addAll(Arrays.asList(items));
         }
         return set;
-    }
-
-    static NitriteModule module(NitritePlugin... plugins) {
-        return new NitriteModule() {
-            @Override
-            public Set<NitritePlugin> plugins() {
-                return setOf(plugins);
-            }
-        };
     }
 }

@@ -53,8 +53,24 @@ class DocumentCursorImpl implements DocumentCursor {
         return new DocumentCursorIterator(iterator);
     }
 
+    private void validateProjection(Document projection) {
+        for (KeyValuePair<String, Object> kvp : projection) {
+            validateKeyValuePair(kvp);
+        }
+    }
+
+    private void validateKeyValuePair(KeyValuePair<String, Object> kvp) {
+        if (kvp.getValue() != null) {
+            if (!(kvp.getValue() instanceof Document)) {
+                throw new ValidationException("projection contains non-null values");
+            } else {
+                validateProjection((Document) kvp.getValue());
+            }
+        }
+    }
+
     private class DocumentCursorIterator implements Iterator<Document> {
-        private Iterator<NitriteId> iterator;
+        private final Iterator<NitriteId> iterator;
 
         DocumentCursorIterator(Iterator<NitriteId> iterator) {
             this.iterator = iterator;
@@ -78,22 +94,6 @@ class DocumentCursorImpl implements DocumentCursor {
         @Override
         public void remove() {
             throw new InvalidOperationException("remove on cursor is not supported");
-        }
-    }
-
-    private void validateProjection(Document projection) {
-        for (KeyValuePair<String, Object> kvp : projection) {
-            validateKeyValuePair(kvp);
-        }
-    }
-
-    private void validateKeyValuePair(KeyValuePair<String, Object> kvp) {
-        if (kvp.getValue() != null) {
-            if (!(kvp.getValue() instanceof Document)) {
-                throw new ValidationException("projection contains non-null values");
-            } else {
-                validateProjection((Document) kvp.getValue());
-            }
         }
     }
 }

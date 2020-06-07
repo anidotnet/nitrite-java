@@ -22,13 +22,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author Anindya Chatterjee
  */
 public class CollectionOperations {
-    private String collectionName;
-    private NitriteConfig nitriteConfig;
-    private NitriteMap<NitriteId, Document> nitriteMap;
+    private final String collectionName;
+    private final NitriteConfig nitriteConfig;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
+    private final EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private IndexOperations indexOperations;
     private WriteOperations writeOperations;
     private ReadOperations readOperations;
-    private EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private Lock readLock;
     private Lock writeLock;
 
@@ -142,10 +142,10 @@ public class CollectionOperations {
         }
     }
 
-    public WriteResult remove(Filter filter, boolean justOne) {
+    public WriteResult remove(Filter filter, boolean justOnce) {
         try {
             writeLock.lock();
-            return writeOperations.remove(filter, justOne);
+            return writeOperations.remove(filter, justOnce);
         } finally {
             writeLock.unlock();
         }
@@ -197,21 +197,21 @@ public class CollectionOperations {
         }
     }
 
-    public void setAttributes(Attributes attributes) {
-        try {
-            writeLock.lock();
-            nitriteMap.setAttributes(attributes);
-        } finally {
-            writeLock.unlock();
-        }
-    }
-
     public Attributes getAttributes() {
         try {
             readLock.lock();
             return nitriteMap != null ? nitriteMap.getAttributes() : null;
         } finally {
             readLock.unlock();
+        }
+    }
+
+    public void setAttributes(Attributes attributes) {
+        try {
+            writeLock.lock();
+            nitriteMap.setAttributes(attributes);
+        } finally {
+            writeLock.unlock();
         }
     }
 

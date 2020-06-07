@@ -26,25 +26,23 @@ import java.lang.annotation.*;
 
 /**
  * Specifies a field to be indexed.
- *
+ * <p>
  * [[app-listing]]
  * [source,java]
  * .Example of Index annotation
  * --
- *  @Index(value = "companyName")
- *  public class Company implements Serializable {
  *
- *      @Id
- *      private long companyId;
- *
- *      private String companyName;
- *
- *  }
- * --
- *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @Index(value = "companyName")
+ * public class Company implements Serializable {
+ * @Id private long companyId;
+ * <p>
+ * private String companyName;
+ * <p>
+ * }
+ * --
  * @see ObjectRepository#createIndex(String, IndexOptions)
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

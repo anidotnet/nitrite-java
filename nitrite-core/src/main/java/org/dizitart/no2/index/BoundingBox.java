@@ -7,7 +7,10 @@ import java.io.Serializable;
  */
 public interface BoundingBox extends Serializable {
     float getMinX();
+
     float getMaxX();
+
     float getMinY();
+
     float getMaxY();
 }

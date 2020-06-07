@@ -140,7 +140,6 @@ class NitriteJsonExporter {
     }
 
 
-
     private void writeRepository(ObjectRepository<?> repository) throws IOException {
         generator.writeStartObject();
         generator.writeFieldName(TAG_TYPE);

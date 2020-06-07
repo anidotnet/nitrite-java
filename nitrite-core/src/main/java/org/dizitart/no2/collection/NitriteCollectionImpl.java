@@ -2,14 +2,15 @@ package org.dizitart.no2.collection;
 
 import lombok.Getter;
 import org.dizitart.no2.NitriteConfig;
-import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.CollectionEventInfo;
+import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.meta.Attributes;
 import org.dizitart.no2.collection.operation.CollectionOperations;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.IndexingException;
+import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.filters.Filter;
@@ -95,6 +96,9 @@ class NitriteCollectionImpl implements NitriteCollection {
 
     @Override
     public WriteResult remove(Filter filter, boolean justOne) {
+        if (filter == Filter.ALL && justOne) {
+            throw new InvalidOperationException("remove all cannot be combined with just once");
+        }
         checkOpened();
         return collectionOperations.remove(filter, justOne);
     }
@@ -194,8 +198,7 @@ class NitriteCollectionImpl implements NitriteCollection {
         if (nitriteStore == null || nitriteStore.isClosed() || isDropped) {
             close();
             return false;
-        }
-        else return true;
+        } else return true;
     }
 
     @Override

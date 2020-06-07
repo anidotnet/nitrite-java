@@ -26,9 +26,9 @@ import lombok.Setter;
  */
 @Getter
 public class WithFinalField {
+    private final long number;
     @Setter
     private String name;
-    private final long number;
 
     public WithFinalField() {
         number = 2;

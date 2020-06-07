@@ -2,8 +2,8 @@ package org.dizitart.no2.common;
 
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.NitriteId;
-import org.dizitart.no2.collection.events.EventAware;
 import org.dizitart.no2.collection.events.CollectionEventListener;
+import org.dizitart.no2.collection.events.EventAware;
 import org.dizitart.no2.collection.events.EventType;
 import org.dizitart.no2.collection.meta.MetadataAware;
 import org.dizitart.no2.index.IndexEntry;
@@ -19,10 +19,10 @@ import java.util.Collection;
  * The interface Persistent collection.
  *
  * @param <T> the type parameter
- * @since 1.0
  * @author Anindya Chatterjee.
  * @see NitriteCollection
  * @see ObjectRepository
+ * @since 1.0
  */
 public interface PersistentCollection<T> extends EventAware, MetadataAware, Closeable {
     /**
@@ -55,7 +55,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
     /**
      * Rebuilds index on `field` if it exists.
      *
-     * @param field the value to be indexed.
+     * @param field   the value to be indexed.
      * @param isAsync if set to `true`, the indexing will run in background; otherwise, in foreground.
      * @throws org.dizitart.no2.exceptions.IndexingException if the `field` is not indexed.
      */
@@ -118,7 +118,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      *
      * @param elements an array of element for batch insertion.
      * @return the result of the write operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException      if `elements` is `null`.
+     * @throws org.dizitart.no2.exceptions.ValidationException       if `elements` is `null`.
      * @throws org.dizitart.no2.exceptions.InvalidIdException        if the '_id' field's value contains `null`.
      * @throws org.dizitart.no2.exceptions.InvalidIdException        if the '_id' field's value contains non comparable type, i.e. type that does not implement {@link Comparable}.
      * @throws org.dizitart.no2.exceptions.InvalidIdException        if the '_id' field contains value which is not of the same java type as of other element's '_id' field value in the collection.
@@ -131,7 +131,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
 
     /**
      * Updates `element` in the collection. Specified `element` must have an id.
-     *
+     * <p>
      * [icon="{@docRoot}/note.png"]
      * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
@@ -150,25 +150,25 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * Updates `element` in the collection. Specified `element` must have an id.
      * If the `element` is not found in the collection, it will be inserted only if `upsert`
      * is set to `true`.
-     *
+     * <p>
      * [icon="{@docRoot}/note.png"]
      * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
      * {@link EventType#Update
      * or {@link EventType#Insert}.
      *
-     * @param element the element to update.
+     * @param element        the element to update.
      * @param insertIfAbsent if set to `true`, `element` will be inserted if not found.
      * @return the result of the update operation.
-     * @throws org.dizitart.no2.exceptions.ValidationException if the `element` is `null`.
+     * @throws org.dizitart.no2.exceptions.ValidationException      if the `element` is `null`.
      * @throws org.dizitart.no2.exceptions.NotIdentifiableException if the `element`
-     * does not have any id field.
+     *                                                              does not have any id field.
      */
     WriteResult update(T element, boolean insertIfAbsent);
 
     /**
      * Deletes the `element` from the collection. The `element` must have an id.
-     *
+     * <p>
      * [icon="{@docRoot}/note.png"]
      * NOTE: This operations will notify all {@link CollectionEventListener}
      * instances registered to this collection with change type
@@ -177,7 +177,7 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * @param element the element
      * @return the result of the remove operation.
      * @throws org.dizitart.no2.exceptions.NotIdentifiableException if the `element` does not
-     * have any id field.
+     *                                                              have any id field.
      */
     WriteResult remove(T element);
 
@@ -224,6 +224,6 @@ public interface PersistentCollection<T> extends EventAware, MetadataAware, Clos
      * Returns the {@link NitriteStore} instance for this collection.
      *
      * @return the {@link NitriteStore} instance.
-     * */
+     */
     NitriteStore getStore();
 }

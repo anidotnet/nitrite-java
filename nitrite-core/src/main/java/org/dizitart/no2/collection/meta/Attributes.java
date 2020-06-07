@@ -10,12 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Represents metadata attributes of a collection.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public class Attributes implements Serializable {
-    private static final long serialVersionUID = 1481284930L;
-
     public static final String CREATED_TIME = "createdTime";
     public static final String LAST_MODIFIED_TIME = "lastModifiedTime";
     public static final String OWNER = "owner";
@@ -25,7 +23,7 @@ public class Attributes implements Serializable {
     public static final String EXPIRY_WAIT = "expiryWait";
     public static final String TOMBSTONE = "tombstone";
     public static final String REPLICA = "replica";
-
+    private static final long serialVersionUID = 1481284930L;
     private Map<String, String> attributes;
 
     public Attributes() {

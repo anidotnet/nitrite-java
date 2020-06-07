@@ -21,8 +21,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class FeedJournal {
     private static final String JOURNAL = "journal";
 
-    private ReplicationTemplate replicationTemplate;
-    private ReentrantLock lock;
+    private final ReplicationTemplate replicationTemplate;
+    private final ReentrantLock lock;
 
     public FeedJournal(ReplicationTemplate replicationTemplate) {
         this.replicationTemplate = replicationTemplate;
@@ -34,11 +34,11 @@ public class FeedJournal {
             lock.lock();
             Receipt current = getCurrent();
             if (receipt != null && current != null) {
-                for (Long id : receipt.getAdded()) {
+                for (String id : receipt.getAdded()) {
                     current.getAdded().remove(id);
                 }
 
-                for (Long id : receipt.getRemoved()) {
+                for (String id : receipt.getRemoved()) {
                     current.getRemoved().remove(id);
                 }
             }
@@ -62,9 +62,9 @@ public class FeedJournal {
                     }
                 }
 
-                Map<Long, Long> tombstones = state.getTombstones();
+                Map<String, Long> tombstones = state.getTombstones();
                 if (tombstones != null && !tombstones.isEmpty()) {
-                    for (Map.Entry<Long, Long> entry : tombstones.entrySet()) {
+                    for (Map.Entry<String, Long> entry : tombstones.entrySet()) {
                         receipt.getRemoved().add(entry.getKey());
                     }
                 }

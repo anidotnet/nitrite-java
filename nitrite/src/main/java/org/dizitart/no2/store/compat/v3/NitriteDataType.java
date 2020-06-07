@@ -7,7 +7,9 @@ import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.Utils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -81,16 +83,175 @@ class NitriteDataType extends ObjectDataType {
     static final long DOUBLE_ZERO_BITS = Double.doubleToLongBits(0.0d);
     static final long DOUBLE_ONE_BITS = Double.doubleToLongBits(1.0d);
 
-    static final Class<?>[] COMMON_CLASSES = { boolean.class, byte.class,
+    static final Class<?>[] COMMON_CLASSES = {boolean.class, byte.class,
         short.class, char.class, int.class, long.class, float.class,
         double.class, Object.class, Boolean.class, Byte.class, Short.class,
         Character.class, Integer.class, Long.class, BigInteger.class,
         Float.class, Double.class, BigDecimal.class, String.class,
-        UUID.class, Date.class };
+        UUID.class, Date.class};
 
     private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(32);
 
     private AutoDetectDataType last = new StringType(this);
+
+    private static int getTypeId(Object obj) {
+        if (obj instanceof Integer) {
+            return TYPE_INT;
+        } else if (obj instanceof String) {
+            return TYPE_STRING;
+        } else if (obj instanceof Long) {
+            return TYPE_LONG;
+        } else if (obj instanceof Double) {
+            return TYPE_DOUBLE;
+        } else if (obj instanceof Float) {
+            return TYPE_FLOAT;
+        } else if (obj instanceof Boolean) {
+            return TYPE_BOOLEAN;
+        } else if (obj instanceof UUID) {
+            return TYPE_UUID;
+        } else if (obj instanceof Byte) {
+            return TYPE_BYTE;
+        } else if (obj instanceof Short) {
+            return TYPE_SHORT;
+        } else if (obj instanceof Character) {
+            return TYPE_CHAR;
+        } else if (obj == null) {
+            return TYPE_NULL;
+        } else if (isDate(obj)) {
+            return TYPE_DATE;
+        } else if (isBigInteger(obj)) {
+            return TYPE_BIG_INTEGER;
+        } else if (isBigDecimal(obj)) {
+            return TYPE_BIG_DECIMAL;
+        } else if (obj.getClass().isArray()) {
+            return TYPE_ARRAY;
+        }
+        return TYPE_SERIALIZED_OBJECT;
+    }
+
+    /**
+     * Check whether this object is a BigInteger.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
+    static boolean isBigInteger(Object obj) {
+        return obj != null && obj.getClass() == BigInteger.class;
+    }
+
+    /**
+     * Check whether this object is a BigDecimal.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
+    static boolean isBigDecimal(Object obj) {
+        return obj != null && obj.getClass() == BigDecimal.class;
+    }
+
+    /**
+     * Check whether this object is a date.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
+    static boolean isDate(Object obj) {
+        return obj != null && obj.getClass() == Date.class;
+    }
+
+    /**
+     * Check whether this object is an array.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
+    static boolean isArray(Object obj) {
+        return obj != null && obj.getClass().isArray();
+    }
+
+    /**
+     * Get the class id, or null if not found.
+     *
+     * @param clazz the class
+     * @return the class id or null
+     */
+    static Integer getCommonClassId(Class<?> clazz) {
+        HashMap<Class<?>, Integer> map = COMMON_CLASSES_MAP;
+        if (map.size() == 0) {
+            // lazy initialization
+            // synchronized, because the COMMON_CLASSES_MAP is not
+            synchronized (map) {
+                if (map.size() == 0) {
+                    for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
+                        map.put(COMMON_CLASSES[i], i);
+                    }
+                }
+            }
+        }
+        return map.get(clazz);
+    }
+
+    /**
+     * Serialize the object to a byte array.
+     *
+     * @param obj the object to serialize
+     * @return the byte array
+     */
+    public static byte[] serialize(Object obj) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ObjectOutputStream os = new ObjectOutputStream(out);
+            os.writeObject(obj);
+            return out.toByteArray();
+        } catch (Throwable e) {
+            throw DataUtils.newIllegalArgumentException(
+                "Could not serialize {0}", obj, e);
+        }
+    }
+
+    /**
+     * De-serialize the byte array to an object.
+     *
+     * @param data the byte array
+     * @return the object
+     */
+    public static Object deserialize(byte[] data) {
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(data);
+            NitriteObjectInputStream is = new NitriteObjectInputStream(in);
+            return is.readObject();
+        } catch (Throwable e) {
+            throw DataUtils.newIllegalArgumentException(
+                "Could not deserialize {0}", Arrays.toString(data), e);
+        }
+    }
+
+    /**
+     * Compare the contents of two byte arrays. If the content or length of the
+     * first array is smaller than the second array, -1 is returned. If the
+     * content or length of the second array is smaller than the first array, 1
+     * is returned. If the contents and lengths are the same, 0 is returned.
+     * <p>
+     * This method interprets bytes as unsigned.
+     *
+     * @param data1 the first byte array (must not be null)
+     * @param data2 the second byte array (must not be null)
+     * @return the result of the comparison (-1, 1 or 0)
+     */
+    public static int compareNotNull(byte[] data1, byte[] data2) {
+        if (data1 == data2) {
+            return 0;
+        }
+        int len = Math.min(data1.length, data2.length);
+        for (int i = 0; i < len; i++) {
+            int b = data1[i] & 255;
+            int b2 = data2[i] & 255;
+            if (b != b2) {
+                return b > b2 ? 1 : -1;
+            }
+        }
+        return Integer.signum(data1.length - data2.length);
+    }
 
     @Override
     public int compare(Object a, Object b) {
@@ -225,41 +386,6 @@ class NitriteDataType extends ObjectDataType {
         return t.read(buff, tag);
     }
 
-    private static int getTypeId(Object obj) {
-        if (obj instanceof Integer) {
-            return TYPE_INT;
-        } else if (obj instanceof String) {
-            return TYPE_STRING;
-        } else if (obj instanceof Long) {
-            return TYPE_LONG;
-        } else if (obj instanceof Double) {
-            return TYPE_DOUBLE;
-        } else if (obj instanceof Float) {
-            return TYPE_FLOAT;
-        } else if (obj instanceof Boolean) {
-            return TYPE_BOOLEAN;
-        } else if (obj instanceof UUID) {
-            return TYPE_UUID;
-        } else if (obj instanceof Byte) {
-            return TYPE_BYTE;
-        } else if (obj instanceof Short) {
-            return TYPE_SHORT;
-        } else if (obj instanceof Character) {
-            return TYPE_CHAR;
-        } else if (obj == null) {
-            return TYPE_NULL;
-        } else if (isDate(obj)) {
-            return TYPE_DATE;
-        } else if (isBigInteger(obj)) {
-            return TYPE_BIG_INTEGER;
-        } else if (isBigDecimal(obj)) {
-            return TYPE_BIG_DECIMAL;
-        } else if (obj.getClass().isArray()) {
-            return TYPE_ARRAY;
-        }
-        return TYPE_SERIALIZED_OBJECT;
-    }
-
     /**
      * Switch the last remembered type to match the type of the given object.
      *
@@ -273,130 +399,6 @@ class NitriteDataType extends ObjectDataType {
             last = l = newType(typeId);
         }
         return l;
-    }
-
-    /**
-     * Check whether this object is a BigInteger.
-     *
-     * @param obj the object
-     * @return true if yes
-     */
-    static boolean isBigInteger(Object obj) {
-        return obj != null && obj.getClass() == BigInteger.class;
-    }
-
-    /**
-     * Check whether this object is a BigDecimal.
-     *
-     * @param obj the object
-     * @return true if yes
-     */
-    static boolean isBigDecimal(Object obj) {
-        return obj != null && obj.getClass() == BigDecimal.class;
-    }
-
-    /**
-     * Check whether this object is a date.
-     *
-     * @param obj the object
-     * @return true if yes
-     */
-    static boolean isDate(Object obj) {
-        return obj != null && obj.getClass() == Date.class;
-    }
-
-    /**
-     * Check whether this object is an array.
-     *
-     * @param obj the object
-     * @return true if yes
-     */
-    static boolean isArray(Object obj) {
-        return obj != null && obj.getClass().isArray();
-    }
-
-    /**
-     * Get the class id, or null if not found.
-     *
-     * @param clazz the class
-     * @return the class id or null
-     */
-    static Integer getCommonClassId(Class<?> clazz) {
-        HashMap<Class<?>, Integer> map = COMMON_CLASSES_MAP;
-        if (map.size() == 0) {
-            // lazy initialization
-            // synchronized, because the COMMON_CLASSES_MAP is not
-            synchronized (map) {
-                if (map.size() == 0) {
-                    for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
-                        map.put(COMMON_CLASSES[i], i);
-                    }
-                }
-            }
-        }
-        return map.get(clazz);
-    }
-
-    /**
-     * Serialize the object to a byte array.
-     *
-     * @param obj the object to serialize
-     * @return the byte array
-     */
-    public static byte[] serialize(Object obj) {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ObjectOutputStream os = new ObjectOutputStream(out);
-            os.writeObject(obj);
-            return out.toByteArray();
-        } catch (Throwable e) {
-            throw DataUtils.newIllegalArgumentException(
-                "Could not serialize {0}", obj, e);
-        }
-    }
-
-    /**
-     * De-serialize the byte array to an object.
-     *
-     * @param data the byte array
-     * @return the object
-     */
-    public static Object deserialize(byte[] data) {
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(data);
-            NitriteObjectInputStream is = new NitriteObjectInputStream(in);
-            return is.readObject();
-        } catch (Throwable e) {
-            throw DataUtils.newIllegalArgumentException(
-                "Could not deserialize {0}", Arrays.toString(data), e);
-        }
-    }
-
-    /**
-     * Compare the contents of two byte arrays. If the content or length of the
-     * first array is smaller than the second array, -1 is returned. If the
-     * content or length of the second array is smaller than the first array, 1
-     * is returned. If the contents and lengths are the same, 0 is returned.
-     * <p>
-     * This method interprets bytes as unsigned.
-     *
-     * @param data1 the first byte array (must not be null)
-     * @param data2 the second byte array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNull(byte[] data1, byte[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            int b = data1[i] & 255;
-            int b2 = data2[i] & 255;
-            if (b != b2) {
-                return b > b2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
     }
 
     /**
@@ -469,7 +471,7 @@ class NitriteDataType extends ObjectDataType {
          * Read an object from the buffer.
          *
          * @param buff the buffer
-         * @param tag the first byte of the object (usually the type)
+         * @param tag  the first byte of the object (usually the type)
          * @return the read object
          */
         abstract Object read(ByteBuffer buff, int tag);

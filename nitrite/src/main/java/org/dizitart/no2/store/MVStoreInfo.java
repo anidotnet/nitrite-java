@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.dizitart.no2.common.Constants.*;
-import static org.dizitart.no2.common.Constants.DOC_MODIFIED;
 
 /**
  * @author Anindya Chatterjee

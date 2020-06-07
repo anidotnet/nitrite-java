@@ -38,7 +38,7 @@ public class ExporterImporterTest extends BaseExternalTest {
     @Test
     public void testImportExport() {
         schemaFile = System.getProperty("java.io.tmpdir") + File.separator
-                + "nitrite" + File.separator + "schema.json";
+            + "nitrite" + File.separator + "schema.json";
 
         Random random = new Random();
         for (int i = 0; i < 5; i++) {
@@ -66,16 +66,16 @@ public class ExporterImporterTest extends BaseExternalTest {
         ObjectRepository<Company> destCompRepo = destDb.getRepository(Company.class);
 
         assertEquals(filter(sourceFirstColl.find().toList()),
-                filter(destFirstColl.find().toList()));
+            filter(destFirstColl.find().toList()));
         assertEquals(filter(sourceSecondColl.find().toList()),
-                filter(destSecondColl.find().toList()));
+            filter(destSecondColl.find().toList()));
 
         assertEquals(sourceEmpRepo.find().toList(),
-                destEmpRepo.find().toList());
+            destEmpRepo.find().toList());
         assertEquals(sourceKeyedEmpRepo.find().toList(),
-                destKeyedEmpRepo.find().toList());
+            destKeyedEmpRepo.find().toList());
         assertEquals(sourceCompRepo.find().toList(),
-                destCompRepo.find().toList());
+            destCompRepo.find().toList());
 
         assertEquals(sourceEmpRepo.listIndices(), destEmpRepo.listIndices());
         assertEquals(sourceKeyedEmpRepo.listIndices(), destKeyedEmpRepo.listIndices());

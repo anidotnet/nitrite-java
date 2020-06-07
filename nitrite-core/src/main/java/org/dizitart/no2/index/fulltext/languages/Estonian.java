@@ -27,48 +27,48 @@ import java.util.Set;
 /**
  * Estonian stop words
  *
- * @since 2.1.0
  * @author Anindya Chatterjee
+ * @since 2.1.0
  */
 public class Estonian implements Language {
     @Override
     public Set<String> stopWords() {
         return new HashSet<>(Arrays.asList(
-                "aga",
-                "ei",
-                "et",
-                "ja",
-                "jah",
-                "kas",
-                "kui",
-                "kõik",
-                "ma",
-                "me",
-                "mida",
-                "midagi",
-                "mind",
-                "minu",
-                "mis",
-                "mu",
-                "mul",
-                "mulle",
-                "nad",
-                "nii",
-                "oled",
-                "olen",
-                "oli",
-                "oma",
-                "on",
-                "pole",
-                "sa",
-                "seda",
-                "see",
-                "selle",
-                "siin",
-                "siis",
-                "ta",
-                "te",
-                "ära"
+            "aga",
+            "ei",
+            "et",
+            "ja",
+            "jah",
+            "kas",
+            "kui",
+            "kõik",
+            "ma",
+            "me",
+            "mida",
+            "midagi",
+            "mind",
+            "minu",
+            "mis",
+            "mu",
+            "mul",
+            "mulle",
+            "nad",
+            "nii",
+            "oled",
+            "olen",
+            "oli",
+            "oma",
+            "on",
+            "pole",
+            "sa",
+            "seda",
+            "see",
+            "selle",
+            "siin",
+            "siis",
+            "ta",
+            "te",
+            "ära"
         ));
     }
 }

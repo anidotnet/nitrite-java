@@ -36,6 +36,6 @@ class NitriteIdDeserializer extends StdScalarDeserializer<NitriteId> {
 
     @Override
     public NitriteId deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        return NitriteId.createId(p.getLongValue());
+        return NitriteId.createId(p.getValueAsString());
     }
 }

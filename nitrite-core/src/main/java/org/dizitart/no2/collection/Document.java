@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.dizitart.no2.common.Constants.*;
-import static org.dizitart.no2.common.Constants.DOC_MODIFIED;
 
 /**
  * @author Anindya Chatterjee

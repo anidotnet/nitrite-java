@@ -49,46 +49,41 @@ import static org.junit.Assert.*;
  */
 @RunWith(Parameterized.class)
 public class EventTest {
+    @Parameterized.Parameter
+    public boolean inMemory = false;
+    @Parameterized.Parameter(value = 1)
+    public boolean isProtected = false;
+    @Parameterized.Parameter(value = 2)
+    public boolean isCompressed = false;
+    @Parameterized.Parameter(value = 3)
+    public boolean isAutoCommit = false;
+    @Parameterized.Parameter(value = 4)
+    public boolean isAutoCompact = false;
     private String fileName = getRandomTempDbFile();
     private Nitrite db;
     private ObjectRepository<Employee> employeeRepository;
     private SampleListenerCollection listener;
 
-    @Parameterized.Parameter
-    public boolean inMemory = false;
-
-    @Parameterized.Parameter(value = 1)
-    public boolean isProtected = false;
-
-    @Parameterized.Parameter(value = 2)
-    public boolean isCompressed = false;
-
-    @Parameterized.Parameter(value = 3)
-    public boolean isAutoCommit = false;
-
-    @Parameterized.Parameter(value = 4)
-    public boolean isAutoCompact = false;
-
     @Parameterized.Parameters(name = "InMemory = {0}, Protected = {1}, " +
-            "Compressed = {2}, AutoCommit = {3}, AutoCompact = {4}")
+        "Compressed = {2}, AutoCommit = {3}, AutoCompact = {4}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {false, false, false, false, false},
-                {false, false, false, true, false},
-                {false, false, true, false, false},
-                {false, false, true, true, false},
-                {false, true, false, false, false},
-                {false, true, false, true, false},
-                {false, true, true, false, false},
-                {false, true, true, true, true},
-                {true, false, false, false, true},
-                {true, false, false, true, true},
-                {true, false, true, false, true},
-                {true, false, true, true, true},
-                {true, true, false, false, true},
-                {true, true, false, true, true},
-                {true, true, true, false, true},
-                {true, true, true, true, true},
+            {false, false, false, false, false},
+            {false, false, false, true, false},
+            {false, false, true, false, false},
+            {false, false, true, true, false},
+            {false, true, false, false, false},
+            {false, true, false, true, false},
+            {false, true, true, false, false},
+            {false, true, true, true, true},
+            {true, false, false, false, true},
+            {true, false, false, true, true},
+            {true, false, true, false, true},
+            {true, false, true, true, true},
+            {true, true, false, false, true},
+            {true, true, false, true, true},
+            {true, true, true, false, true},
+            {true, true, true, true, true},
         });
     }
 
@@ -228,7 +223,7 @@ public class EventTest {
     public void clear() throws IOException {
         if (employeeRepository != null) {
             if (!employeeRepository.isDropped()
-                    && employeeRepository.isOpen()) {
+                && employeeRepository.isOpen()) {
                 employeeRepository.remove(ALL);
                 employeeRepository.unsubscribe(listener);
                 employeeRepository.close();

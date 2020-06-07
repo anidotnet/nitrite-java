@@ -39,31 +39,13 @@ public class SerializabilityTest {
     private NitriteCollection collection;
     private File dbFile;
 
-    @Data
-    public static class NotSerializableClass {
-        private String myId;
-
-        public NotSerializableClass(String myId) {
-            this.myId = myId;
-        }
-    }
-
-    @Data
-    public static class SerializableClass implements Serializable {
-        private String myId;
-
-        public SerializableClass(String myId) {
-            this.myId = myId;
-        }
-    }
-
     @Before
     public void setUp() {
         dbFile = new File(getRandomTempDbFile());
         db = NitriteBuilder.get()
-                .filePath(dbFile)
-                .compressed()
-                .openOrCreate();
+            .filePath(dbFile)
+            .compressed()
+            .openOrCreate();
         collection = db.getCollection("test");
     }
 
@@ -103,6 +85,24 @@ public class SerializabilityTest {
                 e.printStackTrace();
             }
             System.out.println("Write " + i + " completed");
+        }
+    }
+
+    @Data
+    public static class NotSerializableClass {
+        private String myId;
+
+        public NotSerializableClass(String myId) {
+            this.myId = myId;
+        }
+    }
+
+    @Data
+    public static class SerializableClass implements Serializable {
+        private String myId;
+
+        public SerializableClass(String myId) {
+            this.myId = myId;
         }
     }
 }

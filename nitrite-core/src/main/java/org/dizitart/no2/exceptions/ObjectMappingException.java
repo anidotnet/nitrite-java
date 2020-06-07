@@ -24,8 +24,8 @@ import org.dizitart.no2.collection.Document;
  * Exception thrown while mapping of {@link Document} from
  * objects fails or vice versa.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 public class ObjectMappingException extends NitriteException {
 
@@ -42,7 +42,7 @@ public class ObjectMappingException extends NitriteException {
      * Instantiates a new Object mapping exception.
      *
      * @param message the message
-     * @param cause the inner cause
+     * @param cause   the inner cause
      */
     public ObjectMappingException(String message, Throwable cause) {
         super(message, cause);

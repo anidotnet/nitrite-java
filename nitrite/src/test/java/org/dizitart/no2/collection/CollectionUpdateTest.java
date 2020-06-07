@@ -47,7 +47,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         }
 
         WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
-                createDocument("lastName", "new-last-name"));
+            createDocument("lastName", "new-last-name"));
         assertEquals(updateResult.getAffectedCount(), 1);
 
         cursor = collection.find(where("firstName").eq("fn1"));
@@ -77,7 +77,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         assertEquals(collection.size(), 4);
 
         Document document = collection.find(where("lastName").eq("ln4"))
-                .firstOrNull();
+            .firstOrNull();
         assertTrue(isSimilar(document, update, "lastName"));
     }
 
@@ -87,7 +87,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         assertEquals(cursor.size(), 0);
 
         WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
-                doc1, UpdateOptions.updateOptions(true));
+            doc1, UpdateOptions.updateOptions(true));
         assertEquals(updateResult.getAffectedCount(), 1);
 
         cursor = collection.find(where("firstName").eq("fn1"));
@@ -106,7 +106,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
 
         Document document = createDocument("lastName", "newLastName1");
         WriteResult updateResult = collection.update(where("firstName").eq("fn1").not(),
-                document);
+            document);
         assertEquals(updateResult.getAffectedCount(), 2);
 
         cursor = collection.find(where("lastName").eq("newLastName1"));
@@ -122,7 +122,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         updateOptions.setInsertIfAbsent(false);
 
         WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
-                doc1, updateOptions);
+            doc1, updateOptions);
         assertEquals(updateResult.getAffectedCount(), 0);
 
         cursor = collection.find(where("firstName").eq("fn1"));
@@ -141,7 +141,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
 
         Document document = createDocument("lastName", "newLastName1");
         WriteResult updateResult = collection.update(where("firstName").eq("fn1").not(),
-                document, updateOptions);
+            document, updateOptions);
         assertEquals(updateResult.getAffectedCount(), 2);
 
         cursor = collection.find(where("lastName").eq("newLastName1"));
@@ -174,7 +174,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
         }
 
         WriteResult updateResult = collection.update(where("firstName").eq("fn1"),
-                createDocument("new-value", "new-value-value"));
+            createDocument("new-value", "new-value-value"));
         assertEquals(updateResult.getAffectedCount(), 1);
 
         cursor = collection.find(where("firstName").eq("fn1"));
@@ -196,7 +196,7 @@ public class CollectionUpdateTest extends BaseCollectionTest {
 
         // to check if NitriteId is valid.
         WriteResult updateResult = collection.update(where("some-value").eq("some-value"),
-                createDocument("lastName", "new-last-name"));
+            createDocument("lastName", "new-last-name"));
         assertEquals(updateResult.getAffectedCount(), 0);
     }
 

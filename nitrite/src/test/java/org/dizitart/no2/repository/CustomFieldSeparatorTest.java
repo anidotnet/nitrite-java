@@ -35,8 +35,8 @@ public class CustomFieldSeparatorTest {
     @Before
     public void setUp() {
         Nitrite db = NitriteBuilder.get()
-                .fieldSeparator(":")
-                .openOrCreate();
+            .fieldSeparator(":")
+            .openOrCreate();
         repository = db.getRepository(EmployeeForCustomSeparator.class);
     }
 
@@ -80,9 +80,9 @@ public class CustomFieldSeparatorTest {
     @ToString
     @EqualsAndHashCode
     @Indices({
-            @Index(value = "joinDate", type = IndexType.NonUnique),
-            @Index(value = "address", type = IndexType.Fulltext),
-            @Index(value = "employeeNote:text", type = IndexType.Fulltext)
+        @Index(value = "joinDate", type = IndexType.NonUnique),
+        @Index(value = "address", type = IndexType.Fulltext),
+        @Index(value = "employeeNote:text", type = IndexType.Fulltext)
     })
     public static class EmployeeForCustomSeparator implements Serializable, Mappable {
         @Id
@@ -110,7 +110,8 @@ public class CustomFieldSeparatorTest {
         @Setter
         private Note employeeNote;
 
-        EmployeeForCustomSeparator() {}
+        EmployeeForCustomSeparator() {
+        }
 
         public EmployeeForCustomSeparator(EmployeeForCustomSeparator copy) {
             empId = copy.empId;

@@ -32,8 +32,8 @@ import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
 /**
  * A utility class for {@link Document}.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 @UtilityClass
 public class DocumentUtils {

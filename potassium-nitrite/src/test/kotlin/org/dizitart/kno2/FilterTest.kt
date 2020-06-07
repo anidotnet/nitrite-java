@@ -128,7 +128,7 @@ class FilterTest : BaseTest() {
     fun testElemMatch() {
         db?.getCollection("test") {
             insert(documentOf("a" to listOf(1, 2, 3, 4, 5)),
-                    documentOf("a" to listOf(3, 4, 5, 6, 7, 8)))
+                documentOf("a" to listOf(3, 4, 5, 6, 7, 8)))
 
             var cursor = find("a" elemMatch ("$" within 3..5))
             assertEquals(cursor.size(), 2)
@@ -179,7 +179,7 @@ class FilterTest : BaseTest() {
             var cursor = find(("a" regex "[a-z]+") and ("b" eq 1))
             assertEquals(cursor.size(), 1)
 
-            cursor = find(("a" regex "[a-z]+") and ("b" within  1..2))
+            cursor = find(("a" regex "[a-z]+") and ("b" within 1..2))
             assertEquals(cursor.size(), 2)
         }
     }

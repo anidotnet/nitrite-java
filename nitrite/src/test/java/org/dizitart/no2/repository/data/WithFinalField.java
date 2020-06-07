@@ -33,9 +33,9 @@ import java.lang.reflect.Modifier;
  */
 @Getter
 public class WithFinalField implements Mappable {
+    private final long number;
     @Setter
     private String name;
-    private final long number;
 
     public WithFinalField() {
         number = 2;

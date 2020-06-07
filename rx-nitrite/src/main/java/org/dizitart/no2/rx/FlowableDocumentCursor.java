@@ -76,7 +76,7 @@ public final class FlowableDocumentCursor extends FlowableReadableStream<Documen
     public FlowableReadableStream<Document> project(Document projection) {
         Callable<ReadableStream<Document>> projectionSupplier = () -> {
             DocumentCursor documentCursor = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
             return documentCursor.project(projection);
         };
         return FlowableReadableStream.create(projectionSupplier);
@@ -85,10 +85,10 @@ public final class FlowableDocumentCursor extends FlowableReadableStream<Documen
     public FlowableReadableStream<Document> join(FlowableDocumentCursor foreignCursor, Lookup lookup) {
         Callable<ReadableStream<Document>> joinSupplier = () -> {
             DocumentCursor documentCursor = ObjectHelper.requireNonNull(supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
 
             DocumentCursor foreignDocumentCursor = ObjectHelper.requireNonNull(foreignCursor.supplier.call(),
-                    "The supplier supplied is null");
+                "The supplier supplied is null");
 
             return documentCursor.join(foreignDocumentCursor, lookup);
         };

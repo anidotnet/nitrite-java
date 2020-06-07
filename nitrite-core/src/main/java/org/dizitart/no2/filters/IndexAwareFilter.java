@@ -17,10 +17,12 @@ import java.util.Set;
 @ToString(exclude = "indexedIdSet")
 @EqualsAndHashCode(callSuper = true)
 public abstract class IndexAwareFilter extends FieldBasedFilter {
-    @Getter @Setter
+    @Getter
+    @Setter
     private Boolean isFieldIndexed = false;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Indexer indexer;
 
     private Set<NitriteId> indexedIdSet;
@@ -30,6 +32,7 @@ public abstract class IndexAwareFilter extends FieldBasedFilter {
     }
 
     protected abstract Set<NitriteId> findIndexedIdSet();
+
     protected abstract boolean applyNonIndexed(KeyValuePair<NitriteId, Document> element);
 
     public void cacheIndexedIds() {

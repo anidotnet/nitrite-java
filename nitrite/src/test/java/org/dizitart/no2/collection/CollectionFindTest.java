@@ -45,6 +45,14 @@ import static org.junit.Assert.*;
 
 public class CollectionFindTest extends BaseCollectionTest {
 
+    private static Document trimMeta(Document document) {
+        document.remove(DOC_ID);
+        document.remove(DOC_REVISION);
+        document.remove(DOC_MODIFIED);
+        document.remove(DOC_SOURCE);
+        return document;
+    }
+
     @Test
     public void testFindAll() {
         insert();
@@ -281,7 +289,7 @@ public class CollectionFindTest extends BaseCollectionTest {
     @Test
     public void testGetById() {
         collection.insert(doc1);
-        NitriteId id = NitriteId.createId(1L);
+        NitriteId id = NitriteId.createId("1");
         Document document = collection.getById(id);
         assertNull(document);
 
@@ -456,20 +464,20 @@ public class CollectionFindTest extends BaseCollectionTest {
 
     @Test
     public void testElemMatchFilter() {
-        Document doc1 = createDocument("productScores", new Document[] {
+        Document doc1 = createDocument("productScores", new Document[]{
             createDocument("product", "abc").put("score", 10),
             createDocument("product", "xyz").put("score", 5)
-        }).put("strArray", new String[] {"a", "b"});
+        }).put("strArray", new String[]{"a", "b"});
 
-        Document doc2 = createDocument("productScores", new Document[] {
+        Document doc2 = createDocument("productScores", new Document[]{
             createDocument("product", "abc").put("score", 8),
             createDocument("product", "xyz").put("score", 7)
-        }).put("strArray", new String[] {"d", "e"});
+        }).put("strArray", new String[]{"d", "e"});
 
-        Document doc3 = createDocument("productScores", new Document[] {
+        Document doc3 = createDocument("productScores", new Document[]{
             createDocument("product", "abc").put("score", 7),
             createDocument("product", "xyz").put("score", 8)
-        }).put("strArray", new String[] {"a", "f"});
+        }).put("strArray", new String[]{"a", "f"});
 
         NitriteCollection prodCollection = db.getCollection("prodScore");
         prodCollection.insert(doc1, doc2, doc3);
@@ -818,13 +826,5 @@ public class CollectionFindTest extends BaseCollectionTest {
             assertNotNull(doc);
             assertEquals(doc.get("name"), "John");
         }
-    }
-
-    private static Document trimMeta(Document document) {
-        document.remove(DOC_ID);
-        document.remove(DOC_REVISION);
-        document.remove(DOC_MODIFIED);
-        document.remove(DOC_SOURCE);
-        return document;
     }
 }

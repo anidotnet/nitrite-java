@@ -22,8 +22,8 @@ package org.dizitart.no2.exceptions;
  * Exception thrown when any modification in a collection
  * violates unique constraint.
  *
- * @since 1.0
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public class UniqueConstraintException extends NitriteException {
     /**

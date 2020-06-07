@@ -12,8 +12,8 @@ import java.io.Serializable;
 /**
  * Represents a key and a value pair.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 @Data
 @EqualsAndHashCode
@@ -25,7 +25,7 @@ public class KeyValuePair<Key, Value> implements Serializable {
      *
      * @param key the key to set.
      * @returns the key.
-     * */
+     */
     private Key key;
 
     /**
@@ -33,7 +33,7 @@ public class KeyValuePair<Key, Value> implements Serializable {
      *
      * @param value the value to set.
      * @returns the value.
-     * */
+     */
     private Value value;
 
     private void writeObject(ObjectOutputStream stream) throws IOException {

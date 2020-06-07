@@ -195,7 +195,7 @@ class MVStoreUtils {
     private static void switchFiles(File newFile, File orgFile) {
         File backupFile = new File(orgFile.getPath() + "_old");
         if (orgFile.renameTo(backupFile)) {
-            if(!newFile.renameTo(orgFile)) {
+            if (!newFile.renameTo(orgFile)) {
                 throw new NitriteIOException("could not rename new data file");
             }
 

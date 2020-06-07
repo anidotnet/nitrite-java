@@ -5,9 +5,9 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.collection.UpdateOptions;
+import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.collection.events.CollectionEventListener;
 import org.dizitart.no2.collection.events.EventType;
-import org.dizitart.no2.collection.events.CollectionEventInfo;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.event.EventBus;
 import org.dizitart.no2.exceptions.InvalidOperationException;
@@ -136,7 +136,7 @@ class WriteOperations {
             log.debug("Filter {} found total {} document(s) to update with options {} in {}",
                 filter, cursor.size(), updateOptions, nitriteMap.getName());
 
-            for(final Document document : cursor) {
+            for (final Document document : cursor) {
                 if (document != null) {
                     Document item = document.clone();
                     Document oldDocument = document.clone();

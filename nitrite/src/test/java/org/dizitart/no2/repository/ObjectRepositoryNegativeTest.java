@@ -47,8 +47,8 @@ public class ObjectRepositoryNegativeTest {
     @Before
     public void setUp() {
         db = NitriteBuilder.get()
-                .filePath(dbPath)
-                .openOrCreate();
+            .filePath(dbPath)
+            .openOrCreate();
     }
 
     @After
@@ -147,7 +147,7 @@ public class ObjectRepositoryNegativeTest {
     public void testValidateCollection() {
         NitriteConfig context = NitriteConfig.create();
         ObjectRepository<Employee> repository =
-                RepositoryFactory.getRepository(Employee.class, null, context);
+            RepositoryFactory.getRepository(Employee.class, null, context);
         repository.find();
     }
 
@@ -204,7 +204,7 @@ public class ObjectRepositoryNegativeTest {
     public void testExternalNitriteId() {
         ObjectRepository<WithNitriteId> repository = db.getRepository(WithNitriteId.class);
         WithNitriteId obj = new WithNitriteId();
-        NitriteId id = NitriteId.createId(1L);
+        NitriteId id = NitriteId.createId("1");
         obj.setIdField(id);
         obj.setName("testExternalNitriteId");
         WriteResult result = repository.update(obj, true);

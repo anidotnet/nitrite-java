@@ -188,11 +188,15 @@ public class CollectionIndexTest extends BaseCollectionTest {
         insert();
 
         Document document = createDocument("firstName", null)
-                .put("lastName", "ln1")
-                .put("birthDay", null)
-                .put("data", new byte[] {1, 2, 3})
-                .put("list", new ArrayList<String>() {{ add("one"); add("two"); add("three"); }})
-                .put("body", "a quick brown fox jump over the lazy dog");
+            .put("lastName", "ln1")
+            .put("birthDay", null)
+            .put("data", new byte[]{1, 2, 3})
+            .put("list", new ArrayList<String>() {{
+                add("one");
+                add("two");
+                add("three");
+            }})
+            .put("body", "a quick brown fox jump over the lazy dog");
 
         collection.insert(document);
     }
@@ -272,8 +276,8 @@ public class CollectionIndexTest extends BaseCollectionTest {
     @Test
     public void testIndexAndSearchOnNullValues() {
         NitriteCollection collection = db.getCollection("index-on-null");
-        collection.insert(createDocument("first", null).put("second", 123).put("third", new Integer[] {1, 2, null}));
-        collection.insert(createDocument("first", "abcd").put("second", 456).put("third", new int[] {3, 1}));
+        collection.insert(createDocument("first", null).put("second", 123).put("third", new Integer[]{1, 2, null}));
+        collection.insert(createDocument("first", "abcd").put("second", 456).put("third", new int[]{3, 1}));
         collection.insert(createDocument("first", "xyz").put("second", 789).put("third", null));
 
         collection.createIndex("first", indexOptions(IndexType.Unique));

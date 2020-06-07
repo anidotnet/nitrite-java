@@ -34,7 +34,7 @@ public class LastWriteWinMap {
         }
 
         if (snapshot.getTombstones() != null) {
-            for (Map.Entry<Long, Long> entry : snapshot.getTombstones().entrySet()) {
+            for (Map.Entry<String, Long> entry : snapshot.getTombstones().entrySet()) {
                 remove(NitriteId.createId(entry.getKey()), entry.getValue());
             }
         }

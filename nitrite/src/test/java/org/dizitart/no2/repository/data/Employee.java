@@ -26,7 +26,6 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexType;
 import org.dizitart.no2.index.annotations.Id;
 import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 
@@ -38,11 +37,9 @@ import java.util.Date;
  */
 @ToString
 @EqualsAndHashCode
-@Indices({
-        @Index(value = "joinDate", type = IndexType.NonUnique),
-        @Index(value = "address", type = IndexType.Fulltext),
-        @Index(value = "employeeNote.text", type = IndexType.Fulltext)
-})
+@Index(value = "joinDate", type = IndexType.NonUnique)
+@Index(value = "address", type = IndexType.Fulltext)
+@Index(value = "employeeNote.text", type = IndexType.Fulltext)
 public class Employee implements Serializable, Mappable {
     @Id
     @Getter
@@ -69,7 +66,8 @@ public class Employee implements Serializable, Mappable {
     @Setter
     private Note employeeNote;
 
-    public Employee() {}
+    public Employee() {
+    }
 
     public Employee(Employee copy) {
         empId = copy.empId;

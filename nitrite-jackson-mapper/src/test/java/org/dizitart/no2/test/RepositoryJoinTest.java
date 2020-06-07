@@ -51,46 +51,41 @@ import static org.junit.Assert.*;
  */
 @RunWith(value = Parameterized.class)
 public class RepositoryJoinTest {
-    private String fileName = getRandomTempDbFile();
+    @Parameterized.Parameter
+    public boolean inMemory = false;
+    @Parameterized.Parameter(value = 1)
+    public boolean isProtected = false;
+    @Parameterized.Parameter(value = 2)
+    public boolean isCompressed = false;
+    @Parameterized.Parameter(value = 3)
+    public boolean isAutoCommit = false;
+    @Parameterized.Parameter(value = 4)
+    public boolean isAutoCompact = false;
     protected Nitrite db;
+    private String fileName = getRandomTempDbFile();
     private ObjectRepository<Person> personRepository;
     private ObjectRepository<Address> addressRepository;
 
-    @Parameterized.Parameter
-    public boolean inMemory = false;
-
-    @Parameterized.Parameter(value = 1)
-    public boolean isProtected = false;
-
-    @Parameterized.Parameter(value = 2)
-    public boolean isCompressed = false;
-
-    @Parameterized.Parameter(value = 3)
-    public boolean isAutoCommit = false;
-
-    @Parameterized.Parameter(value = 4)
-    public boolean isAutoCompact = false;
-
     @Parameterized.Parameters(name = "InMemory = {0}, Protected = {1}, " +
-            "Compressed = {2}, AutoCommit = {3}, AutoCompact = {4}")
+        "Compressed = {2}, AutoCommit = {3}, AutoCompact = {4}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                {false, false, false, false, false},
-                {false, false, false, true, false},
-                {false, false, true, false, false},
-                {false, false, true, true, false},
-                {false, true, false, false, false},
-                {false, true, false, true, false},
-                {false, true, true, false, false},
-                {false, true, true, true, true},
-                {true, false, false, false, true},
-                {true, false, false, true, true},
-                {true, false, true, false, true},
-                {true, false, true, true, true},
-                {true, true, false, false, true},
-                {true, true, false, true, true},
-                {true, true, true, false, true},
-                {true, true, true, true, true},
+        return Arrays.asList(new Object[][]{
+            {false, false, false, false, false},
+            {false, false, false, true, false},
+            {false, false, true, false, false},
+            {false, false, true, true, false},
+            {false, true, false, false, false},
+            {false, true, false, true, false},
+            {false, true, true, false, false},
+            {false, true, true, true, true},
+            {true, false, false, false, true},
+            {true, false, false, true, true},
+            {true, false, true, false, true},
+            {true, false, true, true, true},
+            {true, true, false, false, true},
+            {true, true, false, true, true},
+            {true, true, true, false, true},
+            {true, true, true, true, true},
         });
     }
 
@@ -177,22 +172,22 @@ public class RepositoryJoinTest {
         lookup.setTargetField("addresses");
 
         ReadableStream<PersonDetails> result
-                = personRepository.find().join(addressRepository.find(), lookup,
-                PersonDetails.class);
+            = personRepository.find().join(addressRepository.find(), lookup,
+            PersonDetails.class);
         assertEquals(result.size(), 10);
 
-        for (PersonDetails personDetails: result) {
+        for (PersonDetails personDetails : result) {
             Address[] addresses = personDetails.addresses.toArray(new Address[0]);
             if (personDetails.id.equals("5")) {
                 assertEquals(addresses.length, 2);
             } else {
                 assertEquals(addresses.length, 1);
-                assertEquals(addresses[0].personId,  personDetails.getId());
+                assertEquals(addresses[0].personId, personDetails.getId());
             }
         }
 
         result = personRepository.find().limit(0, 5).join(addressRepository.find(), lookup,
-                PersonDetails.class);
+            PersonDetails.class);
 
         assertEquals(result.size(), 5);
         assertFalse(result.isEmpty());
@@ -207,8 +202,8 @@ public class RepositoryJoinTest {
         lookup.setTargetField("addresses");
 
         ReadableStream<PersonDetails> result
-                = personRepository.find().join(addressRepository.find(), lookup,
-                PersonDetails.class);
+            = personRepository.find().join(addressRepository.find(), lookup,
+            PersonDetails.class);
         assertEquals(result.size(), 10);
 
         Iterator<PersonDetails> iterator = result.iterator();

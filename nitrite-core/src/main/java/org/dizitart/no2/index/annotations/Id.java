@@ -26,8 +26,8 @@ import java.lang.annotation.Target;
 /**
  * Indicates that an annotated field is the id field.
  *
- * @since 1.0
  * @author Anindya Chatterjee.
+ * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

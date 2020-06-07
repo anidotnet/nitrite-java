@@ -20,21 +20,25 @@ import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.co.jemos.podam.api.PodamFactory;
 import uk.co.jemos.podam.api.PodamFactoryImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
+import static java.nio.file.Paths.get;
 import static org.dizitart.no2.DbTestOperations.getRandomTempDbFile;
 import static org.dizitart.no2.collection.Document.createDocument;
 import static org.dizitart.no2.common.Constants.INTERNAL_NAME_SEPARATOR;
@@ -96,7 +100,7 @@ public class NitriteTest {
         if (!db.isClosed()) {
             db.close();
         }
-        Files.delete(Paths.get(fileName));
+        Files.delete(get(fileName));
     }
 
     @Test
@@ -230,7 +234,7 @@ public class NitriteTest {
         assertNotNull(repository);
         assertEquals(repository.getType(), NitriteTest.class);
         assertFalse(db.hasRepository(NitriteTest.class));
-        assertTrue(db.hasRepository("key", NitriteTest.class));
+        assertTrue(db.hasRepository(NitriteTest.class, "key"));
     }
 
     @Test
@@ -291,7 +295,7 @@ public class NitriteTest {
 
     @Test(expected = NitriteIOException.class)
     public void testCloseNullStore() {
-        try(Nitrite db = NitriteBuilder.get().openOrCreate()){
+        try (Nitrite db = NitriteBuilder.get().openOrCreate()) {
             db.close();
         }
     }
@@ -350,7 +354,7 @@ public class NitriteTest {
     public void testIssue193() throws InterruptedException {
         final ObjectRepository<Receipt> repository = db.getRepository(Receipt.class);
         final PodamFactory factory = new PodamFactoryImpl();
-        final String[] refs = new String[] {"1", "2", "3", "4", "5"};
+        final String[] refs = new String[]{"1", "2", "3", "4", "5"};
         final Random random = new Random();
         ExecutorService pool = ThreadPoolManager.workerPool();
 
@@ -371,33 +375,92 @@ public class NitriteTest {
     }
 
     @Test
-    @Ignore("Only need to test manually with old version of nitrite")
-    public void testReadCompatibility() {
+//    @Ignore("Only need to test manually with old version of nitrite")
+    public void testReadCompatibility() throws IOException {
+//      ******* Old DB Creation Code Start *********
+//
+//        Nitrite db = new NitriteBuilder()
+//            .filePath("/tmp/no2-old.db")
+//            .compressed()
+//            .openOrCreate("test-user", "test-password");
+//
+//        NitriteCollection collection = db.getCollection("test");
+//        Document doc = createDocument("first_key", 1)
+//            .put("second_key", "quick brown fox")
+//            .put("third_key", 0.5);
+//        collection.insert(doc);
+//
+//        Document doc2 = createDocument("first_key", 10)
+//            .put("second_key", "jump over lazy dog")
+//            .put("third_key", 0.25);
+//        collection.insert(doc2);
+//
+//        collection.createIndex("first_key", IndexOptions.indexOptions(IndexType.Unique));
+//        collection.createIndex("second_key", IndexOptions.indexOptions(IndexType.Fulltext));
+//
+//        List<Document> cursor = collection.find(Filters.and(Filters.eq("first_key", 1),
+//            Filters.text("second_key", "fox"))).toList();
+//        assertEquals(cursor.size(), 1);
+//        assertEquals(cursor.get(0).get("third_key"), 0.5);
+//
+//        ObjectRepository<Receipt> repository = db.getRepository(Receipt.class);
+//        ObjectRepository<Receipt> orangeRepository = db.getRepository("orange", Receipt.class);
+//
+//        Receipt r1 = new Receipt();
+//        r1.status = Receipt.Status.PREPARING;
+//        r1.clientRef = "1";
+//        r1.synced = true;
+//
+//        Receipt r2 = new Receipt();
+//        r2.status = Receipt.Status.COMPLETED;
+//        r2.clientRef = "10";
+//        r2.synced = false;
+//
+//        repository.insert(r1, r2);
+//        orangeRepository.insert(r1, r2);
+//
+//        assertTrue(repository.hasIndex("synced"));
+//
+//        List<Receipt> list = repository.find(ObjectFilters.and(ObjectFilters.eq("synced", true),
+//            ObjectFilters.eq("status", Receipt.Status.PREPARING))).toList();
+//        assertEquals(list.size(), 1);
+//        assertEquals(list.get(0).clientRef, "1");
+//
+//        list = orangeRepository.find(ObjectFilters.and(ObjectFilters.eq("synced", false),
+//            ObjectFilters.eq("status", Receipt.Status.PREPARING))).toList();
+//        assertEquals(list.size(), 0);
+//
+//      ******* Old DB Creation Code End *********
+
+        Files.delete(Paths.get("/tmp/old.db"));
+        InputStream stream = ClassLoader.getSystemResourceAsStream("no2-old.db");
+        assert stream != null;
+
+        Files.copy(stream, Paths.get("/tmp/old.db"));
+
         String oldDbFile = "/tmp/old.db";
         Nitrite db = NitriteBuilder.get()
             .filePath(oldDbFile)
-            .openOrCreate("test", "test");
+            .openOrCreate("test-user", "test-password");
 
-        ObjectRepository<CompatData> repository = db.getRepository(CompatData.class);
-//        CompatData data = new CompatData();
-//        data.compatId = System.currentTimeMillis();
-//        data.firstName = "Sherlock";
-//        data.address = "221B, Baker Street, London";
-//        data.children = new ArrayList<>();
-//        data.children.add(new CompatChild(1L, "Holmes"));
-//        repository.insert(data);
-//
-//        data = new CompatData();
-//        data.compatId = System.currentTimeMillis() + 2L;
-//        data.firstName = "John";
-//        data.address = "223B, Baker Street, London";
-//        data.children = new ArrayList<>();
-//        data.children.add(new CompatChild(2L, "Watson"));
-//        repository.insert(data);
+        NitriteCollection collection = db.getCollection("test");
+        List<Document> cursor = collection.find(where("first_key").eq(1)
+            .and(where("second_key").text("fox"))).toList();
+        assertEquals(cursor.size(), 1);
+        assertEquals(cursor.get(0).get("third_key"), 0.5);
 
+        ObjectRepository<Receipt> repository = db.getRepository(Receipt.class);
+        ObjectRepository<Receipt> orangeRepository = db.getRepository("orange", Receipt.class);
+
+        List<Receipt> list = repository.find(where("synced").eq(true)
+            .and(where("status").eq(Receipt.Status.PREPARING.toString()))).toList();
+        assertEquals(list.size(), 1);
+        assertEquals(list.get(0).clientRef, "1");
+
+        list = orangeRepository.find(where("synced").eq(false)
+            .and(where("status").eq(Receipt.Status.PREPARING.toString()))).toList();
+        assertEquals(list.size(), 0);
         assertNotNull(repository.getAttributes());
-        assertEquals(repository.find(where("firstName").eq("Sherlock")).size(), 1);
-        assertEquals(repository.find(where("address").text("London")).size(), 2);
 
         db.close();
     }
@@ -409,10 +472,10 @@ public class NitriteTest {
         Document doc2 = createDocument("key", "key").put("second_key", "second_key").put("fourth_key", "fourth_key");
         Document doc = createDocument("fifth_key", "fifth_key");
 
-        if(!collection.hasIndex("key")){
+        if (!collection.hasIndex("key")) {
             collection.createIndex("key", IndexOptions.indexOptions(IndexType.NonUnique));
         }
-        if(!collection.hasIndex("second_key")){
+        if (!collection.hasIndex("second_key")) {
             collection.createIndex("second_key", IndexOptions.indexOptions(IndexType.NonUnique));
         }
 
@@ -422,50 +485,6 @@ public class NitriteTest {
 
         for (Document document : collection.find()) {
             System.out.println(document);
-        }
-    }
-
-    @Data
-    @Indices({
-        @Index(value = "firstName", type = IndexType.NonUnique),
-        @Index(value = "address", type = IndexType.Fulltext)
-    })
-    public static class CompatData implements Mappable {
-        @Id
-        private Long compatId;
-        private String firstName;
-        private String address;
-        private List<CompatChild> children;
-
-        @Override
-        public Document write(NitriteMapper mapper) {
-            Document document = Document.createDocument("compatId", compatId)
-                .put("address", address)
-                .put("firstName", firstName);
-
-            List<Document> list = new ArrayList<>();
-            if (children != null) {
-                for (CompatChild child : children) {
-                    list.add(child.write(mapper));
-                }
-            }
-            document.put("children", list);
-            return document;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public void read(NitriteMapper mapper, Document document) {
-            compatId = document.get("compatId", Long.class);
-            address = document.get("address", String.class);
-            firstName = document.get("firstName", String.class);
-            children = new ArrayList<>();
-            List<Document> childList = document.get("children", List.class);
-            for (Document doc : childList) {
-                CompatChild child = new CompatChild();
-                child.read(mapper, doc);
-                children.add(child);
-            }
         }
     }
 
@@ -496,6 +515,12 @@ public class NitriteTest {
         @Index(value = "synced", type = IndexType.NonUnique)
     })
     public static class Receipt implements Mappable {
+        private Status status;
+        @Id
+        private String clientRef;
+        private Boolean synced;
+        private Long createdTimestamp = System.currentTimeMillis();
+
         @Override
         public Document write(NitriteMapper mapper) {
             return createDocument("status", status)
@@ -507,22 +532,20 @@ public class NitriteTest {
         @Override
         public void read(NitriteMapper mapper, Document document) {
             if (document != null) {
-                this.status = document.get("status", Status.class);
+                Object status = document.get("status");
+                if (status instanceof Status) {
+                    this.status = (Status) status;
+                } else {
+                    this.status = Status.valueOf(status.toString());
+                }
                 this.clientRef = document.get("clientRef", String.class);
                 this.synced = document.get("synced", Boolean.class);
                 this.createdTimestamp = document.get("createdTimestamp", Long.class);
             }
         }
-
         public enum Status {
             COMPLETED,
             PREPARING,
         }
-
-        private Status status;
-        @Id
-        private String clientRef;
-        private Boolean synced;
-        private Long createdTimestamp = System.currentTimeMillis();
     }
 }

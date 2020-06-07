@@ -12,6 +12,7 @@ import org.dizitart.no2.sync.message.ReceiptAware;
  */
 public interface ReceiptAckSender<Ack extends DataGateMessage> {
     ReplicationTemplate getReplicationTemplate();
+
     Ack createAck(String correlationId, Receipt receipt);
 
     default void sendAck(ReceiptAware message) {

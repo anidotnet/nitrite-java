@@ -5,11 +5,11 @@ import lombok.Setter;
 import org.dizitart.no2.collection.NitriteCollection;
 
 /**
- * Represents options to apply while creating an {@link Index}.
+ * Represents options to apply while creating an index.
  *
  * @author Anindya Chatterjee
- * @since 1.0
  * @see NitriteCollection#createIndex(String, IndexOptions)
+ * @since 1.0
  */
 public class IndexOptions {
 
@@ -18,7 +18,7 @@ public class IndexOptions {
      *
      * @param indexType type of an index.
      * @returns type of an index to create.
-     * */
+     */
     @Getter
     @Setter
     private String indexType;
@@ -28,12 +28,13 @@ public class IndexOptions {
      * way.
      *
      * @param async if set to `true` then the index will be created asynchronously;
-     *              otherwise create index operation will wait until all existing
-     *              documents are indexed.
+     * otherwise create index operation will wait until all existing
+     * documents are indexed.
      * @returns `true` if index is to be created asynchronously; otherwise `false`.
      * @see NitriteCollection#createIndex(String, IndexOptions)
-     * */
-    @Getter @Setter
+     */
+    @Getter
+    @Setter
     private boolean async = false;
 
     /**

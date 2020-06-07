@@ -22,9 +22,9 @@ package org.dizitart.no2.collection.events;
  * Interface to be implemented by collections that wish to be aware
  * of any event.
  *
- * @since 4.0
  * @author Anindya Chatterjee.
  * @see EventType
+ * @since 4.0
  */
 public interface EventAware {
     /**

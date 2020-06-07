@@ -43,9 +43,9 @@ import static org.h2.mvstore.Chunk.fromString;
 /**
  * The nitrite database recovery utility.
  *
- * @since 1.0
  * @author H2 Group
  * @author Anindya Chatterjee
+ * @since 1.0
  */
 public class Recovery {
     /**
@@ -126,7 +126,7 @@ public class Recovery {
     /**
      * Roll back to a given revision into a a file called *.temp.
      *
-     * @param fileName the file name
+     * @param fileName      the file name
      * @param targetVersion the version to roll back to (Long.MAX_VALUE for the latest version)
      * @return the version rolled back to (-1 if no version)
      */
@@ -147,7 +147,7 @@ public class Recovery {
             long fileSize = file.size();
             ByteBuffer block = ByteBuffer.allocate(4096);
             Chunk newestChunk = null;
-            for (long pos = 0; pos < fileSize;) {
+            for (long pos = 0; pos < fileSize; ) {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
                 block.rewind();
@@ -223,7 +223,7 @@ public class Recovery {
     /**
      * Read the header from the byte buffer.
      *
-     * @param buff the source buffer
+     * @param buff  the source buffer
      * @param start the start of the chunk in the file
      * @return the chunk
      */
@@ -243,19 +243,19 @@ public class Recovery {
         } catch (Exception e) {
             // there could be various reasons
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupt reading chunk at position {0}", start, e);
+                DataUtils.ERROR_FILE_CORRUPT,
+                "File corrupt reading chunk at position {0}", start, e);
         }
         throw DataUtils.newIllegalStateException(
-                DataUtils.ERROR_FILE_CORRUPT,
-                "File corrupt reading chunk at position {0}", start);
+            DataUtils.ERROR_FILE_CORRUPT,
+            "File corrupt reading chunk at position {0}", start);
     }
 
     /**
      * Read the summary information of the file and write them to system out.
      *
      * @param fileName the name of the file.
-     * @param writer the print writer.
+     * @param writer   the print writer.
      * @return null if successful (if there was no error), otherwise the error message
      */
     private static String info(String fileName, Writer writer) {
@@ -266,8 +266,8 @@ public class Recovery {
         }
         long fileLength = FileUtils.size(fileName);
         MVStore store = new MVStore.Builder().
-                fileName(fileName).
-                readOnly().open();
+            fileName(fileName).
+            readOnly().open();
         try {
             MVMap<String, String> meta = store.getMetaMap();
             Map<String, Object> header = store.getStoreHeader();
@@ -292,28 +292,28 @@ public class Recovery {
             }
             pw.printf("Created: %s\n", formatTimestamp(fileCreated, fileCreated));
             pw.printf("Last modified: %s\n",
-                    formatTimestamp(FileUtils.lastModified(fileName), fileCreated));
+                formatTimestamp(FileUtils.lastModified(fileName), fileCreated));
             pw.printf("File length: %d\n", fileLength);
             pw.printf("The last chunk is not listed\n");
             pw.printf("Chunk length: %d\n", chunkLength);
             pw.printf("Chunk count: %d\n", chunks.size());
             pw.printf("Used space: %d%%\n", getPercent(chunkLength, fileLength));
             pw.printf("Chunk fill rate: %d%%\n", maxLength == 0 ? 100 :
-                    getPercent(maxLengthLive, maxLength));
+                getPercent(maxLengthLive, maxLength));
             pw.printf("Chunk fill rate excluding empty chunks: %d%%\n",
-                    maxLengthNotEmpty == 0 ? 100 :
-                            getPercent(maxLengthLive, maxLengthNotEmpty));
+                maxLengthNotEmpty == 0 ? 100 :
+                    getPercent(maxLengthLive, maxLengthNotEmpty));
             for (Map.Entry<Integer, Chunk> e : chunks.entrySet()) {
                 Chunk c = e.getValue();
                 long created = fileCreated + c.time;
                 pw.printf("  Chunk %d: %s, %d%% used, %d blocks",
-                        c.id, formatTimestamp(created, fileCreated),
-                        getPercent(c.maxLenLive, c.maxLen),
-                        c.len
+                    c.id, formatTimestamp(created, fileCreated),
+                    getPercent(c.maxLenLive, c.maxLen),
+                    c.len
                 );
                 if (c.maxLenLive == 0) {
                     pw.printf(", unused: %s",
-                            formatTimestamp(fileCreated + c.unused, fileCreated));
+                        formatTimestamp(fileCreated + c.unused, fileCreated));
                 }
                 pw.printf("\n");
             }

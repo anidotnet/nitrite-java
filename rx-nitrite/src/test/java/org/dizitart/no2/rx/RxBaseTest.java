@@ -29,25 +29,25 @@ public class RxBaseTest {
     RxNitrite db;
     String dbPath = getRandomTempDbFile();
 
-    @Before
-    public void setUp() {
-        db = new RxNitrite(NitriteBuilder.get()
-                .filePath(dbPath)
-                .openOrCreate("test-user", "test-password"));
-
-        Employee e1 = new Employee("John Doe", 35);
-        Employee e2 = new Employee("Jane Doe", 30);
-        testData = Flowable.fromArray(e1, e2).toList().blockingGet();
-    }
-
     private static String getRandomTempDbFile() {
         String dataDir = System.getProperty("java.io.tmpdir")
-                + File.separator + "rx-nitrite" + File.separator + "data";
+            + File.separator + "rx-nitrite" + File.separator + "data";
         File file = new File(dataDir);
         if (!file.exists()) {
             assertTrue(file.mkdirs());
         }
         return file.getPath() + File.separator + UUID.randomUUID().toString() + ".db";
+    }
+
+    @Before
+    public void setUp() {
+        db = new RxNitrite(NitriteBuilder.get()
+            .filePath(dbPath)
+            .openOrCreate("test-user", "test-password"));
+
+        Employee e1 = new Employee("John Doe", 35);
+        Employee e2 = new Employee("Jane Doe", 30);
+        testData = Flowable.fromArray(e1, e2).toList().blockingGet();
     }
 
     @Data

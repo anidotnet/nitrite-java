@@ -29,8 +29,8 @@ import java.util.StringTokenizer;
  * It discards certain words known as stop word depending on
  * the language chosen.
  *
- * @since 2.1.0
  * @author Anindya Chatterjee
+ * @since 2.1.0
  */
 public abstract class BaseTextTokenizer implements TextTokenizer {
     private static final String WHITESPACE_CHARS = " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]<>\\";
