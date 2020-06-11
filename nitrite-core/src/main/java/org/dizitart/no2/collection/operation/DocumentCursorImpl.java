@@ -42,8 +42,8 @@ class DocumentCursorImpl implements DocumentCursor {
     }
 
     @Override
-    public ReadableStream<Document> join(DocumentCursor cursor, Lookup lookup) {
-        return new JoinedDocumentIterable(readableStream, nitriteMap, cursor, lookup);
+    public ReadableStream<Document> join(DocumentCursor foreignCursor, Lookup lookup) {
+        return new JoinedDocumentIterable(readableStream, nitriteMap, foreignCursor, lookup);
     }
 
     @Override

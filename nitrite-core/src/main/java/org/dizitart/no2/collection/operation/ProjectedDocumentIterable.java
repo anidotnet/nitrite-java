@@ -15,8 +15,8 @@ import java.util.Iterator;
  */
 class ProjectedDocumentIterable implements ReadableStream<Document> {
     private final ReadableStream<NitriteId> readableStream;
-    private NitriteMap<NitriteId, Document> nitriteMap;
-    private Document projection;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
+    private final Document projection;
 
     public ProjectedDocumentIterable(ReadableStream<NitriteId> readableStream,
                                      NitriteMap<NitriteId, Document> nitriteMap,
@@ -39,7 +39,7 @@ class ProjectedDocumentIterable implements ReadableStream<Document> {
     }
 
     private class ProjectedDocumentIterator implements Iterator<Document> {
-        private Iterator<NitriteId> iterator;
+        private final Iterator<NitriteId> iterator;
         private Document nextElement = null;
 
         ProjectedDocumentIterator(Iterator<NitriteId> iterator) {
@@ -54,7 +54,7 @@ class ProjectedDocumentIterable implements ReadableStream<Document> {
 
         @Override
         public Document next() {
-            Document returnValue = nextElement;
+            Document returnValue = nextElement.clone();
             nextMatch();
             return returnValue;
         }

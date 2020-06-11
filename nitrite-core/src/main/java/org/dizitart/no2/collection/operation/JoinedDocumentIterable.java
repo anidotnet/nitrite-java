@@ -21,8 +21,8 @@ import static org.dizitart.no2.common.util.ObjectUtils.deepEquals;
 class JoinedDocumentIterable implements ReadableStream<Document> {
     private final ReadableStream<NitriteId> readableStream;
     private final NitriteMap<NitriteId, Document> nitriteMap;
-    private DocumentCursor foreignCursor;
-    private Lookup lookup;
+    private final DocumentCursor foreignCursor;
+    private final Lookup lookup;
 
     JoinedDocumentIterable(ReadableStream<NitriteId> readableStream,
                            NitriteMap<NitriteId, Document> nitriteMap,
@@ -48,7 +48,7 @@ class JoinedDocumentIterable implements ReadableStream<Document> {
     }
 
     private class JoinedDocumentIterator implements Iterator<Document> {
-        private Iterator<NitriteId> iterator;
+        private final Iterator<NitriteId> iterator;
 
         JoinedDocumentIterator(Iterator<NitriteId> iterator) {
             this.iterator = iterator;

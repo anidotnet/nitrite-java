@@ -52,7 +52,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Anindya Chatterjee
  */
 public class StressTest {
-    private String fileName = getRandomTempDbFile();
+    private final String fileName = getRandomTempDbFile();
     private Nitrite db;
     private NitriteCollection collection;
 

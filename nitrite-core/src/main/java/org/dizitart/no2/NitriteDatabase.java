@@ -19,17 +19,23 @@ import static org.dizitart.no2.common.util.ObjectUtils.*;
  */
 @Slf4j
 class NitriteDatabase implements Nitrite {
+    private final Map<String, ObjectRepository<?>> repositoryMap;
+    private final Map<String, NitriteCollection> collectionMap;
     private final NitriteConfig nitriteConfig;
     private NitriteStore store;
 
     NitriteDatabase(NitriteConfig config) {
         this.nitriteConfig = config;
+        this.collectionMap = new HashMap<>();
+        this.repositoryMap = new HashMap<>();
         this.initialize(null, null);
     }
 
     NitriteDatabase(String username, String password, NitriteConfig config) {
         validateUserCredentials(username, password);
         this.nitriteConfig = config;
+        this.collectionMap = new HashMap<>();
+        this.repositoryMap = new HashMap<>();
         this.initialize(username, password);
     }
 
@@ -37,7 +43,16 @@ class NitriteDatabase implements Nitrite {
     public NitriteCollection getCollection(String name) {
         validateCollectionName(name);
         checkOpened();
-        return CollectionFactory.getCollection(name, nitriteConfig);
+        if (collectionMap.containsKey(name)) {
+            NitriteCollection collection = collectionMap.get(name);
+            if (collection.isDropped()) {
+                collectionMap.remove(name);
+                return createAndGetCollection(name);
+            }
+            return collectionMap.get(name);
+        } else {
+            return createAndGetCollection(name);
+        }
     }
 
     @Override
@@ -146,9 +161,32 @@ class NitriteDatabase implements Nitrite {
         }
     }
 
+    private NitriteCollection createAndGetCollection(String name) {
+        NitriteCollection collection = CollectionFactory.getCollection(name, nitriteConfig);
+        collectionMap.put(name, collection);
+        return collection;
+    }
+
+    @SuppressWarnings("unchecked")
     private <T> ObjectRepository<T> getRepositoryByName(String name, Class<T> type) {
         checkOpened();
-        return RepositoryFactory.getRepository(type, name, nitriteConfig);
+        if (repositoryMap.containsKey(name)) {
+            ObjectRepository<T> repository = (ObjectRepository<T>) repositoryMap.get(name);
+            if (repository.isDropped()) {
+                repositoryMap.remove(name);
+                return createAndGetRepository(name, type);
+            } else {
+                return repository;
+            }
+        } else {
+            return createAndGetRepository(name, type);
+        }
+    }
+
+    private <T> ObjectRepository<T> createAndGetRepository(String name, Class<T> type) {
+        ObjectRepository<T> repository = RepositoryFactory.getRepository(type, name, nitriteConfig);
+        repositoryMap.put(name, repository);
+        return repository;
     }
 
     private void validateUserCredentials(String username, String password) {
@@ -177,6 +215,7 @@ class NitriteDatabase implements Nitrite {
                 }
             }
             collections.clear();
+            collectionMap.clear();
         }
 
         Map<String, Class<?>> repositories = store.getRepositoryRegistry();
@@ -188,6 +227,7 @@ class NitriteDatabase implements Nitrite {
                 }
             }
             repositories.clear();
+            repositoryMap.clear();
         }
     }
 }
