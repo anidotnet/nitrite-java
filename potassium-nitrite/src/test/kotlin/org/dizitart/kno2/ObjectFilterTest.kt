@@ -20,9 +20,9 @@ package org.dizitart.kno2
 
 import org.dizitart.kno2.filters.*
 import org.dizitart.no2.index.IndexType
-import org.dizitart.no2.index.annotations.Id
-import org.dizitart.no2.index.annotations.Index
-import org.dizitart.no2.index.annotations.Indices
+import org.dizitart.no2.repository.annotations.Id
+import org.dizitart.no2.repository.annotations.Index
+import org.dizitart.no2.repository.annotations.Indices
 import org.dizitart.no2.spatial.SpatialIndexer
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -328,13 +328,13 @@ data class TestData(@Id val id: Int, val text: String, val list: List<ListData> 
 class ListData(val name: String, val score: Int)
 
 data class SimpleObject(
-    @Id val id: UUID,
-    val value: Boolean
+        @Id val id: UUID,
+        val value: Boolean
 )
 
 @Index(value = "geometry", type = SpatialIndexer.SpatialIndex)
 data class SpatialData(
-    @Id val id: Long,
-    val geometry: Geometry
+        @Id val id: Long,
+        val geometry: Geometry
 )
 

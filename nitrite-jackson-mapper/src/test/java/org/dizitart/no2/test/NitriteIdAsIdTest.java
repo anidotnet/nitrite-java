@@ -25,7 +25,7 @@ import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.common.util.Iterables;
 import org.dizitart.no2.exceptions.InvalidIdException;
-import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.repository.annotations.Id;
 import org.dizitart.no2.mapper.JacksonMapper;
 import org.dizitart.no2.repository.Cursor;
 import org.dizitart.no2.repository.ObjectRepository;

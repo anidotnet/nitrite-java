@@ -21,7 +21,7 @@ package org.dizitart.no2.repository.data;
 import lombok.Getter;
 import lombok.Setter;
 import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.index.annotations.InheritIndices;
+import org.dizitart.no2.repository.annotations.InheritIndices;
 import org.dizitart.no2.mapper.NitriteMapper;
 
 /**

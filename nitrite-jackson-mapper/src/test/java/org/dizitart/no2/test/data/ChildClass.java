@@ -20,7 +20,7 @@ package org.dizitart.no2.test.data;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dizitart.no2.index.annotations.InheritIndices;
+import org.dizitart.no2.repository.annotations.InheritIndices;
 
 /**
  * @author Anindya Chatterjee

@@ -25,7 +25,7 @@ import org.dizitart.no2.exceptions.InvalidOperationException;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.dizitart.no2.index.Indexer;
-import org.dizitart.no2.index.annotations.Index;
+import org.dizitart.no2.repository.annotations.Index;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.ObjectRepository;

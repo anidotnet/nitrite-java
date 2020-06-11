@@ -310,5 +310,4 @@ public class ObjectRepositoryTest {
         assertEquals(developerRepo.find(where("address").eq("xyz")).size(), 1);
         assertEquals(developerRepo.find(where("address").eq("abcd")).size(), 0);
     }
-
 }

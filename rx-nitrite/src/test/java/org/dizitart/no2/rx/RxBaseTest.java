@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.repository.annotations.Id;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.junit.Before;

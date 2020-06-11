@@ -8,10 +8,10 @@ import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.*;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.annotations.Id;
-import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
-import org.dizitart.no2.index.annotations.InheritIndices;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
+import org.dizitart.no2.repository.annotations.Indices;
+import org.dizitart.no2.repository.annotations.InheritIndices;
 import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.lang.annotation.Annotation;
@@ -31,9 +31,9 @@ import static org.dizitart.no2.index.IndexOptions.indexOptions;
  * @author Anindya Chatterjee
  */
 class RepositoryOperations {
-    private NitriteMapper nitriteMapper;
-    private Class<?> type;
-    private NitriteCollection collection;
+    private final NitriteMapper nitriteMapper;
+    private final Class<?> type;
+    private final NitriteCollection collection;
     private Field idField;
 
     RepositoryOperations(Class<?> type, NitriteMapper nitriteMapper, NitriteCollection collection) {

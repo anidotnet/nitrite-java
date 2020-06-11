@@ -20,9 +20,9 @@ package org.dizitart.no2.test.data;
 
 import lombok.Data;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.annotations.Id;
-import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
+import org.dizitart.no2.repository.annotations.Indices;
 
 import java.util.Date;
 import java.util.UUID;

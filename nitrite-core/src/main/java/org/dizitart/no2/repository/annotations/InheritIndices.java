@@ -16,7 +16,7 @@
  *
  */
 
-package org.dizitart.no2.index.annotations;
+package org.dizitart.no2.repository.annotations;
 
 import java.lang.annotation.*;
 

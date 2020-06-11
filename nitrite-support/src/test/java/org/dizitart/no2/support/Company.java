@@ -23,9 +23,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.dizitart.no2.collection.Document;
-import org.dizitart.no2.index.annotations.Id;
-import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
+import org.dizitart.no2.repository.annotations.Indices;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 

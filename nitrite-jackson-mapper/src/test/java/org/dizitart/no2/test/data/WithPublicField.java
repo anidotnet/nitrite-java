@@ -18,7 +18,7 @@
 
 package org.dizitart.no2.test.data;
 
-import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.repository.annotations.Id;
 
 /**
  * @author Anindya Chatterjee.

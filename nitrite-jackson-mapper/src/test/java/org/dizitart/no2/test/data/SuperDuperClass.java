@@ -21,7 +21,7 @@ package org.dizitart.no2.test.data;
 import lombok.Getter;
 import lombok.Setter;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.annotations.Index;
+import org.dizitart.no2.repository.annotations.Index;
 
 /**
  * @author Anindya Chatterjee

@@ -24,10 +24,10 @@ import org.dizitart.no2.common.SortOrder
 import org.dizitart.no2.exceptions.UniqueConstraintException
 import org.dizitart.no2.index.IndexOptions
 import org.dizitart.no2.index.IndexType
-import org.dizitart.no2.index.annotations.Id
-import org.dizitart.no2.index.annotations.Index
-import org.dizitart.no2.index.annotations.Indices
-import org.dizitart.no2.index.annotations.InheritIndices
+import org.dizitart.no2.repository.annotations.Id
+import org.dizitart.no2.repository.annotations.Index
+import org.dizitart.no2.repository.annotations.Indices
+import org.dizitart.no2.repository.annotations.InheritIndices
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -191,8 +191,8 @@ interface MyInterface {
 
 @Indices(value = [(Index(value = "name", type = IndexType.NonUnique))])
 abstract class SomeAbsClass(
-    @Id override val id: UUID = UUID.randomUUID(),
-    open val name: String = "abcd"
+        @Id override val id: UUID = UUID.randomUUID(),
+        open val name: String = "abcd"
 ) : MyInterface {
     abstract val checked: Boolean
 }
@@ -212,8 +212,8 @@ class MyClass2(
 ) : SomeAbsClass(id, name)
 
 data class CaObject(
-    @Id val localId: UUID,
-    val name: String
+        @Id val localId: UUID,
+        val name: String
 )
 
 @Indices(value = [(Index(value = "time", type = IndexType.Unique))])

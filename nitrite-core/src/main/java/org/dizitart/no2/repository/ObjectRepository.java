@@ -14,7 +14,7 @@ import org.dizitart.no2.exceptions.NotIdentifiableException;
 import org.dizitart.no2.exceptions.UniqueConstraintException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.filters.Filter;
-import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.repository.annotations.Id;
 
 import java.util.ArrayList;
 import java.util.Collections;

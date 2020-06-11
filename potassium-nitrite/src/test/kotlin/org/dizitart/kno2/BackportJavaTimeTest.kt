@@ -23,8 +23,8 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.dizitart.no2.index.IndexType
-import org.dizitart.no2.index.annotations.Id
-import org.dizitart.no2.index.annotations.Index
+import org.dizitart.no2.repository.annotations.Id
+import org.dizitart.no2.repository.annotations.Index
 import org.dizitart.no2.mapper.JacksonModule
 import org.junit.Test
 import org.threeten.bp.LocalDateTime
@@ -42,8 +42,8 @@ class BackportJavaTimeTest {
 
     @Index(value = "time", type = IndexType.NonUnique)
     data class TestData(
-        @Id val id: String = UUID.randomUUID().toString(),
-        val time: LocalDateTime
+            @Id val id: String = UUID.randomUUID().toString(),
+            val time: LocalDateTime
     )
 
     class ThreeTenAbpModule : JacksonModule {

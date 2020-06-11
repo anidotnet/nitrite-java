@@ -12,9 +12,9 @@ import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.index.IndexOptions;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.annotations.Id;
-import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
+import org.dizitart.no2.repository.annotations.Indices;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.repository.ObjectRepository;
@@ -432,7 +432,9 @@ public class NitriteTest {
 //
 //      ******* Old DB Creation Code End *********
 
-        Files.delete(Paths.get("/tmp/old.db"));
+        if (Files.exists(Paths.get("/tmp/old.db"))) {
+            Files.delete(Paths.get("/tmp/old.db"));
+        }
         InputStream stream = ClassLoader.getSystemResourceAsStream("no2-old.db");
         assert stream != null;
 

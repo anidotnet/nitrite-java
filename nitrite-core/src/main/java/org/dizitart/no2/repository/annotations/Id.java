@@ -16,7 +16,7 @@
  *
  */
 
-package org.dizitart.no2.index.annotations;
+package org.dizitart.no2.repository.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,35 +24,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies multiple indexed fields for a class.
- * <p>
- * [[app-listing]]
- * [source,java]
- * .Example of Indices annotation
- * --
+ * Indicates that an annotated field is the id field.
  *
  * @author Anindya Chatterjee.
- * @Indices({
- * @Index(value = "joinDate", type = IndexType.NonUnique),
- * @Index(value = "address", type = IndexType.Fulltext)
- * })
- * public class Employee implements Serializable {
- * @Id private long empId;
- * private Date joinDate;
- * private String address;
- * }
- * <p>
- * --
- * @see Index
  * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Indices {
-    /**
-     * Returns an array of {@link Index}.
-     *
-     * @return the array of {@link Index}.
-     */
-    Index[] value();
+@Target(ElementType.FIELD)
+public @interface Id {
 }

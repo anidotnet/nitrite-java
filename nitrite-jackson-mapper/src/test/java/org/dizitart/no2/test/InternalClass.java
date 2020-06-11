@@ -19,7 +19,7 @@
 package org.dizitart.no2.test;
 
 import lombok.Data;
-import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.repository.annotations.Id;
 
 /**
  * @author Anindya Chatterjee.

@@ -1,8 +1,8 @@
 package org.dizitart.no2.spatial.test;
 
 import lombok.Data;
-import org.dizitart.no2.index.annotations.Id;
-import org.dizitart.no2.index.annotations.Index;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
 import org.locationtech.jts.geom.Geometry;
 
 import static org.dizitart.no2.spatial.SpatialIndexer.SpatialIndex;

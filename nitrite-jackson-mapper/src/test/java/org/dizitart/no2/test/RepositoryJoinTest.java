@@ -25,7 +25,7 @@ import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.Lookup;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.exceptions.InvalidOperationException;
-import org.dizitart.no2.index.annotations.Id;
+import org.dizitart.no2.repository.annotations.Id;
 import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.ObjectRepository;
 import org.junit.After;

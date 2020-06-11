@@ -22,4 +22,4 @@
  * @author Anindya Chatterjee.
  * @since 1.0
  */
-package org.dizitart.no2.index.annotations;
+package org.dizitart.no2.repository.annotations;

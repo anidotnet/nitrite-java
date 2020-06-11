@@ -21,11 +21,10 @@ package org.dizitart.no2.repository.data;
 import lombok.Data;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.index.annotations.Id;
-import org.dizitart.no2.index.annotations.Index;
-import org.dizitart.no2.index.annotations.Indices;
 import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.NitriteMapper;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
 
 import java.util.Date;
 import java.util.UUID;
@@ -34,9 +33,7 @@ import java.util.UUID;
  * @author Anindya Chatterjee
  */
 @Data
-@Indices({
-    @Index(value = "name", type = IndexType.Fulltext)
-})
+@Index(value = "name", type = IndexType.Fulltext)
 public class PersonEntity implements Mappable {
     @Id
     private String uuid;
