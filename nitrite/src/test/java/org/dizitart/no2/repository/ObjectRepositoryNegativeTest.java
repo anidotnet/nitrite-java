@@ -20,7 +20,6 @@ package org.dizitart.no2.repository;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
-import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.WriteResult;
@@ -41,7 +40,7 @@ import static org.junit.Assert.*;
  * @author Anindya Chatterjee.
  */
 public class ObjectRepositoryNegativeTest {
-    private String dbPath = getRandomTempDbFile();
+    private final String dbPath = getRandomTempDbFile();
     private Nitrite db;
 
     @Before
@@ -141,14 +140,6 @@ public class ObjectRepositoryNegativeTest {
         WithObjectId object = new WithObjectId();
         object.setWithOutId(id);
         repository.insert(object);
-    }
-
-    @Test(expected = ValidationException.class)
-    public void testValidateCollection() {
-        NitriteConfig context = NitriteConfig.create();
-        ObjectRepository<Employee> repository =
-            RepositoryFactory.getRepository(Employee.class, null, context);
-        repository.find();
     }
 
     @Test(expected = NotIdentifiableException.class)

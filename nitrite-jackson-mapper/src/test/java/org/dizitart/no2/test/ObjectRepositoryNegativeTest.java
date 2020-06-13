@@ -20,14 +20,12 @@ package org.dizitart.no2.test;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
-import org.dizitart.no2.NitriteConfig;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.WriteResult;
 import org.dizitart.no2.exceptions.*;
 import org.dizitart.no2.mapper.JacksonMapperModule;
 import org.dizitart.no2.repository.ObjectRepository;
-import org.dizitart.no2.repository.RepositoryFactory;
 import org.dizitart.no2.test.data.*;
 import org.junit.After;
 import org.junit.Before;
@@ -136,14 +134,6 @@ public class ObjectRepositoryNegativeTest {
         WithObjectId object = new WithObjectId();
         object.setWithOutId(id);
         repository.insert(object);
-    }
-
-    @Test(expected = ValidationException.class)
-    public void testValidateCollection() {
-        NitriteConfig context = db.getConfig();
-        ObjectRepository<Employee> repository =
-            RepositoryFactory.getRepository(Employee.class, null, context);
-        repository.find();
     }
 
     @Test(expected = NotIdentifiableException.class)

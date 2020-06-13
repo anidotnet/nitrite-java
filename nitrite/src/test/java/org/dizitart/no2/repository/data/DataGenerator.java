@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @UtilityClass
 public class DataGenerator {
-    private static Random random = new Random(System.currentTimeMillis());
-    private static AtomicInteger counter = new AtomicInteger(random.nextInt());
+    private static final Random random = new Random(System.currentTimeMillis());
+    private static final AtomicInteger counter = new AtomicInteger(random.nextInt());
 
     public static Company generateCompanyRecord() {
         Company company = new Company();
@@ -84,6 +84,7 @@ public class DataGenerator {
     public static Note randomNote() {
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("test.text");
 
+        assert inputStream != null;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String strLine;
             long line = random.nextInt(49);

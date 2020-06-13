@@ -41,25 +41,28 @@ import static org.junit.Assert.assertNotNull;
 public class RepositoryFactoryTest {
     @Test
     public void testRepositoryFactory() {
-        RepositoryFactory factory = new RepositoryFactory();
+        RepositoryFactory factory = new RepositoryFactory(new CollectionFactory());
         assertNotNull(factory);
     }
 
     @Test(expected = ValidationException.class)
     public void testNullType() {
+        RepositoryFactory factory = new RepositoryFactory(new CollectionFactory());
         Nitrite db = NitriteBuilder.get().openOrCreate();
-        RepositoryFactory.getRepository(null, "dummy", db.getConfig());
+        factory.getRepository(db.getConfig(), null, "dummy");
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testNullCollection() {
+        RepositoryFactory factory = new RepositoryFactory(new CollectionFactory());
         Nitrite db = NitriteBuilder.get().openOrCreate();
-        RepositoryFactory.getRepository(DummyCollection.class, null, db.getConfig());
+        factory.getRepository(db.getConfig(), DummyCollection.class, null);
     }
 
     @Test(expected = ValidationException.class)
     public void testNullContext() {
-        RepositoryFactory.getRepository(DummyCollection.class, "dummy", null);
+        RepositoryFactory factory = new RepositoryFactory(new CollectionFactory());
+        factory.getRepository(null, DummyCollection.class, "dummy");
     }
 
     private static class DummyCollection implements NitriteCollection {

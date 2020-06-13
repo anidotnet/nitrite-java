@@ -3,6 +3,8 @@ package org.dizitart.no2.store;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.NitriteConfig;
+import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.common.event.NitriteEventBus;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.index.BoundingBox;
@@ -18,8 +20,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.dizitart.no2.common.Constants.RESERVED_NAMES;
-import static org.dizitart.no2.common.util.ObjectUtils.*;
+import static org.dizitart.no2.common.Constants.*;
+import static org.dizitart.no2.common.util.ObjectUtils.getKeyName;
+import static org.dizitart.no2.common.util.ObjectUtils.getKeyedRepositoryType;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
@@ -28,15 +31,11 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 @Slf4j
 public class NitriteMVStore implements NitriteStore {
     private final NitriteEventBus<EventInfo, StoreEventListener> eventBus;
-    private final Set<String> collectionRegistry;
-    private final Map<String, Class<?>> repositoryRegistry;
     private MVStore mvStore;
     private MVStoreConfig mvStoreConfig;
     private NitriteConfig nitriteConfig;
 
     public NitriteMVStore() {
-        this.collectionRegistry = new HashSet<>();
-        this.repositoryRegistry = new HashMap<>();
         this.eventBus = new StoreEventBus();
     }
 
@@ -45,8 +44,6 @@ public class NitriteMVStore implements NitriteStore {
         validateStoreConfig(storeConfig);
         this.mvStoreConfig = (MVStoreConfig) storeConfig;
         this.mvStore = MVStoreUtils.openOrCreate(username, password, mvStoreConfig);
-        populateCollections();
-        populateRepositories();
         initEventBus();
         alert(StoreEvents.Opened);
     }
@@ -58,12 +55,43 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public Set<String> getCollectionNames() {
-        return collectionRegistry;
+        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
+        Document document = catalogueMap.get(TAG_COLLECTIONS);
+        if (document == null) return new HashSet<>();
+
+        return document.getFields();
     }
 
     @Override
-    public Map<String, Class<?>> getRepositoryRegistry() {
-        return repositoryRegistry;
+    public Set<String> getRepositoryRegistry() {
+        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
+        Document document = catalogueMap.get(TAG_REPOSITORIES);
+        if (document == null) return new HashSet<>();
+
+        return document.getFields();
+    }
+
+    @Override
+    public Map<String, Set<String>> getKeyedRepositoryRegistry() {
+        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
+        Document document = catalogueMap.get(TAG_KEYED_REPOSITORIES);
+        if (document == null) return new HashMap<>();
+
+        Map<String, Set<String>> resultMap = new HashMap<>();
+        for (String field : document.getFields()) {
+            String key = getKeyName(field);
+            String type = getKeyedRepositoryType(field);
+
+            Set<String> types;
+            if (resultMap.containsKey(key)) {
+                types = resultMap.get(key);
+            } else {
+                types = new HashSet<>();
+            }
+            types.add(type);
+            resultMap.put(key, types);
+        }
+        return resultMap;
     }
 
     @Override
@@ -103,30 +131,36 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public <Key, Value> NitriteMap<Key, Value> openMap(String name) {
-        if (isValidCollectionName(name)) {
-            if (!isRepository(name)) {
-                collectionRegistry.add(name);
-            } else {
-                addRepositoryName(name);
-            }
-        }
-
         MVMap<Key, Value> mvMap = mvStore.openMap(name);
         return new NitriteMVMap<>(mvMap, this);
     }
 
     @Override
     public void removeMap(String name) {
-        if (isValidCollectionName(name)) {
-            if (!isRepository(name)) {
-                collectionRegistry.remove(name);
-            } else {
-                repositoryRegistry.remove(name);
-            }
-        }
-
         MVMap<?, ?> mvMap = mvStore.openMap(name);
         mvStore.removeMap(mvMap);
+
+        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
+        for (KeyValuePair<String, Document> entry : catalogueMap.entries()) {
+            String catalogue = entry.getKey();
+            Document document = entry.getValue();
+
+            Set<String> bin = new HashSet<>();
+            boolean foundKey = false;
+            for (String field : document.getFields()) {
+                if (field.equals(name)) {
+                    foundKey = true;
+                    bin.add(field);
+                }
+            }
+
+            for (String field : bin) {
+                document.remove(field);
+            }
+            catalogueMap.put(catalogue, document);
+
+            if (foundKey) break;
+        }
     }
 
     @Override
@@ -182,38 +216,6 @@ public class NitriteMVStore implements NitriteStore {
             if (name.contains(reservedName)) return false;
         }
         return true;
-    }
-
-    private void populateCollections() {
-        Set<String> mapNames = mvStore.getMapNames();
-        for (String name : mapNames) {
-            if (isValidCollectionName(name) && !isRepository(name)) {
-                collectionRegistry.add(name);
-            }
-        }
-    }
-
-    private void populateRepositories() {
-        for (String name : mvStore.getMapNames()) {
-            if (isValidCollectionName(name) && isRepository(name)) {
-                addRepositoryName(name);
-            }
-        }
-    }
-
-    private void addRepositoryName(String name) {
-        try {
-            if (isKeyedRepository(name)) {
-                String typeName = getKeyedRepositoryType(name);
-                Class<?> type = Class.forName(typeName);
-                repositoryRegistry.put(name, type);
-            } else {
-                Class<?> type = Class.forName(name);
-                repositoryRegistry.put(name, type);
-            }
-        } catch (ClassNotFoundException e) {
-            log.error("Could not find the class " + name);
-        }
     }
 
     private void initEventBus() {

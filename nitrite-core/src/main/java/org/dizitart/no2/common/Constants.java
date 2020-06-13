@@ -65,6 +65,16 @@ public class Constants {
     public static final String STORE_INFO = "$nitrite_store_info";
 
     /**
+     * The constant COLLECTION_CATALOGUE.
+     */
+    public static final String COLLECTION_CATALOGUE = "$nitrite_catalogue";
+
+    /**
+     * The constant KEY_OBJ_SEPARATOR.
+     */
+    public static final String KEY_OBJ_SEPARATOR = "+";
+
+    /**
      * The constant RESERVED_NAMES.
      */
     public static final String[] RESERVED_NAMES = new String[]{
@@ -74,7 +84,9 @@ public class Constants {
         USER_MAP,
         OBJECT_STORE_NAME_SEPARATOR,
         META_MAP_NAME,
-        STORE_INFO
+        STORE_INFO,
+        COLLECTION_CATALOGUE,
+        KEY_OBJ_SEPARATOR
     };
 
     /**
@@ -137,10 +149,6 @@ public class Constants {
      * The constant DOC_SOURCE.
      */
     public static final String DOC_SOURCE = "_source";
-    /**
-     * The constant KEY_OBJ_SEPARATOR.
-     */
-    public static final String KEY_OBJ_SEPARATOR = "+";
     /**
      * The constant HASH_ITERATIONS.
      */

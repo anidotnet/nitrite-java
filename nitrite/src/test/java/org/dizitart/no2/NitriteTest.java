@@ -230,7 +230,7 @@ public class NitriteTest {
 
     @Test
     public void testGetRepositoryWithKey() {
-        ObjectRepository<NitriteTest> repository = db.getRepository("key", NitriteTest.class);
+        ObjectRepository<NitriteTest> repository = db.getRepository(NitriteTest.class, "key");
         assertNotNull(repository);
         assertEquals(repository.getType(), NitriteTest.class);
         assertFalse(db.hasRepository(NitriteTest.class));
@@ -282,7 +282,7 @@ public class NitriteTest {
     public void testGetKeyedRepositoryNullStore() {
         Nitrite db = NitriteBuilder.get().openOrCreate();
         db.close();
-        db.getRepository("key", NitriteTest.class);
+        db.getRepository(NitriteTest.class, "key");
     }
 
 
@@ -452,7 +452,7 @@ public class NitriteTest {
         assertEquals(cursor.get(0).get("third_key"), 0.5);
 
         ObjectRepository<Receipt> repository = db.getRepository(Receipt.class);
-        ObjectRepository<Receipt> orangeRepository = db.getRepository("orange", Receipt.class);
+        ObjectRepository<Receipt> orangeRepository = db.getRepository(Receipt.class, "orange");
 
         List<Receipt> list = repository.find(where("synced").eq(true)
             .and(where("status").eq(Receipt.Status.PREPARING.toString()))).toList();

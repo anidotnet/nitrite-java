@@ -71,7 +71,7 @@ inline fun <reified T : Any> Nitrite.getRepository(noinline op: (ObjectRepositor
  * @return the object repository of type [T]
  */
 inline fun <reified T : Any> Nitrite.getRepository(key: String, noinline op: (ObjectRepository<T>.() -> Unit)? = null): ObjectRepository<T> {
-    val repository = this.getRepository(key, T::class.java)
+    val repository = this.getRepository(T::class.java, key)
     op?.invoke(repository)
     return repository
 }

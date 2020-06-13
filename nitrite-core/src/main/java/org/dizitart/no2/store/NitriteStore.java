@@ -38,7 +38,14 @@ public interface NitriteStore extends NitritePlugin, AutoCloseable {
      *
      * @return the details of all {@link ObjectRepository}.
      */
-    Map<String, Class<?>> getRepositoryRegistry();
+    Set<String> getRepositoryRegistry();
+
+    /**
+     * Gets the set of all keyed-{@link ObjectRepository} details in store.
+     *
+     * @return the details of all {@link ObjectRepository}.
+     */
+    Map<String, Set<String>> getKeyedRepositoryRegistry();
 
     /**
      * Checks whether there are any unsaved changes.

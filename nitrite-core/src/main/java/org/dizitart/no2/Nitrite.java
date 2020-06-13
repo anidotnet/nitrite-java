@@ -27,7 +27,6 @@ import java.io.Closeable;
 import java.util.Map;
 import java.util.Set;
 
-import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.Constants.RESERVED_NAMES;
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -144,12 +143,12 @@ public interface Nitrite extends Closeable {
      * The returned repository is thread-safe for concurrent use.
      *
      * @param <T>  the type parameter.
-     * @param key  the key, which will be appended to the repositories name.
      * @param type the type of the object.
+     * @param key  the key, which will be appended to the repositories name.
      * @return the repository containing objects of type {@link T}.
      * @see ObjectRepository
      */
-    <T> ObjectRepository<T> getRepository(String key, Class<T> type);
+    <T> ObjectRepository<T> getRepository(Class<T> type, String key);
 
     /**
      * Gets the set of all {@link NitriteCollection}s' names saved in the store.
@@ -248,18 +247,6 @@ public interface Nitrite extends Closeable {
                 throw new ValidationException("name cannot contain " + reservedName);
             }
         }
-    }
-
-    default <T> String findRepositoryName(Class<T> type, String key) {
-        notNull(key, "key cannot be null");
-        notEmpty(key, "key cannot be empty");
-        notNull(type, "type cannot be null");
-        return type.getName() + KEY_OBJ_SEPARATOR + key;
-    }
-
-    default <T> String findRepositoryName(Class<T> type) {
-        notNull(type, "type cannot be null");
-        return type.getName();
     }
 
     default void checkOpened() {

@@ -18,13 +18,22 @@
 
 package org.dizitart.no2.repository;
 
+import com.github.javafaker.Faker;
+import lombok.Data;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteBuilder;
 import org.dizitart.no2.collection.Document;
+import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.collection.meta.Attributes;
+import org.dizitart.no2.exceptions.ValidationException;
+import org.dizitart.no2.index.IndexType;
+import org.dizitart.no2.mapper.Mappable;
 import org.dizitart.no2.mapper.MappableMapper;
 import org.dizitart.no2.mapper.NitriteMapper;
 import org.dizitart.no2.mapper.TypeConverter;
+import org.dizitart.no2.repository.annotations.Entity;
+import org.dizitart.no2.repository.annotations.Id;
+import org.dizitart.no2.repository.annotations.Index;
 import org.dizitart.no2.repository.data.*;
 import org.junit.After;
 import org.junit.Before;
@@ -274,13 +283,13 @@ public class ObjectRepositoryTest {
     @Test
     public void testKeyedRepository() {
         // an object repository of employees who are managers
-        ObjectRepository<Employee> managerRepo = db.getRepository("managers", Employee.class);
+        ObjectRepository<Employee> managerRepo = db.getRepository(Employee.class, "managers");
 
         // an object repository of all employee
         ObjectRepository<Employee> employeeRepo = db.getRepository(Employee.class);
 
         // and object repository of employees who are developers
-        ObjectRepository<Employee> developerRepo = db.getRepository("developers", Employee.class);
+        ObjectRepository<Employee> developerRepo = db.getRepository(Employee.class, "developers");
 
         Employee manager = new Employee();
         manager.setEmpId(1L);
@@ -309,5 +318,68 @@ public class ObjectRepositoryTest {
         assertEquals(managerRepo.find(where("address").eq("abcd")).size(), 1);
         assertEquals(developerRepo.find(where("address").eq("xyz")).size(), 1);
         assertEquals(developerRepo.find(where("address").eq("abcd")).size(), 0);
+    }
+
+    @Test
+    public void testEntityRepository() {
+        ObjectRepository<EmployeeEntity> managerRepo = db.getRepository(EmployeeEntity.class, "managers");
+        ObjectRepository<EmployeeEntity> employeeRepo = db.getRepository(EmployeeEntity.class);
+        ObjectRepository<EmployeeEntity> developerRepo = db.getRepository(EmployeeEntity.class, "developers");
+
+        managerRepo.insert(new EmployeeEntity(), new EmployeeEntity(), new EmployeeEntity());
+        employeeRepo.insert(new EmployeeEntity(), new EmployeeEntity(), new EmployeeEntity());
+        developerRepo.insert(new EmployeeEntity(), new EmployeeEntity(), new EmployeeEntity());
+
+        boolean errored = false;
+        try {
+            NitriteCollection collection = db.getCollection("entity.employee");
+        } catch (ValidationException e) {
+            errored = true;
+        }
+        assertTrue(errored);
+
+        assertTrue(db.listRepositories().contains("entity.employee"));
+        assertEquals(db.listKeyedRepository().size(), 2);
+        assertEquals(db.listCollectionNames().size(), 0);
+
+        assertTrue(managerRepo.hasIndex("firstName"));
+        assertTrue(managerRepo.hasIndex("lastName"));
+        assertTrue(employeeRepo.hasIndex("lastName"));
+        assertTrue(employeeRepo.hasIndex("lastName"));
+
+    }
+
+    @Data
+    @Entity(value = "entity.employee", indices = {
+        @Index(value = "firstName", type = IndexType.NonUnique),
+        @Index(value = "lastName", type = IndexType.NonUnique),
+    })
+    private static class EmployeeEntity implements Mappable {
+        private static final Faker faker = new Faker();
+
+        @Id
+        private Long id;
+        private String firstName;
+        private String lastName;
+
+        public EmployeeEntity() {
+            id = faker.number().randomNumber();
+            firstName = faker.name().firstName();
+            lastName = faker.name().lastName();
+        }
+
+        @Override
+        public Document write(NitriteMapper mapper) {
+            return Document.createDocument("id", id)
+                .put("firstName", firstName)
+                .put("lastName", lastName);
+        }
+
+        @Override
+        public void read(NitriteMapper mapper, Document document) {
+            id = document.get("id", Long.class);
+            firstName = document.get("firstName", String.class);
+            lastName = document.get("lastName", String.class);
+        }
     }
 }

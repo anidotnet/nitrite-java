@@ -74,7 +74,7 @@ public abstract class BaseExternalTest {
             .openOrCreate();
 
         sourceEmpRepo = sourceDb.getRepository(Employee.class);
-        sourceKeyedEmpRepo = sourceDb.getRepository("key", Employee.class);
+        sourceKeyedEmpRepo = sourceDb.getRepository(Employee.class, "key");
         sourceCompRepo = sourceDb.getRepository(Company.class);
 
         sourceFirstColl = sourceDb.getCollection("first");

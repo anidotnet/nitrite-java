@@ -25,36 +25,12 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 
-import static org.dizitart.no2.common.util.ObjectUtils.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.dizitart.no2.common.util.ObjectUtils.newInstance;
 
 /**
  * @author Anindya Chatterjee.
  */
 public class ObjectUtilsTest {
-
-    @Test
-    public void testIsObjectStore() {
-        assertFalse(isRepository(""));
-        assertFalse(isRepository(null));
-        assertFalse(isRepository("abcd"));
-        assertTrue(isRepository("java.lang.String"));
-        assertTrue(isRepository("java.lang.String+key"));
-        assertFalse(isRepository("java.lang.String-key"));
-    }
-
-    @Test
-    public void testIsKeyedObjectStore() {
-        assertTrue(isKeyedRepository("java.lang.String+key"));
-        assertFalse(isKeyedRepository("java.lang.String2+key"));
-        assertFalse(isKeyedRepository("java.lang.String"));
-        assertFalse(isKeyedRepository(null));
-        assertFalse(isKeyedRepository(""));
-        assertFalse(isKeyedRepository("abcd"));
-        assertFalse(isKeyedRepository("+"));
-        assertFalse(isKeyedRepository("abcd+e"));
-    }
 
     @Test
     public void testNewInstance() {

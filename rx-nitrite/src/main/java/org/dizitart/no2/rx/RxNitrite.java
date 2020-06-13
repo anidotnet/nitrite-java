@@ -33,7 +33,7 @@ public class RxNitrite {
     }
 
     public <T> RxObjectRepository<T> getRepository(String key, Class<T> type) {
-        ObjectRepository<T> repository = nitrite.getRepository(key, type);
+        ObjectRepository<T> repository = nitrite.getRepository(type, key);
         return new RxObjectRepositoryImpl<>(repository, nitriteContext);
     }
 

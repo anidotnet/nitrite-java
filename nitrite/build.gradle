@@ -26,6 +26,7 @@ dependencies {
     testAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion"
     testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
     testImplementation "uk.co.jemos.podam:podam:$podamVersion"
+    testImplementation "com.github.javafaker:javafaker:$javaFakerVersion"
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.openjdk.jmh:jmh-core:$jmhVersion"
     testImplementation "org.apache.lucene:lucene-core:$luceneVersion"

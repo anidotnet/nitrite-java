@@ -8,15 +8,13 @@ import org.dizitart.no2.common.KeyValuePair;
 import org.dizitart.no2.exceptions.*;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.index.IndexType;
-import org.dizitart.no2.repository.annotations.Id;
-import org.dizitart.no2.repository.annotations.Index;
-import org.dizitart.no2.repository.annotations.Indices;
-import org.dizitart.no2.repository.annotations.InheritIndices;
+import org.dizitart.no2.repository.annotations.*;
 import org.dizitart.no2.mapper.NitriteMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
 import java.util.*;
 
 import static org.dizitart.no2.common.Constants.DOC_ID;
@@ -46,9 +44,11 @@ class RepositoryOperations {
     private static void filterSynthetics(List<Field> fields) {
         if (fields == null || fields.isEmpty()) return;
         Iterator<Field> iterator = fields.iterator();
-        while (iterator.hasNext()) {
-            Field f = iterator.next();
-            if (f.isSynthetic()) iterator.remove();
+        if (iterator.hasNext()) {
+            do {
+                Field f = iterator.next();
+                if (f.isSynthetic()) iterator.remove();
+            } while (iterator.hasNext());
         }
     }
 
@@ -163,6 +163,7 @@ class RepositoryOperations {
     <T> Set<Index> extractIndices(Class<T> type) {
         notNull(type, "type cannot be null");
 
+        // populate from @Indices
         List<Indices> indicesList;
         if (type.isAnnotationPresent(InheritIndices.class)) {
             indicesList = findAnnotations(Indices.class, type);
@@ -178,6 +179,7 @@ class RepositoryOperations {
             populateIndex(nitriteMapper, type, Arrays.asList(indexList), indexSet);
         }
 
+        // populate from @Index
         List<Index> indexList;
         if (type.isAnnotationPresent(InheritIndices.class)) {
             indexList = findAnnotations(Index.class, type);
@@ -187,7 +189,21 @@ class RepositoryOperations {
             if (index != null) indexList.add(index);
         }
 
+        // populate from @Entity
+        if (type.isAnnotationPresent(InheritIndices.class)) {
+            List<Entity> entities = findAnnotations(Entity.class, type);
+            if (!entities.isEmpty()) {
+                for (Entity entity : entities) {
+                    indexList.addAll(Arrays.asList(entity.indices()));
+                }
+            }
+        } else if (type.isAnnotationPresent(Entity.class)) {
+            Entity entity = type.getAnnotation(Entity.class);
+            indexList.addAll(Arrays.asList(entity.indices()));
+        }
+
         populateIndex(nitriteMapper, type, indexList, indexSet);
+
         return indexSet;
     }
 
@@ -267,7 +283,7 @@ class RepositoryOperations {
     }
 
     private <T> Field getEmbeddedField(Class<T> startingClass, String embeddedField) {
-        String regex = "\\" + NitriteConfig.getFieldSeparator();
+        String regex = MessageFormat.format("\\{0}", NitriteConfig.getFieldSeparator());
         String[] split = embeddedField.split(regex, 2);
         String key = split[0];
         String remaining = split.length == 2 ? split[1] : "";

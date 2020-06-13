@@ -162,13 +162,13 @@ public class NitriteBuilderTest {
         ObjectRepository<TestObject> repository = db.getRepository(TestObject.class);
         repository.insert(new TestObject("test", 1L));
 
-        ObjectRepository<TestObject> repository2 = db.getRepository("key", TestObject.class);
+        ObjectRepository<TestObject> repository2 = db.getRepository(TestObject.class, "key");
         TestObject object = new TestObject();
         object.stringValue = "test2";
         object.longValue = 2L;
         repository2.insert(object);
 
-        ObjectRepository<TestObject2> repository3 = db.getRepository("key", TestObject2.class);
+        ObjectRepository<TestObject2> repository3 = db.getRepository(TestObject2.class, "key");
         TestObject2 object2 = new TestObject2();
         object2.stringValue = "test2";
         object2.longValue = 2L;

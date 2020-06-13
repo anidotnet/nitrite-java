@@ -35,11 +35,12 @@ public class CollectionFactoryTest {
         assertNotNull(factory);
 
         NitriteConfig config = NitriteConfig.create();
-        CollectionFactory.getCollection(null, config);
+        factory.getCollection(null, config, true);
     }
 
     @Test(expected = ValidationException.class)
     public void testGetCollectionContextNull() {
-        CollectionFactory.getCollection("test", null);
+        CollectionFactory factory = new CollectionFactory();
+        factory.getCollection("test", null, false);
     }
 }

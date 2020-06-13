@@ -25,7 +25,6 @@ import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.collection.DocumentCursor;
 import org.dizitart.no2.collection.NitriteCollection;
 import org.dizitart.no2.common.PersistentCollection;
-import org.dizitart.no2.common.util.StringUtils;
 import org.dizitart.no2.exceptions.NitriteIOException;
 import org.dizitart.no2.index.IndexEntry;
 import org.dizitart.no2.repository.ObjectRepository;
@@ -36,13 +35,14 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static org.dizitart.no2.common.Constants.*;
-import static org.dizitart.no2.common.util.ObjectUtils.*;
+import static org.dizitart.no2.common.util.ObjectUtils.getKeyName;
+import static org.dizitart.no2.common.util.ObjectUtils.getKeyedRepositoryType;
 
 /**
  * @author Anindya Chatterjee
  */
 class NitriteJsonExporter {
-    private Nitrite db;
+    private final Nitrite db;
     private JsonGenerator generator;
     private ExportOptions options;
 
@@ -56,48 +56,44 @@ class NitriteJsonExporter {
 
     public void exportData() throws IOException, ClassNotFoundException {
         List<PersistentCollection<?>> collections = options.getCollections();
+        Set<String> collectionNames;
+        Set<String> repositoryNames;
+        Map<String, Set<String>> keyedRepositoryNames;
         if (collections.isEmpty()) {
-            Set<String> collectionNames = db.listCollectionNames();
-            Set<String> repositoryNames = db.listRepositories();
-            Map<String, Set<String>> keyedRepositoryNames = db.listKeyedRepository();
-            exportData(collectionNames, repositoryNames, keyedRepositoryNames);
+            collectionNames = db.listCollectionNames();
+            repositoryNames = db.listRepositories();
+            keyedRepositoryNames = db.listKeyedRepository();
         } else {
-            Set<String> collectionNames = new HashSet<>();
-            Set<String> repositoryNames = new HashSet<>();
-            Map<String, Set<String>> keyedRepositoryNames = new HashMap<>();
+            collectionNames = new HashSet<>();
+            repositoryNames = new HashSet<>();
+            keyedRepositoryNames = new HashMap<>();
             for (PersistentCollection<?> collection : collections) {
-                String name = null;
+                String name;
                 if (collection instanceof NitriteCollection) {
                     NitriteCollection nitriteCollection = (NitriteCollection) collection;
                     name = nitriteCollection.getName();
+                    collectionNames.add(name);
                 } else if (collection instanceof ObjectRepository) {
                     ObjectRepository<?> repository = (ObjectRepository<?>) collection;
                     name = repository.getDocumentCollection().getName();
-                }
-
-                if (!StringUtils.isNullOrEmpty(name)) {
-                    if (isRepository(name)) {
-                        if (isKeyedRepository(name)) {
-                            String key = getKeyName(name);
-                            if (keyedRepositoryNames.containsKey(key)) {
-                                Set<String> types = keyedRepositoryNames.get(key);
-                                types.add(getKeyedRepositoryType(name));
-                                keyedRepositoryNames.put(key, types);
-                            } else {
-                                Set<String> types = new LinkedHashSet<>();
-                                types.add(getKeyedRepositoryType(name));
-                                keyedRepositoryNames.put(key, types);
-                            }
+                    if (name.contains(KEY_OBJ_SEPARATOR)) {
+                        String key = getKeyName(name);
+                        String type = getKeyedRepositoryType(name);
+                        Set<String> types;
+                        if (keyedRepositoryNames.containsKey(key)) {
+                            types = keyedRepositoryNames.get(key);
                         } else {
-                            repositoryNames.add(name);
+                            types = new LinkedHashSet<>();
                         }
+                        types.add(type);
+                        keyedRepositoryNames.put(key, types);
                     } else {
-                        collectionNames.add(name);
+                        repositoryNames.add(name);
                     }
                 }
             }
-            exportData(collectionNames, repositoryNames, keyedRepositoryNames);
         }
+        exportData(collectionNames, repositoryNames, keyedRepositoryNames);
         generator.close();
     }
 
@@ -130,7 +126,7 @@ class NitriteJsonExporter {
             Set<String> typeNames = entry.getValue();
             for (String typeName : typeNames) {
                 Class<?> type = Class.forName(typeName);
-                ObjectRepository<?> repository = db.getRepository(key, type);
+                ObjectRepository<?> repository = db.getRepository(type, key);
                 writeKeyedRepository(key, repository);
             }
         }

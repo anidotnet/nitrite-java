@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.exceptions.ValidationException;
 import org.dizitart.no2.repository.ObjectRepository;
+import org.dizitart.no2.repository.annotations.Entity;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisSerializer;
 import org.objenesis.ObjenesisStd;
@@ -36,7 +37,6 @@ import java.util.*;
 
 import static org.dizitart.no2.common.Constants.KEY_OBJ_SEPARATOR;
 import static org.dizitart.no2.common.util.Iterables.toArray;
-import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
  * A utility class.
@@ -66,43 +66,16 @@ public class ObjectUtils {
         PRIMITIVE_TO_WRAPPER_TYPE = Collections.unmodifiableMap(primToWrap);
     }
 
-    /**
-     * Checks whether a collection name is a valid object repository name.
-     *
-     * @param collectionName the collection name
-     * @return `true` if it is a valid object store name; `false` otherwise.
-     */
-    public static boolean isRepository(String collectionName) {
-        try {
-            if (isNullOrEmpty(collectionName)) return false;
-            Class.forName(collectionName);
-            return true;
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {
-            return isKeyedRepository(collectionName);
-        }
-    }
-
-    /**
-     * Checks whether a collection name is a valid keyed object repository name.
-     *
-     * @param collectionName the collection name
-     * @return `true` if it is a valid object store name; `false` otherwise.
-     */
-    public static boolean isKeyedRepository(String collectionName) {
-        try {
-            if (isNullOrEmpty(collectionName)) return false;
-            if (!collectionName.contains(KEY_OBJ_SEPARATOR)) return false;
-
-            String[] split = collectionName.split("\\" + KEY_OBJ_SEPARATOR);
-            if (split.length != 2) {
-                return false;
+    public static <T> String getEntityName(Class<T> type) {
+        if (type.isAnnotationPresent(Entity.class)) {
+            Entity entity = type.getAnnotation(Entity.class);
+            String name = entity.value();
+            if (StringUtils.isNullOrEmpty(name) || name.contains(KEY_OBJ_SEPARATOR)) {
+                throw new ValidationException(name + " is not a valid entity name");
             }
-            String storeName = split[0];
-            Class.forName(storeName);
-            return true;
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {
-            return false;
+            return entity.value();
         }
+        return type.getName();
     }
 
     /**

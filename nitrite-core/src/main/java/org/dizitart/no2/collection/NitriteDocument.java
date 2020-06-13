@@ -15,7 +15,7 @@ import java.text.MessageFormat;
 import java.util.*;
 
 import static org.dizitart.no2.collection.NitriteId.*;
-import static org.dizitart.no2.common.Constants.DOC_ID;
+import static org.dizitart.no2.common.Constants.*;
 import static org.dizitart.no2.common.util.Iterables.listOf;
 import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
@@ -26,6 +26,7 @@ import static org.dizitart.no2.common.util.ValidationUtils.notNull;
  */
 class NitriteDocument extends LinkedHashMap<String, Object> implements Document {
     private static final long serialVersionUID = 1477462374L;
+    private static final List<String> reservedFields = listOf(DOC_ID, DOC_REVISION, DOC_SOURCE, DOC_MODIFIED);
 
     NitriteDocument(Map<String, Object> objectMap) {
         super(objectMap);
@@ -120,6 +121,8 @@ class NitriteDocument extends LinkedHashMap<String, Object> implements Document 
         Set<String> fields = new HashSet<>();
 
         for (KeyValuePair<String, Object> entry : this) {
+            if (reservedFields.contains(entry.getKey())) continue;
+
             Object value = entry.getValue();
             if (value instanceof NitriteDocument) {
                 if (isNullOrEmpty(prefix)) {

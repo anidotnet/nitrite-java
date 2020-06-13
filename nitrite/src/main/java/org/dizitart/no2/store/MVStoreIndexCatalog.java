@@ -14,7 +14,7 @@ import static org.dizitart.no2.common.Constants.*;
  * @author Anindya Chatterjee
  */
 class MVStoreIndexCatalog implements IndexCatalog {
-    private NitriteStore nitriteStore;
+    private final NitriteStore nitriteStore;
 
     MVStoreIndexCatalog(NitriteStore nitriteStore) {
         this.nitriteStore = nitriteStore;

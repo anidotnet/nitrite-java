@@ -219,6 +219,21 @@ public class EventTest {
         assertEquals(count.get(), 2);
     }
 
+    @Test
+    public void testSingleEventListener() {
+        final AtomicInteger count = new AtomicInteger(0);
+        employeeRepository.subscribe(changeInfo -> count.incrementAndGet());
+
+        employeeRepository = db.getRepository(Employee.class);
+        Employee e = new Employee();
+        e.setEmpId(1L);
+        e.setAddress("abcd");
+        employeeRepository.insert(e);
+
+        await().atMost(1, TimeUnit.SECONDS).until(listenerPrepared(EventType.Insert));
+        assertEquals(count.get(), 1);
+    }
+
     @After
     public void clear() throws IOException {
         if (employeeRepository != null) {

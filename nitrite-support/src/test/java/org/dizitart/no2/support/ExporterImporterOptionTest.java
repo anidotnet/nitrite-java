@@ -66,7 +66,7 @@ public class ExporterImporterOptionTest extends BaseExternalTest {
         importer.importFrom(schemaFile);
 
         ObjectRepository<Employee> destEmpRepo = destDb.getRepository(Employee.class);
-        ObjectRepository<Employee> destKeyedEmpRepo = destDb.getRepository("key", Employee.class);
+        ObjectRepository<Employee> destKeyedEmpRepo = destDb.getRepository(Employee.class, "key");
         NitriteCollection destFirstColl = destDb.getCollection("first");
 
         assertEquals(filter(sourceFirstColl.find().toList()),

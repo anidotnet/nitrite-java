@@ -41,7 +41,7 @@ import static org.dizitart.no2.common.Constants.*;
  */
 class NitriteJsonImporter {
     private JsonParser parser;
-    private Nitrite db;
+    private final Nitrite db;
 
     public NitriteJsonImporter(Nitrite db) {
         this.db = db;
@@ -124,7 +124,7 @@ class NitriteJsonImporter {
 
                     String typeId = parser.getText();
                     Class<?> type = Class.forName(typeId);
-                    repository = db.getRepository(key, type);
+                    repository = db.getRepository(type, key);
                 }
 
                 if (TAG_INDICES.equals(fieldName)) {
