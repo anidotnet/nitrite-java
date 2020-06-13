@@ -347,6 +347,8 @@ public class ObjectRepositoryTest {
         assertTrue(employeeRepo.hasIndex("lastName"));
         assertTrue(employeeRepo.hasIndex("lastName"));
 
+        managerRepo.drop();
+        assertEquals(db.listKeyedRepository().size(), 1);
     }
 
     @Data
