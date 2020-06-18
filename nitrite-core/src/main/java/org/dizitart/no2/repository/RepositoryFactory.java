@@ -94,21 +94,21 @@ public class RepositoryFactory {
         ObjectRepository<T> repository = new DefaultObjectRepository<>(type, nitriteCollection, nitriteConfig);
         repositoryMap.put(collectionName, repository);
 
-        writeCatalogue(store, collectionName, key);
+        writeCatalog(store, collectionName, key);
         return repository;
     }
 
-    private void writeCatalogue(NitriteStore store, String name, String key) {
-        NitriteMap<String, Document> catalogueMap = store.openMap(COLLECTION_CATALOGUE);
-        Document document = StringUtils.isNullOrEmpty(key) ? catalogueMap.get(TAG_REPOSITORIES)
-            : catalogueMap.get(TAG_KEYED_REPOSITORIES);
+    private void writeCatalog(NitriteStore store, String name, String key) {
+        NitriteMap<String, Document> catalogMap = store.openMap(COLLECTION_CATALOG);
+        Document document = StringUtils.isNullOrEmpty(key) ? catalogMap.get(TAG_REPOSITORIES)
+            : catalogMap.get(TAG_KEYED_REPOSITORIES);
         if (document == null) document = Document.createDocument();
 
         document.put(name, true);
         if (StringUtils.isNullOrEmpty(key)) {
-            catalogueMap.put(TAG_REPOSITORIES, document);
+            catalogMap.put(TAG_REPOSITORIES, document);
         } else {
-            catalogueMap.put(TAG_KEYED_REPOSITORIES, document);
+            catalogMap.put(TAG_KEYED_REPOSITORIES, document);
         }
     }
 

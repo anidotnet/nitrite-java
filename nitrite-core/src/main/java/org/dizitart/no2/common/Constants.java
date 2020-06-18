@@ -65,9 +65,9 @@ public class Constants {
     public static final String STORE_INFO = "$nitrite_store_info";
 
     /**
-     * The constant COLLECTION_CATALOGUE.
+     * The constant COLLECTION_CATALOG.
      */
-    public static final String COLLECTION_CATALOGUE = "$nitrite_catalogue";
+    public static final String COLLECTION_CATALOG = "$nitrite_catalog";
 
     /**
      * The constant KEY_OBJ_SEPARATOR.
@@ -85,7 +85,7 @@ public class Constants {
         OBJECT_STORE_NAME_SEPARATOR,
         META_MAP_NAME,
         STORE_INFO,
-        COLLECTION_CATALOGUE,
+        COLLECTION_CATALOG,
         KEY_OBJ_SEPARATOR
     };
 

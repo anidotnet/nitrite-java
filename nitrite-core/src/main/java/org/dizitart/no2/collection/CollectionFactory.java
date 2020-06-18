@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.dizitart.no2.common.Constants.COLLECTION_CATALOGUE;
+import static org.dizitart.no2.common.Constants.COLLECTION_CATALOG;
 import static org.dizitart.no2.common.Constants.TAG_COLLECTIONS;
 import static org.dizitart.no2.common.util.ValidationUtils.notEmpty;
 import static org.dizitart.no2.common.util.ValidationUtils.notNull;
@@ -48,12 +48,12 @@ public class CollectionFactory {
         }
     }
 
-    private NitriteCollection createCollection(String name, NitriteConfig nitriteConfig, boolean writeCatalogue) {
+    private NitriteCollection createCollection(String name, NitriteConfig nitriteConfig, boolean writeCatalog) {
         NitriteStore store = nitriteConfig.getNitriteStore();
         NitriteMap<NitriteId, Document> nitriteMap = store.openMap(name);
         NitriteCollection collection = new NitriteCollectionImpl(name, nitriteMap, nitriteConfig);
 
-        if (writeCatalogue) {
+        if (writeCatalog) {
             // ignore repository request
             if (store.getRepositoryRegistry().contains(name)) {
                 throw new ValidationException("a repository with same name already exists");
@@ -66,11 +66,11 @@ public class CollectionFactory {
             }
 
             collectionMap.put(name, collection);
-            NitriteMap<String, Document> catalogueMap = store.openMap(COLLECTION_CATALOGUE);
-            Document document = catalogueMap.get(TAG_COLLECTIONS);
+            NitriteMap<String, Document> catalogMap = store.openMap(COLLECTION_CATALOG);
+            Document document = catalogMap.get(TAG_COLLECTIONS);
             if (document == null) document = Document.createDocument();
             document.put(name, true);
-            catalogueMap.put(TAG_COLLECTIONS, document);
+            catalogMap.put(TAG_COLLECTIONS, document);
         }
 
         return collection;

@@ -55,8 +55,8 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public Set<String> getCollectionNames() {
-        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
-        Document document = catalogueMap.get(TAG_COLLECTIONS);
+        NitriteMap<String, Document> catalogMap = openMap(COLLECTION_CATALOG);
+        Document document = catalogMap.get(TAG_COLLECTIONS);
         if (document == null) return new HashSet<>();
 
         return document.getFields();
@@ -64,8 +64,8 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public Set<String> getRepositoryRegistry() {
-        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
-        Document document = catalogueMap.get(TAG_REPOSITORIES);
+        NitriteMap<String, Document> catalogMap = openMap(COLLECTION_CATALOG);
+        Document document = catalogMap.get(TAG_REPOSITORIES);
         if (document == null) return new HashSet<>();
 
         return document.getFields();
@@ -73,8 +73,8 @@ public class NitriteMVStore implements NitriteStore {
 
     @Override
     public Map<String, Set<String>> getKeyedRepositoryRegistry() {
-        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
-        Document document = catalogueMap.get(TAG_KEYED_REPOSITORIES);
+        NitriteMap<String, Document> catalogMap = openMap(COLLECTION_CATALOG);
+        Document document = catalogMap.get(TAG_KEYED_REPOSITORIES);
         if (document == null) return new HashMap<>();
 
         Map<String, Set<String>> resultMap = new HashMap<>();
@@ -140,7 +140,7 @@ public class NitriteMVStore implements NitriteStore {
         MVMap<?, ?> mvMap = mvStore.openMap(name);
         mvStore.removeMap(mvMap);
 
-        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOGUE);
+        NitriteMap<String, Document> catalogueMap = openMap(COLLECTION_CATALOG);
         for (KeyValuePair<String, Document> entry : catalogueMap.entries()) {
             String catalogue = entry.getKey();
             Document document = entry.getValue();

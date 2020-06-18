@@ -106,7 +106,8 @@ class NitriteDatabase implements Nitrite {
                 commit();
             }
 
-            closeCollections();
+            repositoryFactory.clear();
+            collectionFactory.clear();
             store.close();
             log.info("Nitrite database has been closed successfully.");
         } catch (Throwable error) {
@@ -138,11 +139,5 @@ class NitriteDatabase implements Nitrite {
         this.nitriteConfig.initialized();
         this.store = nitriteConfig.getNitriteStore();
         this.store.openOrCreate(username, password, nitriteConfig.getStoreConfig());
-    }
-
-    private void closeCollections() {
-        checkOpened();
-        repositoryFactory.clear();
-        collectionFactory.clear();
     }
 }

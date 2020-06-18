@@ -28,13 +28,13 @@ import static org.dizitart.no2.common.util.ValidationUtils.validateDocumentIndex
  * @author Anindya Chatterjee
  */
 class IndexOperations implements AutoCloseable {
+    private final NitriteConfig nitriteConfig;
+    private final NitriteMap<NitriteId, Document> nitriteMap;
+    private final EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
     private String collectionName;
-    private NitriteConfig nitriteConfig;
-    private NitriteMap<NitriteId, Document> nitriteMap;
     private IndexCatalog indexCatalog;
     private Map<String, AtomicBoolean> indexBuildRegistry;
     private ExecutorService rebuildExecutor;
-    private EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus;
 
     IndexOperations(NitriteConfig nitriteConfig, NitriteMap<NitriteId, Document> nitriteMap,
                     EventBus<CollectionEventInfo<?>, CollectionEventListener> eventBus) {

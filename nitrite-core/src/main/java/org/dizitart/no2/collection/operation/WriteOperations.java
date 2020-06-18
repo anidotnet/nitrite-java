@@ -15,8 +15,8 @@ import org.dizitart.no2.exceptions.UniqueConstraintException;
 import org.dizitart.no2.filters.Filter;
 import org.dizitart.no2.store.NitriteMap;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.dizitart.no2.common.Constants.*;
 
@@ -41,7 +41,7 @@ class WriteOperations {
     }
 
     WriteResult insert(Document... documents) {
-        List<NitriteId> nitriteIdList = new ArrayList<>(documents.length);
+        Set<NitriteId> nitriteIds = new HashSet<>(documents.length);
         log.debug("Total {} document(s) to be inserted in {}", documents.length, nitriteMap.getName());
 
         for (Document document : documents) {
@@ -82,7 +82,7 @@ class WriteOperations {
                 }
             }
 
-            nitriteIdList.add(nitriteId);
+            nitriteIds.add(nitriteId);
 
             Document eventDoc = item.clone();
             CollectionEventInfo<Document> eventInfo = new CollectionEventInfo<>();
@@ -94,7 +94,7 @@ class WriteOperations {
         }
 
         WriteResultImpl result = new WriteResultImpl();
-        result.setNitriteIdList(nitriteIdList);
+        result.setNitriteIds(nitriteIds);
 
         log.debug("Returning write result {} for collection {}", result, nitriteMap.getName());
         return result;
@@ -129,7 +129,7 @@ class WriteOperations {
             }
 
             if (update.size() == 0) {
-                alert(EventType.Update, null);
+                alert(EventType.Update, new CollectionEventInfo<>());
                 return writeResult;
             }
 
@@ -182,7 +182,7 @@ class WriteOperations {
         return writeResult;
     }
 
-    WriteResult remove(Filter filter, boolean justOne) {
+    WriteResult remove(Filter filter, boolean justOnce) {
         DocumentCursor cursor;
         if (filter == null) {
             cursor = readOperations.find();
@@ -191,13 +191,13 @@ class WriteOperations {
         }
 
         WriteResultImpl result = new WriteResultImpl();
-        if (cursor == null) {
+        if (cursor == null || cursor.size() == 0) {
             log.debug("No document found to remove by the filter {} in {}", filter, nitriteMap.getName());
             return result;
         }
 
         log.debug("Filter {} found total {} document(s) to remove with options {} from {}",
-            filter, cursor.size(), justOne, nitriteMap.getName());
+            filter, cursor.size(), justOnce, nitriteMap.getName());
 
         for (Document document : cursor) {
             Document item = document.clone();
@@ -206,7 +206,7 @@ class WriteOperations {
                 alert(EventType.Remove, eventInfo);
             }
 
-            if (justOne) {
+            if (justOnce) {
                 return result;
             }
         }

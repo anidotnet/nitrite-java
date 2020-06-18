@@ -4,38 +4,35 @@ import lombok.ToString;
 import org.dizitart.no2.collection.NitriteId;
 import org.dizitart.no2.common.WriteResult;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Anindya Chatterjee
  */
 @ToString
 class WriteResultImpl implements WriteResult {
-    private List<NitriteId> nitriteIdList;
+    private Set<NitriteId> nitriteIds;
 
-    void setNitriteIdList(List<NitriteId> nitriteIdList) {
-        this.nitriteIdList = nitriteIdList;
+    void setNitriteIds(Set<NitriteId> nitriteIds) {
+        this.nitriteIds = nitriteIds;
     }
 
     void addToList(NitriteId nitriteId) {
-        if (nitriteIdList == null) {
-            nitriteIdList = new ArrayList<>();
+        if (nitriteIds == null) {
+            nitriteIds = new HashSet<>();
         }
-        nitriteIdList.add(nitriteId);
+        nitriteIds.add(nitriteId);
     }
 
     public int getAffectedCount() {
-        if (nitriteIdList == null) return 0;
-        return nitriteIdList.size();
+        if (nitriteIds == null) return 0;
+        return nitriteIds.size();
     }
 
     @Override
     public Iterator<NitriteId> iterator() {
-        Iterator<NitriteId> iterator = nitriteIdList == null ? Collections.emptyIterator()
-            : nitriteIdList.iterator();
+        Iterator<NitriteId> iterator = nitriteIds == null ? Collections.emptyIterator()
+            : nitriteIds.iterator();
         return iterator;
     }
 }

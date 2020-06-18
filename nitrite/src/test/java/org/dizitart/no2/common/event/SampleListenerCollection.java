@@ -33,7 +33,9 @@ class SampleListenerCollection implements CollectionEventListener {
 
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
-        this.action = eventInfo.getEventType();
-        this.item = eventInfo.getItem();
+        if (eventInfo != null) {
+            this.action = eventInfo.getEventType();
+            this.item = eventInfo.getItem();
+        }
     }
 }

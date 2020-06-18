@@ -19,8 +19,8 @@ import static org.dizitart.no2.common.Constants.REPLICATOR;
  */
 @Slf4j
 class ReplicaChangeListener implements CollectionEventListener {
-    private ReplicationTemplate replicationTemplate;
-    private MessageTemplate messageTemplate;
+    private final ReplicationTemplate replicationTemplate;
+    private final MessageTemplate messageTemplate;
 
     public ReplicaChangeListener(ReplicationTemplate replicationTemplate, MessageTemplate messageTemplate) {
         this.replicationTemplate = replicationTemplate;
@@ -30,20 +30,22 @@ class ReplicaChangeListener implements CollectionEventListener {
     @Override
     public void onEvent(CollectionEventInfo<?> eventInfo) {
         try {
-            if (!REPLICATOR.equals(eventInfo.getOriginator())) {
-                switch (eventInfo.getEventType()) {
-                    case Insert:
-                    case Update:
-                        Document document = (Document) eventInfo.getItem();
-                        handleModifyEvent(document);
-                        break;
-                    case Remove:
-                        document = (Document) eventInfo.getItem();
-                        handleRemoveEvent(document);
-                        break;
-                    case IndexStart:
-                    case IndexEnd:
-                        break;
+            if (eventInfo != null) {
+                if (!REPLICATOR.equals(eventInfo.getOriginator())) {
+                    switch (eventInfo.getEventType()) {
+                        case Insert:
+                        case Update:
+                            Document document = (Document) eventInfo.getItem();
+                            handleModifyEvent(document);
+                            break;
+                        case Remove:
+                            document = (Document) eventInfo.getItem();
+                            handleRemoveEvent(document);
+                            break;
+                        case IndexStart:
+                        case IndexEnd:
+                            break;
+                    }
                 }
             }
         } catch (Exception e) {
