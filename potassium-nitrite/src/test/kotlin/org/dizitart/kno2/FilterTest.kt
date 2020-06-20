@@ -1,23 +1,22 @@
 /*
- *
- * Copyright 2017-2018 Nitrite author or authors.
+ * Copyright (c) 2017-2020. Nitrite author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dizitart.kno2
 
+import lombok.Getter
 import org.dizitart.kno2.filters.*
 import org.dizitart.no2.collection.Document
 import org.dizitart.no2.common.Constants
@@ -29,6 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.io.WKTReader
+import java.util.*
 
 /**
  *
@@ -302,6 +302,37 @@ class FilterTest : BaseTest() {
             assertEquals(cursor1.size(), 1)
             assertEquals(cursor1.toList().map { trimMeta(it) }, listOf(doc1))
         }
+    }
+
+    @Test
+    fun testBetweenFilter() {
+        @Getter
+        class TestData(private val age: Date)
+
+        val data1 = TestData(GregorianCalendar(2020, Calendar.JANUARY, 11).time)
+        val data2 = TestData(GregorianCalendar(2021, Calendar.FEBRUARY, 12).time)
+        val data3 = TestData(GregorianCalendar(2022, Calendar.MARCH, 13).time)
+        val data4 = TestData(GregorianCalendar(2023, Calendar.APRIL, 14).time)
+        val data5 = TestData(GregorianCalendar(2024, Calendar.MAY, 15).time)
+        val data6 = TestData(GregorianCalendar(2025, Calendar.JUNE, 16).time)
+        val repository = db!!.getRepository(TestData::class.java)
+        repository.insert(data1, data2, data3, data4, data5, data6)
+
+        var cursor = repository.find("age".between(
+            GregorianCalendar(2020, Calendar.JANUARY, 11).time,
+            GregorianCalendar(2025, Calendar.JUNE, 16).time))
+        assertEquals(cursor.size(), 6)
+
+        cursor = repository.find("age".between(
+            GregorianCalendar(2020, Calendar.JANUARY, 11).time,
+            GregorianCalendar(2025, Calendar.JUNE, 16).time, false))
+        assertEquals(cursor.size(), 4)
+
+        cursor = repository.find("age".between(
+            GregorianCalendar(2020, Calendar.JANUARY, 11).time,
+            GregorianCalendar(2025, Calendar.JUNE, 16).time,
+            lowerInclusive = true, upperInclusive = false))
+        assertEquals(cursor.size(), 5)
     }
 
     private fun trimMeta(document: Document): Document {

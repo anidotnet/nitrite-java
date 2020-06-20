@@ -1,23 +1,22 @@
 /*
- *
- * Copyright 2017-2018 Nitrite author or authors.
+ * Copyright (c) 2017-2020. Nitrite author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dizitart.no2.test;
 
+import lombok.Getter;
 import org.dizitart.no2.common.ReadableStream;
 import org.dizitart.no2.common.SortOrder;
 import org.dizitart.no2.exceptions.InvalidIdException;
@@ -28,7 +27,9 @@ import org.dizitart.no2.repository.ObjectRepository;
 import org.dizitart.no2.test.data.*;
 import org.junit.Test;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import static org.dizitart.no2.filters.Filter.ALL;
@@ -551,5 +552,42 @@ public class RepositorySearchTest extends BaseObjectRepositoryTest {
     public void testIdSet() {
         Cursor<Employee> employees = employeeRepository.find().sort("empId", SortOrder.Ascending);
         assertEquals(employees.size(), 10);
+    }
+
+    @Test
+    public void testBetweenFilter() {
+        @Getter
+        class TestData {
+            private final Date age;
+
+            public TestData(Date age) {
+                this.age = age;
+            }
+        }
+
+        TestData data1 = new TestData(new GregorianCalendar(2020, Calendar.JANUARY, 11).getTime());
+        TestData data2 = new TestData(new GregorianCalendar(2021, Calendar.FEBRUARY, 12).getTime());
+        TestData data3 = new TestData(new GregorianCalendar(2022, Calendar.MARCH, 13).getTime());
+        TestData data4 = new TestData(new GregorianCalendar(2023, Calendar.APRIL, 14).getTime());
+        TestData data5 = new TestData(new GregorianCalendar(2024, Calendar.MAY, 15).getTime());
+        TestData data6 = new TestData(new GregorianCalendar(2025, Calendar.JUNE, 16).getTime());
+
+        ObjectRepository<TestData> repository = db.getRepository(TestData.class);
+        repository.insert(data1, data2, data3, data4, data5, data6);
+
+        Cursor<TestData> cursor = repository.find(where("age").between(
+            new GregorianCalendar(2020, Calendar.JANUARY, 11).getTime(),
+            new GregorianCalendar(2025, Calendar.JUNE, 16).getTime()));
+        assertEquals(cursor.size(), 6);
+
+        cursor = repository.find(where("age").between(
+            new GregorianCalendar(2020, Calendar.JANUARY, 11).getTime(),
+            new GregorianCalendar(2025, Calendar.JUNE, 16).getTime(), false));
+        assertEquals(cursor.size(), 4);
+
+        cursor = repository.find(where("age").between(
+            new GregorianCalendar(2020, Calendar.JANUARY, 11).getTime(),
+            new GregorianCalendar(2025, Calendar.JUNE, 16).getTime(), false, true));
+        assertEquals(cursor.size(), 5);
     }
 }

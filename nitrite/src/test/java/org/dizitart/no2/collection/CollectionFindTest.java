@@ -1,19 +1,17 @@
 /*
- *
- * Copyright 2017-2018 Nitrite author or authors.
+ * Copyright (c) 2017-2020. Nitrite author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dizitart.no2.collection;
@@ -826,5 +824,30 @@ public class CollectionFindTest extends BaseCollectionTest {
             assertNotNull(doc);
             assertEquals(doc.get("name"), "John");
         }
+    }
+
+    @Test
+    public void testBetweenFilter() {
+        Document doc1 = createDocument("age", 31).put("tag", "one");
+        Document doc2 = createDocument("age", 32).put("tag", "two");
+        Document doc3 = createDocument("age", 33).put("tag", "three");
+        Document doc4 = createDocument("age", 34).put("tag", "four");
+        Document doc5 = createDocument("age", 35).put("tag", "five");
+
+        NitriteCollection collection = db.getCollection("tag");
+        collection.insert(doc1, doc2, doc3, doc4, doc5);
+        collection.createIndex("age", IndexOptions.indexOptions(IndexType.Unique));
+
+        DocumentCursor cursor = collection.find(where("age").between(31, 35));
+        assertEquals(cursor.size(), 5);
+
+        cursor = collection.find(where("age").between(31, 35, false));
+        assertEquals(cursor.size(), 3);
+
+        cursor = collection.find(where("age").between(31, 35, false, true));
+        assertEquals(cursor.size(), 4);
+
+        cursor = collection.find(where("age").between(31, 35, false).not());
+        assertEquals(cursor.size(), 2);
     }
 }

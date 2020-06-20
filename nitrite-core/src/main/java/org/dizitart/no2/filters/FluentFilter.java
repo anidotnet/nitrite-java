@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2017-2020. Nitrite author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dizitart.no2.filters;
 
 import org.dizitart.no2.index.TextIndexer;
@@ -39,7 +55,7 @@ public final class FluentFilter {
 
     /**
      * Creates a greater than filter which matches those documents where the value
-     * of the value is greater than (i.e. >) the specified value.
+     * of the field is greater than (i.e. >) the specified value.
      * <p>
      * [[app-listing]]
      * [source,java]
@@ -58,7 +74,7 @@ public final class FluentFilter {
 
     /**
      * Creates a greater equal filter which matches those documents where the value
-     * of the value is greater than or equals to (i.e. >=) the specified value.
+     * of the field is greater than or equals to (i.e. >=) the specified value.
      * <p>
      * [[app-listing]]
      * [source,java]
@@ -77,7 +93,7 @@ public final class FluentFilter {
 
     /**
      * Creates a lesser than filter which matches those documents where the value
-     * of the value is less than (i.e. <) the specified value.
+     * of the field is less than (i.e. <) the specified value.
      * <p>
      * [[app-listing]]
      * [source,java]
@@ -96,7 +112,7 @@ public final class FluentFilter {
 
     /**
      * Creates a lesser equal filter which matches those documents where the value
-     * of the value is lesser than or equals to (i.e. <=) the specified value.
+     * of the field is lesser than or equals to (i.e. <=) the specified value.
      * <p>
      * [[app-listing]]
      * [source,java]
@@ -111,6 +127,66 @@ public final class FluentFilter {
      */
     public Filter lte(Comparable<?> value) {
         return new LesserEqualFilter(field, value);
+    }
+
+    /**
+     * Creates a between filter which matches those documents where the value
+     * of the field is within the specified bound including the end values.
+     * <p>
+     * <pre> {@code
+     * // matches all documents where 'age' field is between 30 and 40
+     * collection.find(where("age").between(40, 30));
+     * }
+     * </pre>
+     *
+     * @param lowerBound the lower value
+     * @param upperBound the upper value
+     * @return the between filter
+     */
+    public Filter between(Comparable<?> lowerBound, Comparable<?> upperBound) {
+        return new BetweenFilter<>(field, new BetweenFilter.Bound<>(lowerBound, upperBound));
+    }
+
+    /**
+     * Creates a between filter which matches those documents where the value
+     * of the field is within the specified bound.
+     * <p>
+     * <pre> {@code
+     * // matches all documents where 'age' field is
+     * // between 30 and 40, excluding 30 and 40
+     * collection.find(where("age").between(40, 30, false));
+     * }
+     * </pre>
+     *
+     * @param lowerBound the lower value
+     * @param upperBound the upper value
+     * @param inclusive indicates whether to include end values
+     * @return the between filter
+     */
+    public Filter between(Comparable<?> lowerBound, Comparable<?> upperBound, boolean inclusive) {
+        return new BetweenFilter<>(field, new BetweenFilter.Bound<>(lowerBound, upperBound, inclusive));
+    }
+
+    /**
+     * Creates a between filter which matches those documents where the value
+     * of the field is within the specified bound.
+     * <p>
+     * <pre> {@code
+     * // matches all documents where 'age' field is
+     * // between 30 and 40, including 40 and excluding 30
+     * collection.find(where("age").between(40, 30, true, false));
+     * }
+     * </pre>
+     *
+     * @param lowerBound the lower value
+     * @param upperBound the upper value
+     * @param lowerInclusive indicates whether to include lower end value
+     * @param upperInclusive indicates whether to include upper end value
+     * @return the between filter
+     */
+    public Filter between(Comparable<?> lowerBound, Comparable<?> upperBound, boolean lowerInclusive, boolean upperInclusive) {
+        return new BetweenFilter<>(field, new BetweenFilter.Bound<>(lowerBound, upperBound, lowerInclusive, upperInclusive
+        ));
     }
 
     /**

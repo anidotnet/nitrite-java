@@ -1,19 +1,17 @@
 /*
- *
- * Copyright 2017-2018 Nitrite author or authors.
+ * Copyright (c) 2017-2020. Nitrite author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dizitart.kno2.filters
@@ -61,6 +59,28 @@ inline infix fun <reified T : Comparable<T>> String.lt(value: T?): Filter = Flue
 inline infix fun <reified T : Comparable<T>> String.lte(value: T?): Filter = FluentFilter.where(this).lte(value)
 
 /**
+ * Creates a between filter which matches those documents where the value
+ * of the field is within the specified bound including the end values.
+ */
+inline fun <reified T : Comparable<T>> String.between(lowerBound: T, upperBound: T): Filter
+    = FluentFilter.where(this).between(lowerBound, upperBound)
+
+/**
+ * Creates a between filter which matches those documents where the value
+ * of the field is within the specified bound.
+ * */
+inline fun <reified T : Comparable<T>> String.between(lowerBound: T, upperBound: T, inclusive: Boolean): Filter
+    = FluentFilter.where(this).between(lowerBound, upperBound, inclusive)
+
+/**
+ * Creates a between filter which matches those documents where the value
+ * of the field is within the specified bound.
+ * */
+inline fun <reified T : Comparable<T>> String.between(lowerBound: T, upperBound: T, lowerInclusive: Boolean,
+                                                      upperInclusive: Boolean): Filter
+    = FluentFilter.where(this).between(lowerBound, upperBound, lowerInclusive, upperInclusive)
+
+/**
  * Creates an in filter which matches the documents where
  * the value of a field equals any value in the specified array of [values].
  */
@@ -89,7 +109,6 @@ infix fun String.text(value: String?): Filter = FluentFilter.where(this).text(va
  * for pattern matching strings in documents.
  */
 infix fun String.regex(value: String?): Filter = FluentFilter.where(this).regex(value)
-
 
 inline infix fun <reified T : Geometry> String.within(value: T?): Filter = org.dizitart.no2.spatial.FluentFilter.where(this).within(value)
 
