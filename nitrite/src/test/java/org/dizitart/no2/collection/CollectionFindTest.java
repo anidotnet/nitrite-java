@@ -129,6 +129,9 @@ public class CollectionFindTest extends BaseCollectionTest {
 
         cursor = collection.find(where("firstName").notIn("fn1", "fn2"));
         assertEquals(cursor.size(), 1);
+
+        cursor = collection.find(ALL.not());
+        assertEquals(cursor.size(), 0);
     }
 
     @Test

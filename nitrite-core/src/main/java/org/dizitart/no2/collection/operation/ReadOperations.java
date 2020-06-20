@@ -55,7 +55,7 @@ class ReadOperations {
     }
 
     public DocumentCursor find(Filter filter) {
-        if (filter == null) {
+        if (filter == null || filter == Filter.ALL) {
             return find();
         }
 

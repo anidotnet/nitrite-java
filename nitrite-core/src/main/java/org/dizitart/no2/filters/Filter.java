@@ -190,7 +190,7 @@ public interface Filter {
     /**
      * A filter to select all elements.
      */
-    Filter ALL = null;
+    Filter ALL = element -> true;
 
     static Filter byId(NitriteId nitriteId) {
         return new EqualsFilter(DOC_ID, nitriteId.getIdValue());

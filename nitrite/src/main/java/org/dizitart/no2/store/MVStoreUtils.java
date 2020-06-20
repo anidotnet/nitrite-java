@@ -16,7 +16,6 @@
 
 package org.dizitart.no2.store;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.exceptions.InvalidOperationException;
@@ -38,9 +37,9 @@ import static org.dizitart.no2.store.Security.openSecurely;
  * @author Anindya Chatterjee.
  */
 @Slf4j
-@UtilityClass
 class MVStoreUtils {
-    MVStore openOrCreate(String username, String password, MVStoreConfig mvStoreConfig) {
+    private MVStoreUtils() { }
+    static MVStore openOrCreate(String username, String password, MVStoreConfig mvStoreConfig) {
         try {
             MVStore.Builder builder = createBuilder(mvStoreConfig);
 
@@ -114,7 +113,7 @@ class MVStoreUtils {
         }
     }
 
-    StoreInfo getStoreInfo(MVStore store) {
+    static StoreInfo getStoreInfo(MVStore store) {
         if (store.hasMap(STORE_INFO)) {
             MVMap<String, Document> infoMap = store.openMap(STORE_INFO);
             Document document = infoMap.get(STORE_INFO);
@@ -125,19 +124,19 @@ class MVStoreUtils {
         return null;
     }
 
-    private boolean isCompatibilityError(IllegalStateException ise) {
+    private static boolean isCompatibilityError(IllegalStateException ise) {
         return ise.getCause() != null
             && ise.getCause().getCause() instanceof ClassNotFoundException
             && ise.getCause().getCause().getMessage().contains("org.dizitart.no2");
     }
 
-    private void closeStore(MVStore store) {
+    private static void closeStore(MVStore store) {
         if (store != null && !store.isClosed()) {
             store.closeImmediately();
         }
     }
 
-    private void writeStoreInfo(MVStore store) {
+    private static void writeStoreInfo(MVStore store) {
         try {
             Document document = Document.createDocument();
             document.put(Constants.CREATE_TIME, System.currentTimeMillis());
@@ -151,7 +150,7 @@ class MVStoreUtils {
         }
     }
 
-    private MVStore.Builder createBuilder(MVStoreConfig mvStoreConfig) {
+    private static MVStore.Builder createBuilder(MVStoreConfig mvStoreConfig) {
         MVStore.Builder builder = new MVStore.Builder();
 
         if (!isNullOrEmpty(mvStoreConfig.getFilePath())) {
@@ -184,7 +183,7 @@ class MVStoreUtils {
         return builder;
     }
 
-    private MVStore tryMigrate(String username, String password, File orgFile,
+    private static MVStore tryMigrate(String username, String password, File orgFile,
                                MVStore.Builder builder, MVStoreConfig storeConfig) {
         log.info("Migrating old database format to new database format");
 
@@ -209,7 +208,7 @@ class MVStoreUtils {
         return store;
     }
 
-    private void switchFiles(File newFile, File orgFile) {
+    private static void switchFiles(File newFile, File orgFile) {
         File backupFile = new File(orgFile.getPath() + "_old");
         if (orgFile.renameTo(backupFile)) {
             if (!newFile.renameTo(orgFile)) {

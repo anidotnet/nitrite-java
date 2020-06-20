@@ -112,7 +112,7 @@ class NitriteCollectionImpl implements NitriteCollection {
 
     @Override
     public WriteResult remove(Filter filter, boolean justOne) {
-        if (filter == Filter.ALL && justOne) {
+        if ((filter == null || filter == Filter.ALL) && justOne) {
             throw new InvalidOperationException("remove all cannot be combined with just once");
         }
         checkOpened();

@@ -16,7 +16,6 @@
 
 package org.dizitart.no2.store;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.SecurityException;
 import org.h2.mvstore.MVMap;
@@ -43,11 +42,12 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
  * @author Anindya Chatterjee.
  */
 @Slf4j
-@UtilityClass
 class Security {
-    private final Random random = new SecureRandom();
+    private static final Random random = new SecureRandom();
 
-    MVStore createSecurely(MVStore.Builder builder, String userId, String password) {
+    private Security() { }
+
+    static MVStore createSecurely(MVStore.Builder builder, String userId, String password) {
         MVStore store = builder.open();
 
         try {
@@ -68,7 +68,7 @@ class Security {
         return store;
     }
 
-    MVStore openSecurely(MVStore.Builder builder, String userId, String password) {
+    static MVStore openSecurely(MVStore.Builder builder, String userId, String password) {
         MVStore store = builder.open();
         boolean success = false;
 
@@ -105,13 +105,13 @@ class Security {
         }
     }
 
-    private byte[] getNextSalt() {
+    private static byte[] getNextSalt() {
         byte[] salt = new byte[16];
         random.nextBytes(salt);
         return salt;
     }
 
-    private byte[] hash(char[] password, byte[] salt) {
+    private static byte[] hash(char[] password, byte[] salt) {
         PBEKeySpec spec = new PBEKeySpec(password, salt, HASH_ITERATIONS, HASH_KEY_LENGTH);
         Arrays.fill(password, Character.MIN_VALUE);
         try {
@@ -126,7 +126,7 @@ class Security {
         }
     }
 
-    private boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
+    private static boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
         byte[] pwdHash = hash(password, salt);
         Arrays.fill(password, Character.MIN_VALUE);
         if (pwdHash.length != expectedHash.length) return false;

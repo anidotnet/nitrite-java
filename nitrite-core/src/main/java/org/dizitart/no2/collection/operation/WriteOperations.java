@@ -118,7 +118,7 @@ class WriteOperations {
 
     WriteResult update(Filter filter, Document update, UpdateOptions updateOptions) {
         DocumentCursor cursor;
-        if (filter == null) {
+        if (filter == null || filter == Filter.ALL) {
             cursor = readOperations.find();
         } else {
             cursor = readOperations.find(filter);
@@ -200,7 +200,7 @@ class WriteOperations {
 
     WriteResult remove(Filter filter, boolean justOnce) {
         DocumentCursor cursor;
-        if (filter == null) {
+        if (filter == null || filter == Filter.ALL) {
             cursor = readOperations.find();
         } else {
             cursor = readOperations.find(filter);

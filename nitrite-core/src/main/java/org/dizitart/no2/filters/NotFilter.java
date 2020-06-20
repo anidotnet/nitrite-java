@@ -26,7 +26,7 @@ import org.dizitart.no2.common.KeyValuePair;
  */
 class NotFilter extends NitriteFilter {
     @Getter
-    private Filter filter;
+    private final Filter filter;
 
     NotFilter(Filter filter) {
         this.filter = filter;
