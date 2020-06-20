@@ -28,6 +28,7 @@ import static org.dizitart.no2.common.Constants.META_MAP_NAME;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
+ * @since 1.0
  * @author Anindya Chatterjee
  */
 class NitriteMVMap<Key, Value> implements NitriteMap<Key, Value> {

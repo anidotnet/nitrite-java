@@ -42,6 +42,7 @@ import static org.dizitart.no2.common.util.ObjectUtils.getKeyedRepositoryType;
 import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
 
 /**
+ * @since 1.0
  * @author Anindya Chatterjee
  */
 @Slf4j

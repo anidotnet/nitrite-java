@@ -25,6 +25,7 @@ import java.util.Map;
 import static org.dizitart.no2.common.Constants.*;
 
 /**
+ * @since 4.0.0
  * @author Anindya Chatterjee
  */
 class MVStoreInfo implements StoreInfo {

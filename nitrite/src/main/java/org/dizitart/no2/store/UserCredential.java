@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
+ * @since 1.0
  * @author Anindya Chatterjee.
  */
 @Data

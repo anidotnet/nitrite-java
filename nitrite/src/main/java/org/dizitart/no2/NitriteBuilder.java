@@ -28,35 +28,6 @@ import java.io.File;
 
 /**
  * A builder utility to create a {@link Nitrite} database instance.
- * <p>
- * === Example:
- * <p>
- * [[app-listing]]
- * [source,java]
- * .Database with in-memory store
- * --
- * Nitrite db = NitriteBuilder.get()
- * .compressed()
- * .openOrCreate("user", "password");
- * --
- * <p>
- * [[app-listing]]
- * [source,java]
- * .Database with file store
- * --
- * Nitrite db = NitriteBuilder.get()
- * .filePath("/tmp/mydb.db")
- * .openOrCreate();
- * --
- * <p>
- * [[app-listing]]
- * [source,java]
- * .Database with user name and password
- * --
- * Nitrite db = NitriteBuilder.get()
- * .filePath("/tmp/mydb.db")
- * .openOrCreate("user", "password");
- * --
  *
  * @author Anindya Chatterjee
  * @see Nitrite
@@ -121,9 +92,9 @@ public abstract class NitriteBuilder {
      * <p>
      * When the values is set to 0 or lower, it will assume the default value
      * - 1024 KB.
-     * <p>
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: If auto commit is disabled by {@link NitriteBuilder#disableAutoCommit()},
+     * </p>
+     *
+     * <b>NOTE:</b> If auto commit is disabled by {@link NitriteBuilder#disableAutoCommit()},
      * then buffer size has not effect.
      *
      * @param size the buffer size in KB
@@ -139,9 +110,9 @@ public abstract class NitriteBuilder {
      * acquired to ensure the file is not concurrently opened in write mode.
      * <p>
      * If this option is not used, the file is locked exclusively.
-     * <p>
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: A file store may only be opened once in every JVM (no matter
+     * </p>
+     *
+     * <b>NOTE:</b> A file store may only be opened once in every JVM (no matter
      * whether it is opened in read-only or read-write mode), because each
      * file may be locked only once in a process.
      *
@@ -157,8 +128,8 @@ public abstract class NitriteBuilder {
      * about 50% of the disk space, but will slow down read and write
      * operations slightly.
      * <p>
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: This setting only affects writes; it is not necessary to enable
+     *
+     * <b>NOTE:</b> This setting only affects writes; it is not necessary to enable
      * compression when reading, even if compression was enabled when
      * writing.
      *
@@ -244,13 +215,11 @@ public abstract class NitriteBuilder {
      * exists, then it will create a new file store and open; otherwise it will
      * open the existing file store.
      * <p>
-     * [icon="{@docRoot}/note.png"]
-     * [NOTE]
-     * --
-     * If the database is corrupted somehow then at the time of opening, it will
+     *
+     *
+     * <b>NOTE:</b> If the database is corrupted somehow then at the time of opening, it will
      * try to repair it using the last known good version. If still it fails to
      * recover, then it will throw a {@link org.dizitart.no2.exceptions.NitriteIOException}.
-     * --
      *
      * @return the nitrite database instance.
      * @throws org.dizitart.no2.exceptions.NitriteIOException if unable to create a new in-memory database.
@@ -272,14 +241,11 @@ public abstract class NitriteBuilder {
      * While creating a new database, it will use the specified user credentials.
      * While opening an existing database, it will use the specified credentials
      * to open it.
-     * <p>
-     * [icon="{@docRoot}/note.png"]
-     * [NOTE]
-     * --
-     * If the database is corrupted somehow then at the time of opening, it will
+     * </p>
+     *
+     * <b>NOTE:</b> If the database is corrupted somehow then at the time of opening, it will
      * try to repair it using the last known good version. If still it fails to
      * recover, then it will throw a {@link org.dizitart.no2.exceptions.NitriteIOException}.
-     * --
      *
      * @param username the username
      * @param password the password

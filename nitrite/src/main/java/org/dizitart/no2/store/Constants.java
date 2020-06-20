@@ -17,11 +17,26 @@
 package org.dizitart.no2.store;
 
 /**
+ * The store Constants.
+ *
+ * @since 4.0.0
  * @author Anindya Chatterjee
  */
 public class Constants {
+    /**
+     * The constant FILE_STORE.
+     */
     public static final String FILE_STORE = "Store";
+    /**
+     * The constant STORE_VERSION.
+     */
     public static final String STORE_VERSION = "Version";
+    /**
+     * The constant CREATE_TIME.
+     */
     public static final String CREATE_TIME = "Created";
+    /**
+     * The constant NITRITE_VERSION.
+     */
     public static final String NITRITE_VERSION = "4";
 }

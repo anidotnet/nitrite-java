@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * A specialized version of {@link ObjectInputStream} for nitrite.
+ *
+ * @since 4.0.0
  * @author Anindya Chatterjee.
  */
 @Slf4j
@@ -42,6 +45,12 @@ class NitriteObjectInputStream extends ObjectInputStream {
         migrationMap.put("org.dizitart.no2.meta.Attributes", Compat.Attributes.class);
     }
 
+    /**
+     * Instantiates a new Nitrite object input stream.
+     *
+     * @param stream the stream
+     * @throws IOException the io exception
+     */
     public NitriteObjectInputStream(InputStream stream) throws IOException {
         super(stream);
     }

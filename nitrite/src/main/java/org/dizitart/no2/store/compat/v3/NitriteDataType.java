@@ -36,6 +36,11 @@ import java.util.HashMap;
 import java.util.UUID;
 
 /**
+ * The type Nitrite data type.
+ *
+ * <b>NOTE:</b> This code is a modification of h2 mvstore's {@link ObjectDataType}
+ * @since 4.0.0
+ * @author H2 Group
  * @author Anindya Chatterjee
  */
 class NitriteDataType extends ObjectDataType {
@@ -43,20 +48,65 @@ class NitriteDataType extends ObjectDataType {
      * The type constants are also used as tag values.
      */
     static final int TYPE_NULL = 0;
+    /**
+     * The Type boolean.
+     */
     static final int TYPE_BOOLEAN = 1;
+    /**
+     * The Type byte.
+     */
     static final int TYPE_BYTE = 2;
+    /**
+     * The Type short.
+     */
     static final int TYPE_SHORT = 3;
+    /**
+     * The Type int.
+     */
     static final int TYPE_INT = 4;
+    /**
+     * The Type long.
+     */
     static final int TYPE_LONG = 5;
+    /**
+     * The Type big integer.
+     */
     static final int TYPE_BIG_INTEGER = 6;
+    /**
+     * The Type float.
+     */
     static final int TYPE_FLOAT = 7;
+    /**
+     * The Type double.
+     */
     static final int TYPE_DOUBLE = 8;
+    /**
+     * The Type big decimal.
+     */
     static final int TYPE_BIG_DECIMAL = 9;
+    /**
+     * The Type char.
+     */
     static final int TYPE_CHAR = 10;
+    /**
+     * The Type string.
+     */
     static final int TYPE_STRING = 11;
+    /**
+     * The Type uuid.
+     */
     static final int TYPE_UUID = 12;
+    /**
+     * The Type date.
+     */
     static final int TYPE_DATE = 13;
+    /**
+     * The Type array.
+     */
     static final int TYPE_ARRAY = 14;
+    /**
+     * The Type serialized object.
+     */
     static final int TYPE_SERIALIZED_OBJECT = 19;
 
     /**
@@ -64,22 +114,73 @@ class NitriteDataType extends ObjectDataType {
      * in the tag. e.g. TAG_BOOLEAN_TRUE and TAG_FLOAT_0.
      */
     static final int TAG_BOOLEAN_TRUE = 32;
+    /**
+     * The Tag integer negative.
+     */
     static final int TAG_INTEGER_NEGATIVE = 33;
+    /**
+     * The Tag integer fixed.
+     */
     static final int TAG_INTEGER_FIXED = 34;
+    /**
+     * The Tag long negative.
+     */
     static final int TAG_LONG_NEGATIVE = 35;
+    /**
+     * The Tag long fixed.
+     */
     static final int TAG_LONG_FIXED = 36;
+    /**
+     * The Tag big integer 0.
+     */
     static final int TAG_BIG_INTEGER_0 = 37;
+    /**
+     * The Tag big integer 1.
+     */
     static final int TAG_BIG_INTEGER_1 = 38;
+    /**
+     * The Tag big integer small.
+     */
     static final int TAG_BIG_INTEGER_SMALL = 39;
+    /**
+     * The Tag float 0.
+     */
     static final int TAG_FLOAT_0 = 40;
+    /**
+     * The Tag float 1.
+     */
     static final int TAG_FLOAT_1 = 41;
+    /**
+     * The Tag float fixed.
+     */
     static final int TAG_FLOAT_FIXED = 42;
+    /**
+     * The Tag double 0.
+     */
     static final int TAG_DOUBLE_0 = 43;
+    /**
+     * The Tag double 1.
+     */
     static final int TAG_DOUBLE_1 = 44;
+    /**
+     * The Tag double fixed.
+     */
     static final int TAG_DOUBLE_FIXED = 45;
+    /**
+     * The Tag big decimal 0.
+     */
     static final int TAG_BIG_DECIMAL_0 = 46;
+    /**
+     * The Tag big decimal 1.
+     */
     static final int TAG_BIG_DECIMAL_1 = 47;
+    /**
+     * The Tag big decimal small.
+     */
     static final int TAG_BIG_DECIMAL_SMALL = 48;
+    /**
+     * The Tag big decimal small scaled.
+     */
     static final int TAG_BIG_DECIMAL_SMALL_SCALED = 49;
 
     /**
@@ -87,18 +188,39 @@ class NitriteDataType extends ObjectDataType {
      * tag.
      */
     static final int TAG_INTEGER_0_15 = 64;
+    /**
+     * The Tag long 0 7.
+     */
     static final int TAG_LONG_0_7 = 80;
+    /**
+     * The Tag string 0 15.
+     */
     static final int TAG_STRING_0_15 = 88;
+    /**
+     * The Tag byte array 0 15.
+     */
     static final int TAG_BYTE_ARRAY_0_15 = 104;
 
     /**
      * Constants for floating point synchronization.
      */
     static final int FLOAT_ZERO_BITS = Float.floatToIntBits(0.0f);
+    /**
+     * The Float one bits.
+     */
     static final int FLOAT_ONE_BITS = Float.floatToIntBits(1.0f);
+    /**
+     * The Double zero bits.
+     */
     static final long DOUBLE_ZERO_BITS = Double.doubleToLongBits(0.0d);
+    /**
+     * The Double one bits.
+     */
     static final long DOUBLE_ONE_BITS = Double.doubleToLongBits(1.0d);
 
+    /**
+     * The Common classes.
+     */
     static final Class<?>[] COMMON_CLASSES = {boolean.class, byte.class,
         short.class, char.class, int.class, long.class, float.class,
         double.class, Object.class, Boolean.class, Byte.class, Short.class,
@@ -422,9 +544,21 @@ class NitriteDataType extends ObjectDataType {
      */
     abstract static class AutoDetectDataType implements DataType {
 
+        /**
+         * The Base.
+         */
         protected final NitriteDataType base;
+        /**
+         * The Type id.
+         */
         protected final int typeId;
 
+        /**
+         * Instantiates a new Auto detect data type.
+         *
+         * @param base   the base
+         * @param typeId the type id
+         */
         AutoDetectDataType(NitriteDataType base, int typeId) {
             this.base = base;
             this.typeId = typeId;
@@ -499,6 +633,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class NullType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Null type.
+         *
+         * @param base the base
+         */
         NullType(NitriteDataType base) {
             super(base, TYPE_NULL);
         }
@@ -541,6 +680,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class BooleanType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Boolean type.
+         *
+         * @param base the base
+         */
         BooleanType(NitriteDataType base) {
             super(base, TYPE_BOOLEAN);
         }
@@ -582,6 +726,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class ByteType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Byte type.
+         *
+         * @param base the base
+         */
         ByteType(NitriteDataType base) {
             super(base, TYPE_BYTE);
         }
@@ -623,6 +772,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class CharacterType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Character type.
+         *
+         * @param base the base
+         */
         CharacterType(NitriteDataType base) {
             super(base, TYPE_CHAR);
         }
@@ -664,6 +818,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class ShortType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Short type.
+         *
+         * @param base the base
+         */
         ShortType(NitriteDataType base) {
             super(base, TYPE_SHORT);
         }
@@ -705,6 +864,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class IntegerType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Integer type.
+         *
+         * @param base the base
+         */
         IntegerType(NitriteDataType base) {
             super(base, TYPE_INT);
         }
@@ -767,6 +931,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class LongType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Long type.
+         *
+         * @param base the base
+         */
         LongType(NitriteDataType base) {
             super(base, TYPE_LONG);
         }
@@ -833,6 +1002,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class FloatType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Float type.
+         *
+         * @param base the base
+         */
         FloatType(NitriteDataType base) {
             super(base, TYPE_FLOAT);
         }
@@ -895,6 +1069,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class DoubleType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Double type.
+         *
+         * @param base the base
+         */
         DoubleType(NitriteDataType base) {
             super(base, TYPE_DOUBLE);
         }
@@ -959,6 +1138,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class BigIntegerType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Big integer type.
+         *
+         * @param base the base
+         */
         BigIntegerType(NitriteDataType base) {
             super(base, TYPE_BIG_INTEGER);
         }
@@ -1025,6 +1209,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class BigDecimalType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Big decimal type.
+         *
+         * @param base the base
+         */
         BigDecimalType(NitriteDataType base) {
             super(base, TYPE_BIG_DECIMAL);
         }
@@ -1103,6 +1292,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class StringType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new String type.
+         *
+         * @param base the base
+         */
         StringType(NitriteDataType base) {
             super(base, TYPE_STRING);
         }
@@ -1157,6 +1351,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class UUIDType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Uuid type.
+         *
+         * @param base the base
+         */
         UUIDType(NitriteDataType base) {
             super(base, TYPE_UUID);
         }
@@ -1201,6 +1400,11 @@ class NitriteDataType extends ObjectDataType {
      */
     static class DateType extends AutoDetectDataType {
 
+        /**
+         * Instantiates a new Date type.
+         *
+         * @param base the base
+         */
         DateType(NitriteDataType base) {
             super(base, TYPE_DATE);
         }
@@ -1246,6 +1450,11 @@ class NitriteDataType extends ObjectDataType {
 
         private final NitriteDataType elementType = new NitriteDataType();
 
+        /**
+         * Instantiates a new Object array type.
+         *
+         * @param base the base
+         */
         ObjectArrayType(NitriteDataType base) {
             super(base, TYPE_ARRAY);
         }
@@ -1485,6 +1694,11 @@ class NitriteDataType extends ObjectDataType {
 
         private int averageSize = 10_000;
 
+        /**
+         * Instantiates a new Serialized object type.
+         *
+         * @param base the base
+         */
         SerializedObjectType(NitriteDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
         }

@@ -34,12 +34,13 @@ import static org.dizitart.no2.store.Security.createSecurely;
 import static org.dizitart.no2.store.Security.openSecurely;
 
 /**
+ * @since 4.0.0
  * @author Anindya Chatterjee.
  */
 @Slf4j
 @UtilityClass
 class MVStoreUtils {
-    static MVStore openOrCreate(String username, String password, MVStoreConfig mvStoreConfig) {
+    MVStore openOrCreate(String username, String password, MVStoreConfig mvStoreConfig) {
         try {
             MVStore.Builder builder = createBuilder(mvStoreConfig);
 
@@ -113,7 +114,7 @@ class MVStoreUtils {
         }
     }
 
-    static StoreInfo getStoreInfo(MVStore store) {
+    StoreInfo getStoreInfo(MVStore store) {
         if (store.hasMap(STORE_INFO)) {
             MVMap<String, Document> infoMap = store.openMap(STORE_INFO);
             Document document = infoMap.get(STORE_INFO);
@@ -130,13 +131,13 @@ class MVStoreUtils {
             && ise.getCause().getCause().getMessage().contains("org.dizitart.no2");
     }
 
-    private static void closeStore(MVStore store) {
+    private void closeStore(MVStore store) {
         if (store != null && !store.isClosed()) {
             store.closeImmediately();
         }
     }
 
-    private static void writeStoreInfo(MVStore store) {
+    private void writeStoreInfo(MVStore store) {
         try {
             Document document = Document.createDocument();
             document.put(Constants.CREATE_TIME, System.currentTimeMillis());
@@ -183,8 +184,8 @@ class MVStoreUtils {
         return builder;
     }
 
-    private static MVStore tryMigrate(String username, String password, File orgFile,
-                                      MVStore.Builder builder, MVStoreConfig storeConfig) {
+    private MVStore tryMigrate(String username, String password, File orgFile,
+                               MVStore.Builder builder, MVStoreConfig storeConfig) {
         log.info("Migrating old database format to new database format");
 
         // open old store with builder
@@ -208,7 +209,7 @@ class MVStoreUtils {
         return store;
     }
 
-    private static void switchFiles(File newFile, File orgFile) {
+    private void switchFiles(File newFile, File orgFile) {
         File backupFile = new File(orgFile.getPath() + "_old");
         if (orgFile.renameTo(backupFile)) {
             if (!newFile.renameTo(orgFile)) {

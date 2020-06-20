@@ -21,6 +21,7 @@ import org.dizitart.no2.store.events.EventInfo;
 import org.dizitart.no2.store.events.StoreEventListener;
 
 /**
+ * @since 4.0.0
  * @author Anindya Chatterjee.
  */
 class StoreEventBus extends NitriteEventBus<EventInfo, StoreEventListener> {

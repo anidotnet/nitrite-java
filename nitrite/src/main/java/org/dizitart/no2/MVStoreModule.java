@@ -23,6 +23,9 @@ import org.dizitart.no2.store.NitriteMVStore;
 import java.util.Set;
 
 /**
+ * A {@link NitriteModule} which provides h2's mvstore as a storage engine.
+ *
+ * @since 4.0.0
  * @author Anindya Chatterjee
  */
 public class MVStoreModule implements NitriteModule {

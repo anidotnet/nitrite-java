@@ -28,6 +28,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Represents MV store configuration
+ *
+ * @since 4.0.0
  * @author Anindya Chatterjee
  */
 @Getter
@@ -110,10 +113,10 @@ public class MVStoreConfig implements StoreConfig {
      * <p>
      * When the values is set to 0 or lower, it will assume the default value
      * - 1024 KB.
-     * <p>
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: If auto commit is disabled by {@link MVStoreConfig#disableAutoCommit()},
-     * then buffer size has not effect.
+     * </p>
+     *
+     * <b>NOTE:</b> If auto commit is disabled by {@link MVStoreConfig#disableAutoCommit()},
+     * then buffer size has no effect.
      *
      * @param size the buffer size in KB
      */
@@ -130,9 +133,9 @@ public class MVStoreConfig implements StoreConfig {
      * acquired to ensure the file is not concurrently opened in write mode.
      * <p>
      * If this option is not used, the file is locked exclusively.
-     * <p>
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: A file store may only be opened once in every JVM (no matter
+     * </p>
+     *
+     * <b>NOTE:</b> A file store may only be opened once in every JVM (no matter
      * whether it is opened in read-only or read-write mode), because each
      * file may be locked only once in a process.
      */
@@ -149,8 +152,8 @@ public class MVStoreConfig implements StoreConfig {
      * about 50% of the disk space, but will slow down read and write
      * operations slightly.
      * <p>
-     * [icon="{@docRoot}/note.png"]
-     * NOTE: This setting only affects writes; it is not necessary to enable
+     *
+     * <b>NOTE:</b> This setting only affects writes; it is not necessary to enable
      * compression when reading, even if compression was enabled when
      * writing.
      */

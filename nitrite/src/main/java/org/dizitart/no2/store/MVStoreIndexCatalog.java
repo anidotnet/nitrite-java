@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.dizitart.no2.common.Constants.*;
 
 /**
+ * @since 4.0.0
  * @author Anindya Chatterjee
  */
 class MVStoreIndexCatalog implements IndexCatalog {

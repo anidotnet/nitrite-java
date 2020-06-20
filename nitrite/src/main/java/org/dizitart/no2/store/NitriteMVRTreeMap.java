@@ -25,6 +25,7 @@ import org.h2.mvstore.rtree.SpatialKey;
 import java.util.Iterator;
 
 /**
+ * @since 1.0
  * @author Anindya Chatterjee
  */
 class NitriteMVRTreeMap<Key extends BoundingBox, Value>

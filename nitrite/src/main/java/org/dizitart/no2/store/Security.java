@@ -39,14 +39,15 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
  * It does not store password in plain text format instead it stores password hash
  * and salt.
  *
+ * @since 1.0
  * @author Anindya Chatterjee.
  */
 @Slf4j
 @UtilityClass
 class Security {
-    private static final Random random = new SecureRandom();
+    private final Random random = new SecureRandom();
 
-    static MVStore createSecurely(MVStore.Builder builder, String userId, String password) {
+    MVStore createSecurely(MVStore.Builder builder, String userId, String password) {
         MVStore store = builder.open();
 
         try {
@@ -67,7 +68,7 @@ class Security {
         return store;
     }
 
-    static MVStore openSecurely(MVStore.Builder builder, String userId, String password) {
+    MVStore openSecurely(MVStore.Builder builder, String userId, String password) {
         MVStore store = builder.open();
         boolean success = false;
 
@@ -104,13 +105,13 @@ class Security {
         }
     }
 
-    private static byte[] getNextSalt() {
+    private byte[] getNextSalt() {
         byte[] salt = new byte[16];
         random.nextBytes(salt);
         return salt;
     }
 
-    private static byte[] hash(char[] password, byte[] salt) {
+    private byte[] hash(char[] password, byte[] salt) {
         PBEKeySpec spec = new PBEKeySpec(password, salt, HASH_ITERATIONS, HASH_KEY_LENGTH);
         Arrays.fill(password, Character.MIN_VALUE);
         try {
@@ -125,7 +126,7 @@ class Security {
         }
     }
 
-    private static boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
+    private boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
         byte[] pwdHash = hash(password, salt);
         Arrays.fill(password, Character.MIN_VALUE);
         if (pwdHash.length != expectedHash.length) return false;
