@@ -16,7 +16,6 @@
 
 package org.dizitart.no2.common.util;
 
-import lombok.experimental.UtilityClass;
 import org.dizitart.no2.collection.Document;
 import org.dizitart.no2.exceptions.IndexingException;
 import org.dizitart.no2.exceptions.InvalidOperationException;
@@ -31,8 +30,10 @@ import static org.dizitart.no2.common.util.StringUtils.isNullOrEmpty;
  * @author Anindya Chatterjee
  * @since 1.0
  */
-@UtilityClass
 public class ValidationUtils {
+    private ValidationUtils() {
+    }
+
     /**
      * Validates if a string is empty or `null`.
      *

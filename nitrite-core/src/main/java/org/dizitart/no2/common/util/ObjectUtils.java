@@ -16,7 +16,6 @@
 
 package org.dizitart.no2.common.util;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.dizitart.no2.exceptions.ObjectMappingException;
 import org.dizitart.no2.exceptions.ValidationException;
@@ -43,7 +42,6 @@ import static org.dizitart.no2.common.util.Iterables.toArray;
  * @since 1.0
  */
 @SuppressWarnings("rawtypes")
-@UtilityClass
 @Slf4j
 public class ObjectUtils {
     private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER_TYPE;
@@ -63,6 +61,8 @@ public class ObjectUtils {
         primToWrap.put(void.class, Void.class);
         PRIMITIVE_TO_WRAPPER_TYPE = Collections.unmodifiableMap(primToWrap);
     }
+
+    private ObjectUtils() {}
 
     public static <T> String getEntityName(Class<T> type) {
         if (type.isAnnotationPresent(Entity.class)) {
@@ -255,7 +255,7 @@ public class ObjectUtils {
         }
     }
 
-    private Class<?> toWrapperType(Class<?> type) {
+    private static Class<?> toWrapperType(Class<?> type) {
         Class<?> wrapped = PRIMITIVE_TO_WRAPPER_TYPE.get(type);
         return (wrapped == null) ? type : wrapped;
     }

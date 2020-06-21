@@ -47,7 +47,7 @@ class RegexFilter extends FieldBasedFilter {
                 }
                 matcher.reset();
             } else {
-                throw new FilterException(getField() + " does not contain string value.");
+                throw new FilterException(getField() + " does not contain string value");
             }
         }
         return false;
