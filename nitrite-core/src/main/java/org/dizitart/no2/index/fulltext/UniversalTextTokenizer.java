@@ -31,7 +31,7 @@ import static org.dizitart.no2.common.util.Iterables.arrayContains;
  * @since 2.1.0
  */
 public class UniversalTextTokenizer extends BaseTextTokenizer {
-    private Set<String> stopWords = new HashSet<>();
+    private final Set<String> stopWords = new HashSet<>();
 
     public UniversalTextTokenizer() {
         loadAllLanguages();

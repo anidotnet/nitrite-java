@@ -27,7 +27,7 @@ import java.util.Set;
  * @since 1.0
  */
 public class EnglishTextTokenizer extends BaseTextTokenizer {
-    private Language language;
+    private final Language language;
 
     public EnglishTextTokenizer() {
         language = new English();

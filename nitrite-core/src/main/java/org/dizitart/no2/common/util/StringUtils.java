@@ -16,7 +16,7 @@
 
 package org.dizitart.no2.common.util;
 
-import lombok.experimental.UtilityClass;
+import java.util.StringTokenizer;
 
 /**
  * A utility class for {@link String}.
@@ -24,8 +24,9 @@ import lombok.experimental.UtilityClass;
  * @author Anindya Chatterjee
  * @since 1.0
  */
-@UtilityClass
 public class StringUtils {
+    private StringUtils() {}
+
     /**
      * Checks if a string is `null` or empty string.
      *
@@ -67,5 +68,10 @@ public class StringUtils {
             }
         }
         return sb.substring(0, end);
+    }
+
+    public static StringTokenizer stringTokenizer(String text) {
+        String delimiters = " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]<>\\";
+        return new StringTokenizer(text, delimiters);
     }
 }

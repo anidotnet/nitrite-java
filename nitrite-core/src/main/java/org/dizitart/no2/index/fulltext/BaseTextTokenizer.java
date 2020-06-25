@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import static org.dizitart.no2.common.util.StringUtils.stringTokenizer;
+
 /**
  * An abstract text tokenizer which tokenizes a given string.
  * It discards certain words known as stop word depending on
@@ -31,14 +33,12 @@ import java.util.StringTokenizer;
  * @since 2.1.0
  */
 public abstract class BaseTextTokenizer implements TextTokenizer {
-    private static final String WHITESPACE_CHARS = " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]<>\\";
-
     @Override
     public Set<String> tokenize(String text) {
         Set<String> words = new HashSet<>();
         if (StringUtils.isNullOrEmpty(text)) return words;
 
-        StringTokenizer tokenizer = new StringTokenizer(text, WHITESPACE_CHARS);
+        StringTokenizer tokenizer = stringTokenizer(text);
         while (tokenizer.hasMoreTokens()) {
             String word = tokenizer.nextToken();
             word = convertWord(word);

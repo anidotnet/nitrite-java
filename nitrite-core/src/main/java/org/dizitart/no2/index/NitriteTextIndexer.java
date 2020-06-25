@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import static org.dizitart.no2.common.util.ObjectUtils.convertToObjectArray;
+import static org.dizitart.no2.common.util.StringUtils.stringTokenizer;
 import static org.dizitart.no2.common.util.ValidationUtils.*;
 
 /**
@@ -192,7 +193,7 @@ public class NitriteTextIndexer implements TextIndexer {
             throw new FilterException("* is not a valid search string");
         }
 
-        StringTokenizer stringTokenizer = new StringTokenizer(searchString);
+        StringTokenizer stringTokenizer = stringTokenizer(searchString);
         if (stringTokenizer.countTokens() > 1) {
             throw new FilterException("multiple words with wildcard is not supported");
         }
