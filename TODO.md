@@ -1,7 +1,8 @@
-1. All exception message must be detailed and unique as no number is there now.
-2. LuceneIndexer, test with testIssue174()
-3. Ensure every error event in replication
-4. Add Message Id and Correlation Id in header
+##TODO:
+- LevelDB storage - https://github.com/dain/leveldb
+- All exception message must be detailed and unique as no number is there now.
+- LuceneIndexer, test with testIssue174()
+- Ensure every error event in replication
 
 
 DataGate Server:
@@ -19,7 +20,6 @@ https://www.freecodecamp.org/news/how-to-build-mongodb-like-datastore-using-inte
 
 Queue message and run a timer task to pick message and
 send over websocket
-
 
 
 ## title DataGate Message Communication

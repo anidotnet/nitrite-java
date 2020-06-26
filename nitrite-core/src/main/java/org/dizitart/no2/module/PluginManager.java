@@ -34,10 +34,10 @@ import java.util.Map;
 @Slf4j
 @Getter
 public class PluginManager {
-    private Map<String, Indexer> indexerMap;
+    private final Map<String, Indexer> indexerMap;
     private NitriteMapper nitriteMapper;
     private NitriteStore nitriteStore;
-    private NitriteConfig nitriteConfig;
+    private final NitriteConfig nitriteConfig;
 
     public PluginManager(NitriteConfig nitriteConfig) {
         this.indexerMap = new HashMap<>();
@@ -62,7 +62,7 @@ public class PluginManager {
     }
 
     public void initializePlugins() {
-        if (indexerMap != null && !indexerMap.isEmpty()) {
+        if (!indexerMap.isEmpty()) {
             for (Indexer indexer : indexerMap.values()) {
                 initializePlugin(indexer);
             }
